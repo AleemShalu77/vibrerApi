@@ -54,10 +54,6 @@ const getAllBadge = async(req, res, next) => {
 
 const getBadge = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    } 
     let result = await badgeService.getBadge(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {

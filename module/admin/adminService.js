@@ -1,5 +1,5 @@
 const adminUsersSchema = require("../../model/admin_users");
-// const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt");
 // const jwt = require("jsonwebtoken");
 // const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
@@ -9,7 +9,7 @@ const addUser = async(req) => {
   const pswd = await bcrypt.genSalt(10); 
   const password = await bcrypt.hash(req.body.password , pswd);
   const { first_name, last_name ,role,email,verification,createdBy,updatedBy,status } = req.body;
-  const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file}`
+  const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file.filename}`
   const user = await adminUsersSchema.create({
     name:{
         first_name: first_name,

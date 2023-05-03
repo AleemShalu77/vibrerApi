@@ -54,10 +54,6 @@ const getAllartistCategory = async(req, res, next) => {
 
 const getartistCategory = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    } 
     let result = await artistCategoryService.getartistCategory(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const adminUsersSchema = new mongoose.Schema({
-    _id:String,
     name:{
         first_name:{
             type:String,
@@ -41,7 +40,7 @@ const adminUsersSchema = new mongoose.Schema({
         required:true
     },
     status:{
-        type:Array,
+        type:String,
         required:true
     }
 },

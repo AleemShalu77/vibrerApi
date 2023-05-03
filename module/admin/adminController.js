@@ -76,10 +76,6 @@ const getAllUser = async(req, res, next) => {
 
 const getUser = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    } 
     let result = await adminService.getUser(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {
