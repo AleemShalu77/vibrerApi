@@ -1,47 +1,15 @@
 /**
  * @swagger
- * /add/admin:
+ * /add/badge:
  *   post:
  *     tags:
- *       - Admin
- *     name: Add Admin User
- *     summary: Add Admin User
+ *       - Badge
+ *     name: Add Badge
+ *     summary: Add Badge
  *     consumes:
  *       - application/json
  *     parameters:
- *             - name : first_name
- *               in: formData
- *               type: string
- *               required: true
- *             - name : last_name
- *               in: formData
- *               type: string
- *               required: true
- *             - name : role
- *               in: formData
- *               type: string
- *               required: true
- *             - name : email
- *               in: formData
- *               type: string
- *               required: true
- *             - name : password
- *               in: formData
- *               type: string
- *               required: true
- *             - name : verification
- *               in: formData
- *               type: string
- *               required: true
- *             - name : profile_img
- *               in: formData
- *               type: file
- *               required: true
- *             - name : createdBy
- *               in: formData
- *               type: string
- *               required: true
- *             - name : updatedBy
+ *             - name : name
  *               in: formData
  *               type: string
  *               required: true
@@ -49,21 +17,25 @@
  *               in: formData
  *               type: string
  *               required: true
+ *             - name : icon_img
+ *               in: formData
+ *               type: string
+ *               required: true
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: Admin added successfully
+ *         description: Badge added successfully
  */
 
 /**
  * @swagger
- * /update/admin:
+ * /update/badge:
  *   put:
  *     tags:
- *       - Admin
- *     name: Update Admin User
- *     summary: Update Admin User
+ *       - Badge
+ *     name: Update Badge
+ *     summary: Update Badge
  *     consumes:
  *       - application/json
  *     parameters:
@@ -84,17 +56,17 @@
  *       - application/json
  *     responses:
  *       200:
- *         description: Admin updated successfully
+ *         description: Badge updated successfully
  */
 
   /**
  * @swagger
- * /user:
+ * /badge:
  *   get:
  *     tags:
- *       - Admin
- *     name: Get Admin Details
- *     summary: Get Admin
+ *       - Badge
+ *     name: Get Badge Details
+ *     summary: Get Badge
  *     consumes:
  *       - application/json
  *     parameters:
@@ -102,23 +74,23 @@
  *         name: id
  *         required: false
  *         schema:
- *            type: integer
+ *            type: integer 
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: Admin Details Show Successfully
+ *         description: Badge Details Show Successfully
  */
  /**
 
 /**
  * @swagger
- * /remove/user:
+ * /remove/badge:
  *   post:
  *     tags:
- *       - Admin
- *     name: Remove Admin
- *     summary: Remove Admin
+ *       - Badge
+ *     name: Remove Badge
+ *     summary: Remove Badge
  *     consumes:
  *       - application/json
  *     parameters:
@@ -131,22 +103,22 @@
  *       - application/json
  *     responses:
  *       200:
- *         description: Remove user
+ *         description: Remove Badge Category
  */
  /**
   
  * @swagger
- * /all/user:
+ * /all/badge:
  *   get:
  *     tags:
- *       - Admin
- *     name: Get all Admin User List
- *     summary: Get all Admin User List
+ *       - Badge
+ *     name: Get all Badge List
+ *     summary: Get all Badge List
  *     consumes:
  *       - application/json
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: admin
+ *         description: Badge List
  */
