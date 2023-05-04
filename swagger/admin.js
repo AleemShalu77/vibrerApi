@@ -3,9 +3,9 @@
  * /add/admin:
  *   post:
  *     tags:
- *       - admin
- *     name: Add admin
- *     summary: Add admin
+ *       - Admin
+ *     name: Add Admin User
+ *     summary: Add Admin User
  *     consumes:
  *       - application/json
  *     parameters:
@@ -53,7 +53,7 @@
  *       - application/json
  *     responses:
  *       200:
- *         description: admin added successfully
+ *         description: Admin added successfully
  */
 
 /**
@@ -106,7 +106,7 @@
  *       - application/json
  *     responses:
  *       200:
- *         description: admin updated successfully
+ *         description: Admin updated successfully
  */
 
   /**
@@ -114,11 +114,9 @@
  * /user/{id}:
  *   get:
  *     tags:
- *       - admin
- *     name: Get admin
- *     summary: Get admin
- *     security:
- *       - bearerAuth: []
+ *       - Admin
+ *     name: Get Admin Details
+ *     summary: Get Admin
  *     consumes:
  *       - application/json
  *     parameters:
@@ -157,18 +155,41 @@
  *       - application/json
  *     responses:
  *       200:
- *         description: admin
+ *         description: Admin Details Show Successfully
  */
  /**
+
+/**
+ * @swagger
+ * /remove/user:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     name: Remove Admin
+ *     summary: Remove Admin
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: false
+ *         schema:
+ *            type: integer
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Remove user
+ */
+ /**
+  
  * @swagger
  * /all/user:
  *   get:
  *     tags:
- *       - admin
- *     name: Get all users
- *     summary: Get all users
- *     security:
- *       - bearerAuth: []
+ *       - Admin
+ *     name: Get all Admin User List
+ *     summary: Get all Admin User List
  *     consumes:
  *       - application/json
  *     produces:
