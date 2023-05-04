@@ -59,29 +59,49 @@
 /**
  * @swagger
  * /update/admin:
- *   put:
+ *   post:
  *     tags:
  *       - admin
- *     name: update admin
- *     summary: update admin
- *     security:
- *       - bearerAuth: []
+ *     name: Update admin
+ *     summary: Update admin
  *     consumes:
  *       - application/json
  *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           type: object
- *           properties:
- *             id:
- *               type: number
- *             name:
+ *             - name : id
+ *               in: formData
  *               type: string
- *             status:
- *               type: number
- *         required:
- *           - id
+ *               required: true
+ *             - name : first_name
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : last_name
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : role
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : email
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : verification
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : profile_img
+ *               in: formData
+ *               type: file
+ *             - name : updatedBy
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : status
+ *               in: formData
+ *               type: string
+ *               required: true
  *     produces:
  *       - application/json
  *     responses:
@@ -91,7 +111,7 @@
 
   /**
  * @swagger
- * /user:
+ * /user/{id}:
  *   get:
  *     tags:
  *       - admin
@@ -102,11 +122,37 @@
  *     consumes:
  *       - application/json
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
- *         required: false
  *         schema:
  *            type: integer
+ *         required: true
+ *         description: User id
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: admin
+ */
+/**
+ * @swagger
+ * /remove/user/{id}:
+ *   post:
+ *     tags:
+ *       - admin
+ *     name: Remove admin
+ *     summary: Remove admin
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *            type: integer
+ *         required: true
+ *         description: User id
  *     produces:
  *       - application/json
  *     responses:

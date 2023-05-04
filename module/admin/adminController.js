@@ -85,9 +85,9 @@ const getUser = async(req, res, next) => {
 
 const deleteUser = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
+    if(!req.params || (Object.keys(req.params).length) === 0)
     {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
+        return next(createHttpError(400,{message:'Please pass required parameters'}));
     }
     let result = await adminService.deleteUser(req);
     helper.send(res,result.code,result.data); 

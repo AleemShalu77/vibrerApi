@@ -37,6 +37,8 @@ const updateUser = async(req) => {
   const result = {data : null};
   const { id,first_name, last_name ,role,email,verification,createdBy,updatedBy,status } = req.body;
   // const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file}`
+  const filter = { _id: id };
+
   const user = await adminUsersSchema.updateOne(filter, {
     name:{
         first_name: first_name,
@@ -46,13 +48,9 @@ const updateUser = async(req) => {
     email:email,
     verification:verification,
     // profile_img:profile_img,
-    createdBy:createdBy,
+    // createdBy:createdBy,
     updatedBy:updatedBy,
     status:status
-  },{
-    where:{
-      _id:id
-    }
   })
   if(user){
     result.data = user;
@@ -77,12 +75,8 @@ const getAllUser = async(req)=>{
 
 const getUser = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const user = await adminUsersSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const user = await adminUsersSchema.findById(id)
   if(user){
     result.data = user;
     result.code = 200;
@@ -94,12 +88,8 @@ const getUser = async(req)=>{
 
 const deleteUser = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const user = await adminUsersSchema.findOneAndRemove({
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const user = await adminUsersSchema.findByIdAndRemove(id)
   if(user){
     result.data = user;
     result.code = 203;

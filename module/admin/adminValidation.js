@@ -106,8 +106,7 @@ const validateUpdateUserReq = Joi.object({
     'number.pattern.base': `"updatedBy" should be a type of 'number'`,
     'number.empty': `"updatedBy" cannot be an empty field`,
   }),
-  status: Joi.array().items(Joi.string().trim())
-  .messages({
+  status: Joi.string().required().messages({
     'string.empty': `"status" cannot be an empty field`,
     'string.trim': '{{#label}} must not have leading or trailing whitespace',
   }),
