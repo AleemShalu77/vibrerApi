@@ -22,10 +22,11 @@ const addBadge = async(req) => {
 const updateBadge = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
-//   const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
+  //   const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
+  const filter = { _id: id }; 
   const badge = await badgeSchema.updateOne(filter, {
     name:name,
-    icon:icon_img,
+    // icon:icon_img,
     status:status
   },{
     where:{
@@ -55,12 +56,8 @@ const getAllBadge = async(req)=>{
 
 const getBadge = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const badge = await badgeSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const badge = await badgeSchema.findById(id)
   if(badge){
     result.data = badge;
     result.code = 200;
@@ -72,12 +69,8 @@ const getBadge = async(req)=>{
 
 const deleteBadge = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const badge = await badgeSchema.findOneAndRemove({
-        where:{
-          _id:id
-        },
-      })
+  const id = req.params.id;
+  const badge = await badgeSchema.findByIdAndRemove(id)
       if(badge){
         result.data = badge;
         result.code = 203;

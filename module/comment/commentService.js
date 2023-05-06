@@ -20,6 +20,7 @@ const addComment = async(req) => {
 const updateComment = async(req) => {
   const result = {data : null};
   const { id,description ,createdBy,status } = req.body;
+  const filter = { _id: id }; 
   const Comment = await commentsSchema.updateOne(filter, {
     description:description,
     createdBy:createdBy,
@@ -52,12 +53,8 @@ const getAllComment = async(req)=>{
 
 const getComment = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const user = await commentsSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const user = await commentsSchema.findById(id)
   if(Comment){
     result.data = Comment;
     result.code = 200;
@@ -69,12 +66,8 @@ const getComment = async(req)=>{
 
 const deleteComment = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const Comment = await commentsSchema.findOneAndRemove({
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const Comment = await commentsSchema.findByIdAndRemove(id)
   if(Comment){
     result.data = Comment;
     result.code = 203;

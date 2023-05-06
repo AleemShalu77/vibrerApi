@@ -22,10 +22,11 @@ const addConcertType = async(req) => {
 const updateConcertType = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
-//   const icon_img = `${CONCERT_TYPE_ICON_URL}`+`${req.file}`
+  //   const icon_img = `${CONCERT_TYPE_ICON_URL}`+`${req.file}`
+  const filter = { _id: id }; 
   const concertType = await concertTypeSchema.updateOne(filter, {
     name:name,
-    icon:icon_img,
+    // icon:icon_img,
     status:status
   },{
     where:{
@@ -55,12 +56,8 @@ const getAllConcertType = async(req)=>{
 
 const getConcertType = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const concertType = await concertTypeSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const concertType = await concertTypeSchema.findById(id)
   if(concertType){
     result.data = concertType;
     result.code = 200;
@@ -72,12 +69,8 @@ const getConcertType = async(req)=>{
 
 const deleteConcertType = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const concertType = await concertTypeSchema.findOneAndRemove({
-        where:{
-          _id:id
-        },
-      })
+  const id = req.params.id;
+  const concertType = await concertTypeSchema.findByIdAndRemove(id)
       if(concertType){
         result.data = concertType;
         result.code = 203;
