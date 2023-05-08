@@ -22,10 +22,11 @@ const addCoinPrice = async(req) => {
 const updateCoinPrice = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
-//   const icon_img = `${COIN_PRICE_ICON_URL}`+`${req.file}`
+  //   const icon_img = `${COIN_PRICE_ICON_URL}`+`${req.file}`
+  const filter = { _id: id }; 
   const CoinPrice = await coinPriceSchema.updateOne(filter, {
     name:name,
-    icon:icon_img,
+    // icon:icon_img,
     status:status
   },{
     where:{
@@ -55,12 +56,8 @@ const getAllCoinPrice = async(req)=>{
 
 const getCoinPrice = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const CoinPrice = await coinPriceSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const CoinPrice = await coinPriceSchema.findById(id)
   if(CoinPrice){
     result.data = CoinPrice;
     result.code = 200;
@@ -72,12 +69,8 @@ const getCoinPrice = async(req)=>{
 
 const deleteCoinPrice = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const CoinPrice = await coinPriceSchema.findOneAndRemove({
-        where:{
-          _id:id
-        },
-      })
+  const id = req.params.id;
+  const CoinPrice = await coinPriceSchema.findByIdAndRemove(id)
       if(CoinPrice){
         result.data = CoinPrice;
         result.code = 203;

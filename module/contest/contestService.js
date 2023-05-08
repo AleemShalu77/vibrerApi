@@ -19,6 +19,7 @@ const addContestType = async(req) => {
 const updateContestType = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
+  const filter = { _id: id }; 
   const contestType = await contestTypeSchema.updateOne(filter, {
     name:name,
     status:status
@@ -50,12 +51,8 @@ const getAllContestType = async(req)=>{
 
 const getContestType = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const contestType = await contestTypeSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const contestType = await contestTypeSchema.findById(id)
   if(contestType){
     result.data = contestType;
     result.code = 200;
@@ -67,12 +64,8 @@ const getContestType = async(req)=>{
 
 const deleteContestType = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const contestType = await contestTypeSchema.findOneAndRemove({
-        where:{
-          _id:id
-        },
-      })
+  const id = req.params.id;
+  const contestType = await contestTypeSchema.findByIdAndRemove(id)
       if(contestType){
         result.data = contestType;
         result.code = 203;
@@ -82,6 +75,9 @@ const deleteContestType = async(req)=>{
       return result;
     }
 
+const addContest = async(req) =>{
+  
+}
 module.exports = {
     addContestType,
     updateContestType,

@@ -19,6 +19,7 @@ const addArtistStatus = async(req) => {
 const updateArtistStatus = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
+  const filter = { _id: id }; 
   const artist = await artistStatusSchema.updateOne(filter, {
     name:name,
     status:status
@@ -50,12 +51,8 @@ const getAllArtistStatus = async(req)=>{
 
 const getArtistStatus = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const artist = await artistStatusSchema.find({  
-    where:{
-      _id:id
-    },
-  })
+  const id = req.params.id;
+  const artist = await artistStatusSchema.findById(id)
   if(artist){
     result.data = artist;
     result.code = 200;
@@ -67,12 +64,8 @@ const getArtistStatus = async(req)=>{
 
 const deleteArtistStatus = async(req)=>{
   const result = {data:null};
-  const id = req.query;
-  const artist = await artistStatusSchema.findOneAndRemove({
-        where:{
-          _id:id
-        },
-      })
+  const id = req.params.id;
+  const artist = await artistStatusSchema.findByIdAndRemove(id)
       if(artist){
         result.data = artist;
         result.code = 203;

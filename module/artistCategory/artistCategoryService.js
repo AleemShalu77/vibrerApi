@@ -22,7 +22,8 @@ const addartistCategory = async(req) => {
 const updateartistCategory = async(req) => {
   const result = {data : null};
   const { id,name,status } = req.body;
-//   const icon_img = `${ARTIST_CATEGORY_ICON_URL}`+`${req.file}`
+  //   const icon_img = `${ARTIST_CATEGORY_ICON_URL}`+`${req.file}`
+  const filter = { _id: id }; 
   const artist = await artistCategoriesSchema.updateOne(filter, {
     name:name,
     // icon:icon_img,
@@ -56,7 +57,7 @@ const getAllartistCategory = async(req)=>{
 const getartistCategory = async(req)=>{
   const result = {data:null};
   const id = req.params.id;
-  const artist = await artistCategoriesSchema.findById(id);
+  const artist = await artistCategoriesSchema.findById(id)
   if(artist){
     result.data = artist;
     result.code = 200;
@@ -69,7 +70,7 @@ const getartistCategory = async(req)=>{
 const deleteartistCategory = async(req)=>{
   const result = {data:null};
   const id = req.params.id;
-  const artist = await artistCategoriesSchema.findByIdAndRemove(id);
+  const artist = await artistCategoriesSchema.findByIdAndRemove(id)
       if(artist){
         result.data = artist;
         result.code = 203;
@@ -80,6 +81,7 @@ const deleteartistCategory = async(req)=>{
     }
 
 module.exports = {
+
     addartistCategory,
     updateartistCategory,
     getAllartistCategory,
