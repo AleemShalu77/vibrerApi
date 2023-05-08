@@ -19,7 +19,7 @@
  *               required: true
  *             - name : icon_img
  *               in: formData
- *               type: string
+ *               type: file
  *               required: true
  *     produces:
  *       - application/json
@@ -31,7 +31,7 @@
 /**
  * @swagger
  * /update/artist-category:
- *   put:
+ *   post:
  *     tags:
  *       - Artist Category
  *     name: Update Artist Category
@@ -39,19 +39,22 @@
  *     consumes:
  *       - application/json
  *     parameters:
- *       - name: body
- *         in: body
- *         schema:
- *           type: object
- *           properties:
- *             id:
- *               type: number
- *             name:
+ *             - name : id
+ *               in: formData
  *               type: string
- *             status:
- *               type: number
- *         required:
- *           - id
+ *               required: true
+ *             - name : name
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : status
+ *               in: formData
+ *               type: string
+ *               required: true
+ *             - name : icon_img
+ *               in: formData
+ *               type: file
+ *               required: true
  *     produces:
  *       - application/json
  *     responses:
@@ -61,7 +64,7 @@
 
   /**
  * @swagger
- * /artist-category:
+ * /artist-category/{id}:
  *   get:
  *     tags:
  *       - Artist Category
@@ -70,11 +73,12 @@
  *     consumes:
  *       - application/json
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
- *         required: false
  *         schema:
- *            type: integer 
+ *            type: integer
+ *            required: true
+ *            description: Artist category id
  *     produces:
  *       - application/json
  *     responses:
@@ -85,7 +89,7 @@
 
 /**
  * @swagger
- * /remove/artist-category:
+ * /remove/artist-category/{id}:
  *   post:
  *     tags:
  *       - Artist Category
@@ -94,11 +98,12 @@
  *     consumes:
  *       - application/json
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
- *         required: false
  *         schema:
  *            type: integer
+ *            required: true
+ *            description: Artist category id
  *     produces:
  *       - application/json
  *     responses:

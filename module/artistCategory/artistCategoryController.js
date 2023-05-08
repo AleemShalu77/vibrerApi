@@ -54,6 +54,10 @@ const getAllartistCategory = async(req, res, next) => {
 
 const getartistCategory = async(req, res, next) => {
   try {
+    if(!req.params.id || (Object.keys(req.params).length) === 0 || req.params.id == "undefined")
+      {
+          return next(createHttpError(400,{message:'Please pass id'}));
+      } 
     let result = await artistCategoryService.getartistCategory(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {
@@ -63,10 +67,10 @@ const getartistCategory = async(req, res, next) => {
 
 const deleteartistCategory = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
+    if(!req.params.id || (Object.keys(req.params).length) === 0 || req.params.id == "undefined")
     {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    }
+        return next(createHttpError(400,{message:'Please pass id'}));
+    } 
     let result = await artistCategoryService.deleteartistCategory(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {

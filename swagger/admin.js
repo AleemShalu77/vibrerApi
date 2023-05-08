@@ -61,7 +61,7 @@
  * /update/admin:
  *   post:
  *     tags:
- *       - admin
+ *       - Admin
  *     name: Update admin
  *     summary: Update admin
  *     consumes:
@@ -137,7 +137,7 @@
  * /remove/user/{id}:
  *   post:
  *     tags:
- *       - admin
+ *       - Admin
  *     name: Remove admin
  *     summary: Remove admin
  *     security:
@@ -157,32 +157,7 @@
  *       200:
  *         description: Admin Details Show Successfully
  */
- /**
-
-/**
- * @swagger
- * /remove/user:
- *   post:
- *     tags:
- *       - Admin
- *     name: Remove Admin
- *     summary: Remove Admin
- *     consumes:
- *       - application/json
- *     parameters:
- *       - in: query
- *         name: id
- *         required: false
- *         schema:
- *            type: integer
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: Remove user
- */
- /**
-  
+ /**  
  * @swagger
  * /all/user:
  *   get:

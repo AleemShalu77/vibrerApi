@@ -10,7 +10,7 @@ const artistCategoriesSchema = new mongoose.Schema({
         required:true
     },
     status:{
-        type:Array,
+        type:String,
         required:true
     }
 },
