@@ -29,10 +29,6 @@ const contestSchema = new mongoose.Schema({
         start_date:String,
         start_time:String,
     },
-    starts_on:{
-        start_date:String,
-        start_time:String,
-    },
     ends_on:{
         start_date:String,
         start_time:String,
@@ -40,7 +36,7 @@ const contestSchema = new mongoose.Schema({
     participants:{
                 video_post : [{
                     start_date:String,
-                    start_time:String
+                    end_time:String
                 }],
                 votes:[{
                     type: mongoose.Schema.Types.ObjectId,

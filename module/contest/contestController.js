@@ -1,7 +1,7 @@
 const contestService = require('./contestService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const {  validateAddContestTypeReq,validateUpdateContestTypeReq }= require("./contestValidation");
+const { validateAddContestTypeReq,validateUpdateContestTypeReq,validateAddContestReq,validateUpdateContestReq}= require("./contestValidation");
 
 const addContestType= async (req, res, next) => {
   try {
@@ -63,11 +63,74 @@ const getContestType = async(req, res, next) => {
 
 const deleteContestType = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    }
     let result = await contestService.deleteContestType(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+  next(error)
+ }
+}
+
+const addContest= async (req, res, next) => {
+  try {
+    if(!req.body || (Object.keys(req.body).length) === 0)
+      {
+          return next(createHttpError(400,{message:'Please pass body parameters'}));
+      } 
+    let isValid = await validateAddContestReq.validateAsync(req.body);
+    if(isValid instanceof Error){
+      return next(isValid)
+    }
+    let result = await contestService.addContest(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+    if(error.isJoi){
+      return next(createHttpError(400,{message:error.message}));
+  }
+  next(error)
+ }
+}
+
+const updateContest = async(req, res, next) => {
+  try {
+    if(!req.body || (Object.keys(req.body).length) === 0)
+      {
+          return next(createHttpError(400,{message:'Please pass body parameters'}));
+      } 
+    let isValid = await validateUpdateContestReq.validateAsync(req.body);
+    if(isValid instanceof Error){
+      return next(isValid)
+    }
+    let result = await contestService.updateContest(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+    if(error.isJoi){
+      return next(createHttpError(400,{message:error.message}));
+  }
+  next(error)
+ }
+}
+
+const getAllContest = async(req, res, next) => {
+  try {
+    let result = await contestService.getAllContest(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+  next(error)
+ }
+}
+
+const getContest = async(req, res, next) => {
+  try {
+    let result = await contestService.getContest(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+  next(error)
+ }
+}
+
+const deleteContest = async(req, res, next) => {
+  try {
+    let result = await contestService.deleteContest(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {
   next(error)
@@ -79,5 +142,10 @@ module.exports = {
     updateContestType,
     getAllContestType,
     getContestType,
-    deleteContestType
+    deleteContestType,
+    addContest,
+    updateContest,
+    getAllContest,
+    getContest,
+    deleteContest
 }

@@ -63,10 +63,6 @@ const getCoinPrice = async(req, res, next) => {
 
 const deleteCoinPrice = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    }
     let result = await coinPriceService.deleteCoinPrice(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {

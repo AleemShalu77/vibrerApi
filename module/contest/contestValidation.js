@@ -35,7 +35,9 @@ const validateUpdateContestTypeReq = Joi.object({
   }),
 });
 
+ const validateAddContestReq = Joi.object({});
+ const validateUpdateContestReq = Joi.object({});
 
-  module.exports = {
-    validateAddContestTypeReq,validateUpdateContestTypeReq
-  }
+module.exports = {
+  validateAddContestTypeReq,validateUpdateContestTypeReq ,validateAddContestReq,validateUpdateContestReq
+}

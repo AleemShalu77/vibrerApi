@@ -63,10 +63,6 @@ const getConcertType = async(req, res, next) => {
 
 const deleteConcertType = async(req, res, next) => {
   try {
-    if(!req.query || (Object.keys(req.query).length) === 0)
-    {
-        return next(createHttpError(400,{message:'Please pass query parameters'}));
-    }
     let result = await concertService.deleteConcertType(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {
