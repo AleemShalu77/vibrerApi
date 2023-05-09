@@ -10,11 +10,11 @@
  *       - application/json
  *     parameters:
  *             - name : name
- *               in: body
+ *               in: formData
  *               type: string
  *               required: true
  *             - name : status
- *               in: body
+ *               in: formData
  *               type: string
  *               required: true
  *     produces:
