@@ -1,14 +1,14 @@
-const artistStatusSchema = require("../../model/artist_status");
+const rolesSchema = require("../../model/roles");
 
-const addArtistStatus = async (req) => {
+const addrole = async (req) => {
   const result = { data: null };
   const { name, status } = req.body;
-  const artist = await artistStatusSchema.create({
+  const role = await rolesSchema.create({
     name: name,
     status: status
   })
-  if (artist) {
-    result.data = artist;
+  if (role) {
+    result.data = role;
     result.code = 201;
   } else {
     result.code = 204;
@@ -16,11 +16,11 @@ const addArtistStatus = async (req) => {
   return result;
 }
 
-const updateArtistStatus = async (req) => {
+const updaterole = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
   const filter = { _id: id };
-  const artist = await artistStatusSchema.updateOne(filter, {
+  const role = await rolesSchema.updateOne(filter, {
     name: name,
     status: status
   }, {
@@ -28,8 +28,8 @@ const updateArtistStatus = async (req) => {
       _id: id
     }
   })
-  if (artist) {
-    result.data = artist;
+  if (role) {
+    result.data = role;
     result.code = 202;
   } else {
     result.code = 204;
@@ -37,11 +37,11 @@ const updateArtistStatus = async (req) => {
   return result;
 }
 
-const getAllArtistStatus = async (req) => {
+const getAllrole = async (req) => {
   const result = { data: null };
-  const artist = await artistStatusSchema.find()
-  if (artist) {
-    result.data = artist;
+  const role = await rolesSchema.find()
+  if (role) {
+    result.data = role;
     result.code = 200;
   } else {
     result.code = 204;
@@ -49,12 +49,12 @@ const getAllArtistStatus = async (req) => {
   return result;
 }
 
-const getArtistStatus = async (req) => {
+const getrole = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const artist = await artistStatusSchema.findById(id)
-  if (artist) {
-    result.data = artist;
+  const role = await rolesSchema.findById(id)
+  if (role) {
+    result.data = role;
     result.code = 200;
   } else {
     result.code = 204;
@@ -62,12 +62,12 @@ const getArtistStatus = async (req) => {
   return result;
 }
 
-const deleteArtistStatus = async (req) => {
+const deleterole = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const artist = await artistStatusSchema.findByIdAndRemove(id)
-  if (artist) {
-    result.data = artist;
+  const role = await rolesSchema.findByIdAndRemove(id)
+  if (role) {
+    result.data = role;
     result.code = 203;
   } else {
     result.code = 204;
@@ -76,9 +76,9 @@ const deleteArtistStatus = async (req) => {
 }
 
 module.exports = {
-  addArtistStatus,
-  updateArtistStatus,
-  getAllArtistStatus,
-  getArtistStatus,
-  deleteArtistStatus
+  addrole,
+  updaterole,
+  getAllrole,
+  getrole,
+  deleterole
 }

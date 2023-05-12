@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const validateAddConcertTypeReq = Joi.object({
+const validateAddRoleReq = Joi.object({
   name: Joi.string().min(3).max(50).trim().regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
     .required()
     .messages({
@@ -15,7 +15,7 @@ const validateAddConcertTypeReq = Joi.object({
   })
 });
 
-const validateUpdateConcertTypeReq = Joi.object({
+const validateUpdateRoleReq = Joi.object({
   id: Joi.string().required()
     .messages({
       'string.pattern.base': `"id" should be a type of 'text'`,
@@ -37,5 +37,5 @@ const validateUpdateConcertTypeReq = Joi.object({
 
 
 module.exports = {
-  validateAddConcertTypeReq, validateUpdateConcertTypeReq
+  validateAddRoleReq, validateUpdateRoleReq
 }
