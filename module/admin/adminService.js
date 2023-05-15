@@ -4,96 +4,96 @@ const bcrypt = require("bcrypt");
 // const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
 
-const addUser = async(req) => {
-  const result = {data : null};
-  const pswd = await bcrypt.genSalt(10); 
-  const password = await bcrypt.hash(req.body.password , pswd);
-  const { first_name, last_name ,role,email,verification,createdBy,updatedBy,status } = req.body;
-  const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file.filename}`
+const addUser = async (req) => {
+  const result = { data: null };
+  const pswd = await bcrypt.genSalt(10);
+  const password = await bcrypt.hash(req.body.password, pswd);
+  const { first_name, last_name, role, email, verification, createdBy, updatedBy, status } = req.body;
+  const profile_img = `${ADMIN_IMAGE_URL}` + `${req.file.filename}`
   const user = await adminUsersSchema.create({
-    name:{
-        first_name: first_name,
-        last_name:last_name
+    name: {
+      first_name: first_name,
+      last_name: last_name
     },
-    role:role,
-    email:email,
-    password:password,
-    verification:verification,
-    profile_img:profile_img,
-    createdBy:createdBy,
-    updatedBy:updatedBy,
-    status:status
+    role: role,
+    email: email,
+    password: password,
+    verification: verification,
+    profile_img: profile_img,
+    createdBy: createdBy,
+    updatedBy: updatedBy,
+    status: status
   })
-  if(user){
+  if (user) {
     result.data = user;
     result.code = 201;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const updateUser = async(req) => {
-  const result = {data : null};
-  const { id,first_name, last_name ,role,email,verification,createdBy,updatedBy,status } = req.body;
+const updateUser = async (req) => {
+  const result = { data: null };
+  const { id, first_name, last_name, role, email, verification, createdBy, updatedBy, status } = req.body;
   // const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file}`
   const filter = { _id: id };
 
   const user = await adminUsersSchema.updateOne(filter, {
-    name:{
-        first_name: first_name,
-        last_name:last_name
+    name: {
+      first_name: first_name,
+      last_name: last_name
     },
-    role:role,
-    email:email,
-    verification:verification,
+    role: role,
+    email: email,
+    verification: verification,
     // profile_img:profile_img,
     // createdBy:createdBy,
-    updatedBy:updatedBy,
-    status:status
+    updatedBy: updatedBy,
+    status: status
   })
-  if(user){
+  if (user) {
     result.data = user;
     result.code = 201;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const getAllUser = async(req)=>{
-  const result = {data:null};
+const getAllUser = async (req) => {
+  const result = { data: null };
   const user = await adminUsersSchema.find()
-  if(user){
+  if (user) {
     result.data = user;
     result.code = 200;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const getUser = async(req)=>{
-  const result = {data:null};
+const getUser = async (req) => {
+  const result = { data: null };
   const id = req.params.id;
   const user = await adminUsersSchema.findById(id)
-  if(user){
+  if (user) {
     result.data = user;
     result.code = 200;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const deleteUser = async(req)=>{
-  const result = {data:null};
+const deleteUser = async (req) => {
+  const result = { data: null };
   const id = req.params.id;
   const user = await adminUsersSchema.findByIdAndRemove(id)
-  if(user){
+  if (user) {
     result.data = user;
     result.code = 203;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
@@ -111,7 +111,7 @@ const deleteUser = async(req)=>{
 //   console.log(user);
 //   if(user) {
 //     const match = await bcrypt.compare(password, user.password);
-    
+
 //     if(match) {
 //       let payload = {
 //         id: user.id,
@@ -141,13 +141,13 @@ const deleteUser = async(req)=>{
 //   }
 //   return result
 // }
-  
+
 
 module.exports = {
-    // login,
-    addUser,
-    updateUser,
-    getAllUser,
-    getUser,
-    deleteUser
+  // login,
+  addUser,
+  updateUser,
+  getAllUser,
+  getUser,
+  deleteUser
 }

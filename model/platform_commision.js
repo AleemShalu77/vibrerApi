@@ -1,22 +1,22 @@
 const mongoose = require('mongoose');
 
 const platformCommisionSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+    name: {
+        type: String,
+        required: true
     },
-    value:{
-        type:String,
-        required:true
+    value: {
+        type: String,
+        required: true
     },
-    status:{
-        type:Array,
-        required:true
+    status: {
+        type: Array,
+        required: true
     }
 },
-{
-     timestamps: true 
-})
+    {
+        timestamps: true
+    })
 
 
-module.exports = mongoose.model('platform_commision',platformCommisionSchema) ;
+module.exports = mongoose.model('platform_commision', platformCommisionSchema);

@@ -1,89 +1,89 @@
 const badgeSchema = require("../../model/badge");
-const {BADGE_ICON_URL } = require("../../config/index")
+const { BADGE_ICON_URL } = require("../../config/index")
 
-const addBadge = async(req) => {
-  const result = {data : null};
-  const { name,status } = req.body;
-  const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
+const addBadge = async (req) => {
+  const result = { data: null };
+  const { name, status } = req.body;
+  const icon_img = `${BADGE_ICON_URL}` + `${req.file}`
   const badge = await badgeSchema.create({
-    name:name,
-    icon:icon_img,
-    status:status
+    name: name,
+    icon: icon_img,
+    status: status
   })
-  if(badge){
-    result.data = badge;  
+  if (badge) {
+    result.data = badge;
     result.code = 201;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const updateBadge = async(req) => {
-  const result = {data : null};
-  const { id,name,status } = req.body;
+const updateBadge = async (req) => {
+  const result = { data: null };
+  const { id, name, status } = req.body;
   //   const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
-  const filter = { _id: id }; 
+  const filter = { _id: id };
   const badge = await badgeSchema.updateOne(filter, {
-    name:name,
+    name: name,
     // icon:icon_img,
-    status:status
-  },{
-    where:{
-      _id:id
+    status: status
+  }, {
+    where: {
+      _id: id
     }
   })
-  if(badge){
+  if (badge) {
     result.data = badge;
     result.code = 202;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const getAllBadge = async(req)=>{
-  const result = {data:null};
+const getAllBadge = async (req) => {
+  const result = { data: null };
   const badge = await badgeSchema.find()
-  if(badge){
+  if (badge) {
     result.data = badge;
     result.code = 200;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const getBadge = async(req)=>{
-  const result = {data:null};
+const getBadge = async (req) => {
+  const result = { data: null };
   const id = req.params.id;
   const badge = await badgeSchema.findById(id)
-  if(badge){
+  if (badge) {
     result.data = badge;
     result.code = 200;
-  }else{
+  } else {
     result.code = 204;
   }
   return result;
 }
 
-const deleteBadge = async(req)=>{
-  const result = {data:null};
+const deleteBadge = async (req) => {
+  const result = { data: null };
   const id = req.params.id;
   const badge = await badgeSchema.findByIdAndRemove(id)
-      if(badge){
-        result.data = badge;
-        result.code = 203;
-      }else{
-        result.code = 204;
-      }
-      return result;
-    }
+  if (badge) {
+    result.data = badge;
+    result.code = 203;
+  } else {
+    result.code = 204;
+  }
+  return result;
+}
 
 module.exports = {
-    addBadge,
-    updateBadge,
-    getAllBadge,
-    getBadge,
-    deleteBadge
+  addBadge,
+  updateBadge,
+  getAllBadge,
+  getBadge,
+  deleteBadge
 }

@@ -27,6 +27,7 @@ module.exports = {
   ARTIST_CATEGORY_ICON_URL : process.env.artistCategoryIcon_url,
   BADGE_ICON_URL:process.env.badgeIcon_url,
   COIN_PRICE_ICON_URL:process.env.coinPriceIcon_url,
-  CONCERT_TYPE_ICON_URL:process.env.concertTypeIcon_url
+  CONCERT_TYPE_ICON_URL:process.env.concertTypeIcon_url,
+  VERTUAL_GIFT_ICON_URL : process.env.virtualGiftIcon_url
 
 }

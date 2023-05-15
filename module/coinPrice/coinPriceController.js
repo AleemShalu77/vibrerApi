@@ -1,79 +1,77 @@
 const coinPriceService = require('./coinPriceService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddCoinPriceReq,validateUpdateCoinPriceReq} = require("./coinPriceValidation");
+const { validateAddCoinPriceReq, validateUpdateCoinPriceReq } = require("./coinPriceValidation");
 
-const addCoinPrice= async (req, res, next) => {
+const addCoinPrice = async (req, res, next) => {
   try {
-    if(!req.body || (Object.keys(req.body).length) === 0)
-      {
-          return next(createHttpError(400,{message:'Please pass body parameters'}));
-      } 
+    if (!req.body || (Object.keys(req.body).length) === 0) {
+      return next(createHttpError(400, { message: 'Please pass body parameters' }));
+    }
     let isValid = await validateAddCoinPriceReq.validateAsync(req.body);
-    if(isValid instanceof Error){
+    if (isValid instanceof Error) {
       return next(isValid)
     }
     let result = await coinPriceService.addCoinPrice(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-    if(error.isJoi){
-      return next(createHttpError(400,{message:error.message}));
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error)
   }
-  next(error)
- }
 }
 
-const updateCoinPrice = async(req, res, next) => {
+const updateCoinPrice = async (req, res, next) => {
   try {
-    if(!req.body || (Object.keys(req.body).length) === 0)
-      {
-          return next(createHttpError(400,{message:'Please pass body parameters'}));
-      } 
+    if (!req.body || (Object.keys(req.body).length) === 0) {
+      return next(createHttpError(400, { message: 'Please pass body parameters' }));
+    }
     let isValid = await validateUpdateCoinPriceReq.validateAsync(req.body);
-    if(isValid instanceof Error){
+    if (isValid instanceof Error) {
       return next(isValid)
     }
     let result = await coinPriceService.updateCoinPrice(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-    if(error.isJoi){
-      return next(createHttpError(400,{message:error.message}));
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error)
   }
-  next(error)
- }
 }
 
-const getAllCoinPrice = async(req, res, next) => {
+const getAllCoinPrice = async (req, res, next) => {
   try {
     let result = await coinPriceService.getAllCoinPrice(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
-const getCoinPrice = async(req, res, next) => {
+const getCoinPrice = async (req, res, next) => {
   try {
     let result = await coinPriceService.getCoinPrice(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
-const deleteCoinPrice = async(req, res, next) => {
+const deleteCoinPrice = async (req, res, next) => {
   try {
     let result = await coinPriceService.deleteCoinPrice(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {
-    addCoinPrice,
-    updateCoinPrice,
-    getAllCoinPrice,
-    getCoinPrice,
-    deleteCoinPrice
+  addCoinPrice,
+  updateCoinPrice,
+  getAllCoinPrice,
+  getCoinPrice,
+  deleteCoinPrice
 }

@@ -1,18 +1,18 @@
-const commentService = require('./commentService');
+const roleService = require('./roleService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddCommentReq, validateUpdateCommentReq } = require("./commentValidation");
+const { validateAddRoleReq, validateUpdateRoleReq } = require("./roleValidation");
 
-const addComment = async (req, res, next) => {
+const addRole = async (req, res, next) => {
   try {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
-    let isValid = await validateAddCommentReq.validateAsync(req.body);
+    let isValid = await validateAddRoleReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)
     }
-    let result = await commentService.addComment(req);
+    let result = await roleService.addRole(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -22,16 +22,16 @@ const addComment = async (req, res, next) => {
   }
 }
 
-const updateComment = async (req, res, next) => {
+const updateRole = async (req, res, next) => {
   try {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
-    let isValid = await validateUpdateCommentReq.validateAsync(req.body);
+    let isValid = await validateUpdateRoleReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)
     }
-    let result = await commentService.updateComment(req);
+    let result = await roleService.updateRole(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -41,27 +41,27 @@ const updateComment = async (req, res, next) => {
   }
 }
 
-const getAllComment = async (req, res, next) => {
+const getAllRole = async (req, res, next) => {
   try {
-    let result = await commentService.getAllComment(req);
+    let result = await roleService.getAllRole(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
   }
 }
 
-const getComment = async (req, res, next) => {
+const getRole = async (req, res, next) => {
   try {
-    let result = await commentService.getComment(req);
+    let result = await roleService.getRole(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
   }
 }
 
-const deleteComment = async (req, res, next) => {
+const deleteRole = async (req, res, next) => {
   try {
-    let result = await commentService.deleteComment(req);
+    let result = await roleService.deleteRole(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
@@ -69,9 +69,9 @@ const deleteComment = async (req, res, next) => {
 }
 
 module.exports = {
-  addComment,
-  updateComment,
-  getAllComment,
-  getComment,
-  deleteComment
+  addRole,
+  updateRole,
+  getAllRole,
+  getRole,
+  deleteRole
 }

@@ -1,7 +1,7 @@
 const adminService = require('./adminService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const {validateAddUserReq,validateLoginReq,validateUpdateUserReq} = require("./adminValidation");
+const { validateAddUserReq, validateLoginReq, validateUpdateUserReq } = require("./adminValidation");
 
 // const login = async(req,res,next) =>{
 //   try {
@@ -23,80 +23,78 @@ const {validateAddUserReq,validateLoginReq,validateUpdateUserReq} = require("./a
 //  }
 // }
 
-const addUser= async (req, res, next) => {
+const addUser = async (req, res, next) => {
   try {
-    if(!req.body || (Object.keys(req.body).length) === 0)
-      {
-          return next(createHttpError(400,{message:'Please pass body parameters'}));
-      } 
+    if (!req.body || (Object.keys(req.body).length) === 0) {
+      return next(createHttpError(400, { message: 'Please pass body parameters' }));
+    }
     let isValid = await validateAddUserReq.validateAsync(req.body);
-    if(isValid instanceof Error){
+    if (isValid instanceof Error) {
       return next(isValid)
     }
-    const name = req.body.first_name+ " "+ 'account'; 
+    const name = req.body.first_name + " " + 'account';
     let result = await adminService.addUser(req);
-    helper.send(res,result.code,result.data,"",name); 
-  } catch(error) {
-    if(error.isJoi){
-      return next(createHttpError(400,{message:error.message}));
+    helper.send(res, result.code, result.data, "", name);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error)
   }
-  next(error)
- }
 }
 
-const updateUser = async(req, res, next) => {
+const updateUser = async (req, res, next) => {
   try {
-    if(!req.body || (Object.keys(req.body).length) === 0)
-      {
-          return next(createHttpError(400,{message:'Please pass body parameters'}));
-      } 
+    if (!req.body || (Object.keys(req.body).length) === 0) {
+      return next(createHttpError(400, { message: 'Please pass body parameters' }));
+    }
     let isValid = await validateUpdateUserReq.validateAsync(req.body);
-    if(isValid instanceof Error){
+    if (isValid instanceof Error) {
       return next(isValid)
     }
-    const name = req.body.first_name+ " "+ 'account'; 
+    const name = req.body.first_name + " " + 'account';
     let result = await adminService.updateUser(req);
-    helper.send(res,result.code,result.data,"",name); 
-  } catch(error) {
-    if(error.isJoi){
-      return next(createHttpError(400,{message:error.message}));
+    helper.send(res, result.code, result.data, "", name);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error)
   }
-  next(error)
- }
 }
 
-const getAllUser = async(req, res, next) => {
+const getAllUser = async (req, res, next) => {
   try {
     let result = await adminService.getAllUser(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
-const getUser = async(req, res, next) => {
+const getUser = async (req, res, next) => {
   try {
     let result = await adminService.getUser(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
-const deleteUser = async(req, res, next) => {
+const deleteUser = async (req, res, next) => {
   try {
     let result = await adminService.deleteUser(req);
-    helper.send(res,result.code,result.data); 
-  } catch(error) {
-  next(error)
- }
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {
-    addUser,
-    updateUser,
-    getAllUser,
-    getUser,
-    deleteUser
-    // login
+  addUser,
+  updateUser,
+  getAllUser,
+  getUser,
+  deleteUser
+  // login
 }
