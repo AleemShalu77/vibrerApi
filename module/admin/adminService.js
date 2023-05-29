@@ -1,8 +1,39 @@
 const adminUsersSchema = require("../../model/admin_users");
 const bcrypt = require("bcrypt");
-// const jwt = require("jsonwebtoken");
-// const { JWT_SECRET } = require("../../config");
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
+
+const login = async(req) =>{
+  let result = { data: null };
+  const { email, password } = req.body;
+  let user = await adminUsersSchema.findOne({email:email })
+  if(user) {
+    const match = await bcrypt.compare(password, user.password);
+    if(match) {
+      let payload = {
+        id: user.id,
+        mobile: user.email,
+        role: user.role
+      };
+      let options = { expiresIn: "72h" };
+      let token = jwt.sign(payload, JWT_SECRET, options);
+      let resObj = Object.assign({}, {
+      role:user.role,
+      email:user.email,
+      verification:user.verification,
+      token,
+      });
+      result.data = resObj;
+      result.code = 2021;
+    } else {
+      result.code = 2019;
+    }
+  } else {
+    result.code = 2017;
+  }
+  return result
+}
 
 const addUser = async (req) => {
   const result = { data: null };
@@ -99,52 +130,11 @@ const deleteUser = async (req) => {
   return result;
 }
 
-// const login = async(req) =>{
-//   let result = { data: null };
-//   const { email, password } = req.body;
-//   let user = await adminUsersSchema.findOne({
-//     where: {
-//       email:email
-//     },
-//     attributes:['password']
-//   })
-//   console.log(user);
-//   if(user) {
-//     const match = await bcrypt.compare(password, user.password);
 
-//     if(match) {
-//       let payload = {
-//         id: user.id,
-//         mobile: user.email,
-//         role: user.role
-//       };
-//       let options = { expiresIn: "72h" };
-//       let token = jwt.sign(payload, JWT_SECRET, options);
-//       let resObj = Object.assign({}, {
-//       name:{
-//           first_name: first_name,
-//           last_name:last_name
-//       },
-//       role:role,
-//       email:email,
-//       verification:verification,
-//       profile_img:profile_img,
-//       token,
-//       });
-//       result.data = resObj;
-//       result.code = 2021;
-//     } else {
-//       result.code = 2019;
-//     }
-//   } else {
-//     result.code = 2017;
-//   }
-//   return result
-// }
 
 
 module.exports = {
-  // login,
+  login,
   addUser,
   updateUser,
   getAllUser,
