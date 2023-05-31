@@ -3,6 +3,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
+const sendGridMail = require('@sendgrid/mail');
+const { getMessage } = require('../../utils/helper');
+sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 
 const login = async(req) =>{
   let result = { data: null };
@@ -24,6 +28,17 @@ const login = async(req) =>{
       verification:user.verification,
       token,
       });
+      const emailMessage = await getMessage('This is a test email using SendGrid from Node.js','aleem9860@gmail.com','aleem9860@gmail.com','Test email with Node.js and SendGrid');
+      try {
+        await sendGridMail.send(emailMessage);
+        console.log('Test email sent successfully');
+      } catch (error) {
+        console.error('Error sending test email');
+        console.error(error);
+        if (error.response) {
+          console.error(error.response.body)
+        }
+      }
       result.data = resObj;
       result.code = 2021;
     } else {
@@ -56,6 +71,16 @@ const addUser = async (req) => {
     status: status
   })
   if (user) {
+    // try {
+    //   await sendGridMail.send(getMessage());
+    //   console.log('Test email sent successfully');
+    // } catch (error) {
+    //   console.error('Error sending test email');
+    //   console.error(error);
+    //   if (error.response) {
+    //     console.error(error.response.body)
+    //   }
+    // }
     result.data = user;
     result.code = 201;
   } else {
