@@ -112,21 +112,21 @@ const validateUpdateUserReq = Joi.object({
   }),
 });
 
-// const validateLoginReq = Joi.object({
-//   email: Joi.string().email().trim().required()
-//   .messages({
-//     'string.email': '{{#label}} must be a valid email',
-//     'string.empty': `"email" cannot be an empty field`,
-//     'string.trim': '{{#label}} must not have leading or trailing whitespace',
-//   }),
-//   password:Joi.string().required()
-//   .messages({
-//     'string.empty': `"password" cannot be an empty field`,
-//   })
-// })
+const validateLoginReq = Joi.object({
+  email: Joi.string().email().trim().required()
+  .messages({
+    'string.email': '{{#label}} must be a valid email',
+    'string.empty': `"email" cannot be an empty field`,
+    'string.trim': '{{#label}} must not have leading or trailing whitespace',
+  }),
+  password:Joi.string().required()
+  .messages({
+    'string.empty': `"password" cannot be an empty field`,
+  })
+})
 
 module.exports = {
   validateAddUserReq,
-  validateUpdateUserReq
-  // validateLoginReq
+  validateUpdateUserReq,
+  validateLoginReq
 }
