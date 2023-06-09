@@ -1,13 +1,10 @@
 const concertTypeSchema = require("../../model/concert_type");
-const { CONCERT_TYPE_ICON_URL } = require("../../config/index")
 
 const addConcertType = async (req) => {
   const result = { data: null };
   const { name, status } = req.body;
-  const icon_img = `${CONCERT_TYPE_ICON_URL}` + `${req.file}`
   const concertType = await concertTypeSchema.create({
     name: name,
-    icon: icon_img,
     status: status
   })
   if (concertType) {
@@ -22,11 +19,9 @@ const addConcertType = async (req) => {
 const updateConcertType = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
-  //   const icon_img = `${CONCERT_TYPE_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
   const concertType = await concertTypeSchema.updateOne(filter, {
     name: name,
-    // icon:icon_img,
     status: status
   }, {
     where: {

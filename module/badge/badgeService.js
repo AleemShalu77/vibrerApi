@@ -3,12 +3,12 @@ const { BADGE_ICON_URL } = require("../../config/index")
 
 const addBadge = async (req) => {
   const result = { data: null };
-  const { name, status } = req.body;
+  const { name, updated_by } = req.body;
   const icon_img = `${BADGE_ICON_URL}` + `${req.file}`
   const badge = await badgeSchema.create({
     name: name,
     icon: icon_img,
-    status: status
+    updated_by: updated_by
   })
   if (badge) {
     result.data = badge;
@@ -21,13 +21,13 @@ const addBadge = async (req) => {
 
 const updateBadge = async (req) => {
   const result = { data: null };
-  const { id, name, status } = req.body;
+  const { id, name, updated_by } = req.body;
   //   const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
   const badge = await badgeSchema.updateOne(filter, {
     name: name,
     // icon:icon_img,
-    status: status
+    updated_by: updated_by
   }, {
     where: {
       _id: id

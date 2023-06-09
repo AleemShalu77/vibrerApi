@@ -1,5 +1,6 @@
 const badgeController = require("./badgeController");
 const { uploader } = require("../../utils/fileUploader");
+const middleware = require("../../middleware/")
 
 module.exports = router => {
   router.post("/add/badge", uploader.single('icon_img'), badgeController.addBadge);

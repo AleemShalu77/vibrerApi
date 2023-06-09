@@ -1,13 +1,10 @@
 const artistCategoriesSchema = require("../../model/artist_categories");
-const { ARTIST_CATEGORY_ICON_URL } = require("../../config/index")
 
 const addartistCategory = async (req) => {
   const result = { data: null };
   const { name, status } = req.body;
-  const icon_img = `${ARTIST_CATEGORY_ICON_URL}` + `${req.file.filename}`
   const artist = await artistCategoriesSchema.create({
     name: name,
-    icon: icon_img,
     status: status
   })
   if (artist) {
@@ -22,11 +19,9 @@ const addartistCategory = async (req) => {
 const updateartistCategory = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
-  //   const icon_img = `${ARTIST_CATEGORY_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
   const artist = await artistCategoriesSchema.updateOne(filter, {
     name: name,
-    // icon:icon_img,
     status: status
   }, {
     where: {
