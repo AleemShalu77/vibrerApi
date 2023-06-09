@@ -6,9 +6,12 @@ const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const url = 'mongodb://0.0.0.0:27017/vibrer'
 const swaggerDefinition = require("./config").SWAGGER_DEFINATION
-
+var cors = require('cors')
 var app = express();
 app.use(express.json());
+app.use(cors({
+  origin:'*'
+}));
 
 mongoose.connect(url,{useNewUrlParser:true})
 
