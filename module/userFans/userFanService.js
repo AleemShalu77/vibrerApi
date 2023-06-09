@@ -1,11 +1,11 @@
-const userArtistsSchema = require("../../model/user_artists");
+const userfansSchema = require("../../model/user_fans");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const nodemailer = require("nodemailer");
 const { getMessage } = require('../../utils/helper');
 
-const artistLogin = async (req) => {
+const fanLogin = async (req) => {
     let result = { data: null };
     // let testAccount = await nodemailer.createTestAccount();
     let transporter = nodemailer.createTransport({
@@ -17,7 +17,7 @@ const artistLogin = async (req) => {
         },
     });
     const { email, password } = req.body;
-    const user = await userArtistsSchema.findOne({ email });
+    const user = await userfansSchema.findOne({ email });
     if (user) {
         const match = await bcrypt.compare(password, user.password);
         if (match) {
@@ -56,7 +56,7 @@ const artistLogin = async (req) => {
     return result
 }
 
-const forgotPasswordArtist = async (req) => {
+const forgotPasswordfan = async (req) => {
     const result = { data: null };
     const { email, confirmPassword } = req.body;
     if (req.body.password != confirmPassword) {
@@ -65,9 +65,9 @@ const forgotPasswordArtist = async (req) => {
     }
     const pswd = await bcrypt.genSalt(10);
     const password = await bcrypt.hash(req.body.password, pswd);
-    const user = await userArtistsSchema.findOne({ email });
+    const user = await userfansSchema.findOne({ email });
     if (user) {
-        const reset = await userArtistsSchema.updateOne({ email: email }, {
+        const reset = await userfansSchema.updateOne({ email: email }, {
             password: password
         })
         result.data = reset;
@@ -78,50 +78,34 @@ const forgotPasswordArtist = async (req) => {
     return result
 }
 
-const addUserArtist = async (req) => {
+const addUserfan = async (req) => {
     const result = { data: null };
-    const { email, username, artist_categories, first_name, last_name, city, state, country, concert_artist, visibility, chat, bio, profile_img, profile_cover, verified, badges, gallery_imgs, music_videos, music, facebook, twitter, sportify, instagram, youtube, website, blocked_user, followers, following, likes, liked, votes, playlist, blocked, wallet_id, status } = req.body;
+    const { email, first_name, last_name, fan_categories, city, state, country, concert_fan, visibility, chat, bio, profile_img, createdBy, blocked_user, following, votes, playlist, wallet_id, status } = req.body;
     const password = await bcrypt.hash(req.body.password, pswd);
-    const UserArtist = await userArtistsSchema.create({
+    const Userfan = await userfansSchema.create({
         email: email,
         password: password,
-        username: username,
-        artist_categories: artist_categories,
+        fan_categories: fan_categories,
         first_name: first_name,
         last_name: last_name,
         city: city,
         state: state,
         country: country,
-        concert_artist: concert_artist,
+        concert_fan: concert_fan,
         visibility: visibility,
         chat: chat,
         bio: bio,
         profile_img: profile_img,
-        profile_cover: profile_cover,
-        verified: verified,
-        badges: badges,
-        gallery_imgs: gallery_imgs,
-        music_videos: music_videos,
-        music: music,
-        facebook: facebook,
-        twitter: twitter,
-        sportify: sportify,
-        instagram: instagram,
-        youtube: youtube,
-        website: website,
         blocked_user: blocked_user,
-        followers: followers,
         following: following,
-        likes: likes,
-        liked: liked,
         votes: votes,
         playlist: playlist,
-        blocked: blocked,
         wallet_id: wallet_id,
+        createdBy: createdBy,
         status: status
     })
-    if (UserArtist) {
-        result.data = UserArtist;
+    if (Userfan) {
+        result.data = Userfan;
         result.code = 201;
     } else {
         result.code = 204;
@@ -129,53 +113,37 @@ const addUserArtist = async (req) => {
     return result;
 }
 
-const updateUserArtist = async (req) => {
+const updateUserfan = async (req) => {
     const result = { data: null };
-    const { id, email, username, artist_categories, first_name, last_name, city, state, country, concert_artist, visibility, chat, bio, profile_img, profile_cover, verified, badges, gallery_imgs, music_videos, music, facebook, twitter, sportify, instagram, youtube, website, blocked_user, followers, following, likes, liked, votes, playlist, blocked, wallet_id, status } = req.body;
+    const { id, email, first_name, last_name, fan_categories, city, state, country, concert_fan, visibility, chat, bio, profile_img, createdBy, blocked_user, following, votes, playlist, wallet_id, status } = req.body;
     const filter = { _id: id };
-    const UserArtist = await userArtistsSchema.updateOne(filter, {
+    const Userfan = await userfansSchema.updateOne(filter, {
         email: email,
-        username: username,
-        artist_categories: artist_categories,
+        fan_categories: fan_categories,
         first_name: first_name,
         last_name: last_name,
         city: city,
         state: state,
         country: country,
-        concert_artist: concert_artist,
+        concert_fan: concert_fan,
         visibility: visibility,
         chat: chat,
         bio: bio,
         profile_img: profile_img,
-        profile_cover: profile_cover,
-        verified: verified,
-        badges: badges,
-        gallery_imgs: gallery_imgs,
-        music_videos: music_videos,
-        music: music,
-        facebook: facebook,
-        twitter: twitter,
-        sportify: sportify,
-        instagram: instagram,
-        youtube: youtube,
-        website: website,
         blocked_user: blocked_user,
-        followers: followers,
         following: following,
-        likes: likes,
-        liked: liked,
         votes: votes,
         playlist: playlist,
-        blocked: blocked,
         wallet_id: wallet_id,
+        createdBy: createdBy,
         status: status
     }, {
         where: {
             _id: id
         }
     })
-    if (UserArtist) {
-        result.data = UserArtist;
+    if (Userfan) {
+        result.data = Userfan;
         result.code = 202;
     } else {
         result.code = 204;
@@ -183,11 +151,11 @@ const updateUserArtist = async (req) => {
     return result;
 }
 
-const getAllUserArtist = async (req) => {
+const getAllUserfan = async (req) => {
     const result = { data: null };
-    const UserArtist = await userArtistsSchema.find()
-    if (UserArtist) {
-        result.data = UserArtist;
+    const Userfan = await userfansSchema.find()
+    if (Userfan) {
+        result.data = Userfan;
         result.code = 200;
     } else {
         result.code = 204;
@@ -195,12 +163,12 @@ const getAllUserArtist = async (req) => {
     return result;
 }
 
-const getUserArtist = async (req) => {
+const getUserfan = async (req) => {
     const result = { data: null };
     const id = req.params.id;
-    const UserArtist = await userArtistsSchema.findById(id)
-    if (UserArtist) {
-        result.data = UserArtist;
+    const Userfan = await userfansSchema.findById(id)
+    if (Userfan) {
+        result.data = Userfan;
         result.code = 200;
     } else {
         result.code = 204;
@@ -208,12 +176,12 @@ const getUserArtist = async (req) => {
     return result;
 }
 
-const deleteUserArtist = async (req) => {
+const deleteUserfan = async (req) => {
     const result = { data: null };
     const id = req.params.id;
-    const UserArtist = await userArtistsSchema.findByIdAndRemove(id)
-    if (UserArtist) {
-        result.data = UserArtist;
+    const Userfan = await userfansSchema.findByIdAndRemove(id)
+    if (Userfan) {
+        result.data = Userfan;
         result.code = 203;
     } else {
         result.code = 204;
@@ -222,11 +190,11 @@ const deleteUserArtist = async (req) => {
 }
 
 module.exports = {
-    artistLogin,
-    forgotPasswordArtist,
-    addUserArtist,
-    updateUserArtist,
-    getAllUserArtist,
-    getUserArtist,
-    deleteUserArtist
+    fanLogin,
+    forgotPasswordfan,
+    addUserfan,
+    updateUserfan,
+    getAllUserfan,
+    getUserfan,
+    deleteUserfan
 }

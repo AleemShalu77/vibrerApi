@@ -1,7 +1,7 @@
-const VirtualGiftsService = require('./VirtualGiftsService');
+const VirtualGiftsService = require('./virtualGiftsService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddVirtualGiftReq, validateUpdateVirtualGiftReq } = require("./VirtualGiftValidation");
+const { validateAddVirtualGiftReq, validateUpdateVirtualGiftReq } = require("./virtualGiftsValidation");
 
 const addVirtualGift = async (req, res, next) => {
   try {

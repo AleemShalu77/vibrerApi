@@ -1,9 +1,9 @@
-const UserArtistService = require('./UserArtistService');
+const userFanService = require('./userFanService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq } = require("./UserArtistValidation");
+const { validateAddUserfanReq, validateUpdateUserfanReq,validateLoginReq,validateResetPasswordReq } = require("./userFanValidation");
 
-const artistLogin = async(req,res,next) =>{
+const fanLogin = async(req,res,next) =>{
     try {
       if(!req.body || (Object.keys(req.body).length) === 0)
         {
@@ -13,7 +13,7 @@ const artistLogin = async(req,res,next) =>{
       if(isValid instanceof Error){
         return next(isValid)
       }
-      let result = await UserArtistService.artistLogin(req);
+      let result = await userFanService.fanLogin(req);
       helper.send(res,result.code,result.data); 
     } catch(error) {
       if(error.isJoi){
@@ -23,7 +23,7 @@ const artistLogin = async(req,res,next) =>{
    }
   }
 
-const forgotPasswordArtist = async(req,res,next) =>{
+const forgotPasswordfan = async(req,res,next) =>{
     try {
       if(!req.body || (Object.keys(req.body).length) === 0)
         {
@@ -33,7 +33,7 @@ const forgotPasswordArtist = async(req,res,next) =>{
       if(isValid instanceof Error){
         return next(isValid)
       }
-      let result = await UserArtistService.forgotPasswordArtist(req);
+      let result = await userFanService.forgotPasswordfan(req);
       helper.send(res,result.code,result.data); 
     } catch(error) {
       if(error.isJoi){
@@ -44,16 +44,16 @@ const forgotPasswordArtist = async(req,res,next) =>{
   }
   
 
-const addUserArtist = async (req, res, next) => {
+const addUserfan = async (req, res, next) => {
     try {
         if (!req.body || (Object.keys(req.body).length) === 0) {
             return next(createHttpError(400, { message: 'Please pass body parameters' }));
         }
-        let isValid = await validateAddUserArtistReq.validateAsync(req.body);
+        let isValid = await validateAddUserfanReq.validateAsync(req.body);
         if (isValid instanceof Error) {
             return next(isValid)
         }
-        let result = await UserArtistService.addUserArtist(req);
+        let result = await userFanService.addUserfan(req);
         helper.send(res, result.code, result.data);
     } catch (error) {
         if (error.isJoi) {
@@ -63,16 +63,16 @@ const addUserArtist = async (req, res, next) => {
     }
 }
 
-const updateUserArtist = async (req, res, next) => {
+const updateUserfan = async (req, res, next) => {
     try {
         if (!req.body || (Object.keys(req.body).length) === 0) {
             return next(createHttpError(400, { message: 'Please pass body parameters' }));
         }
-        let isValid = await validateUpdateUserArtistReq.validateAsync(req.body);
+        let isValid = await validateUpdateUserfanReq.validateAsync(req.body);
         if (isValid instanceof Error) {
             return next(isValid)
         }
-        let result = await UserArtistService.updateUserArtist(req);
+        let result = await userFanService.updateUserfan(req);
         helper.send(res, result.code, result.data);
     } catch (error) {
         if (error.isJoi) {
@@ -82,27 +82,27 @@ const updateUserArtist = async (req, res, next) => {
     }
 }
 
-const getAllUserArtist = async (req, res, next) => {
+const getAllUserfan = async (req, res, next) => {
     try {
-        let result = await UserArtistService.getAllUserArtist(req);
+        let result = await userFanService.getAllUserfan(req);
         helper.send(res, result.code, result.data);
     } catch (error) {
         next(error)
     }
 }
 
-const getUserArtist = async (req, res, next) => {
+const getUserfan = async (req, res, next) => {
     try {
-        let result = await UserArtistService.getUserArtist(req);
+        let result = await userFanService.getUserfan(req);
         helper.send(res, result.code, result.data);
     } catch (error) {
         next(error)
     }
 }
 
-const deleteUserArtist = async (req, res, next) => {
+const deleteUserfan = async (req, res, next) => {
     try {
-        let result = await UserArtistService.deleteUserArtist(req);
+        let result = await userFanService.deleteUserfan(req);
         helper.send(res, result.code, result.data);
     } catch (error) {
         next(error)
@@ -110,11 +110,11 @@ const deleteUserArtist = async (req, res, next) => {
 }
 
 module.exports = {
-    artistLogin,
-    forgotPasswordArtist,
-    addUserArtist,
-    updateUserArtist,
-    getAllUserArtist,
-    getUserArtist,
-    deleteUserArtist
+    fanLogin,
+    forgotPasswordfan,
+    addUserfan,
+    updateUserfan,
+    getAllUserfan,
+    getUserfan,
+    deleteUserfan
 }

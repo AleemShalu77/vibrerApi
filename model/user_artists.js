@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userArtistsSchema = new mongoose.Schema({
-    eamil:{
+    email:{
         type:String,
         required:true
     },
@@ -71,9 +71,9 @@ const userArtistsSchema = new mongoose.Schema({
         type:Array,
         required:true
     },
-    gallery_imgs:[string],
-    music_videos:[{ _id:string }],
-    music:[{ _id:string }],
+    gallery_imgs:[{String}],
+    music_videos:[{ _id:String }],
+    music:[{ _id:String }],
     link:{
         facebook:String,
         twitter:String,

@@ -6,25 +6,22 @@ const { ADMIN_IMAGE_URL } = require("../../config/index")
 const nodemailer = require("nodemailer");
 const { getMessage } = require('../../utils/helper');
 
-
-
-
-const login = async(req) =>{
-  let testAccount = await nodemailer.createTestAccount();
-let transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  auth: {
-    user: "abdul.aleem@techstalwarts.com", // generated ethereal user
-    pass: "lhpexkpsstmysvue", // generated ethereal password
-  },
-});
+const login = async (req) => {
   let result = { data: null };
+  let testAccount = await nodemailer.createTestAccount();
+  let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    auth: {
+      user: "abdul.aleem@techstalwarts.com", // generated ethereal user
+      pass: "lhpexkpsstmysvue", // generated ethereal password
+    },
+  });
   const { email, password } = req.body;
-  let user = await adminUsersSchema.findOne({email:email })
-  if(user) {
+  let user = await adminUsersSchema.findOne({ email: email })
+  if (user) {
     const match = await bcrypt.compare(password, user.password);
-    if(match) {
+    if (match) {
       let payload = {
         id: user.id,
         mobile: user.email,
@@ -33,15 +30,15 @@ let transporter = nodemailer.createTransport({
       let options = { expiresIn: "72h" };
       let token = jwt.sign(payload, JWT_SECRET, options);
       let resObj = Object.assign({}, {
-      role:user.role,
-      email:user.email,
-      verification:user.verification,
-      token,
+        role: user.role,
+        email: user.email,
+        verification: user.verification,
+        token,
       });
       const bodyData = await getEmailVerification();
-      const emailMessage = await getMessage(bodyData,'aleem9860@gmail.com','aleem9860@gmail.com','Test Message');
+      const emailMessage = await getMessage(bodyData, 'aleem9860@gmail.com', 'aleem9860@gmail.com', 'Test Message');
       try {
-        const send =  await transporter.sendMail(emailMessage);
+        const send = await transporter.sendMail(emailMessage);
         console.log('Test email sent successfully');
       } catch (error) {
         console.error('Error sending test email');
@@ -56,6 +53,28 @@ let transporter = nodemailer.createTransport({
       result.code = 2019;
     }
   } else {
+    result.code = 2017;
+  }
+  return result
+}
+
+const forgotPassword = async (req) => {
+  let result = { data: null };
+  const {email,confirmPassword} = req.body;
+  if(req.body.password != confirmPassword){
+    result.code = 2016;
+    return result;
+  }
+  const pswd = await bcrypt.genSalt(10);
+  const password = await bcrypt.hash(req.body.password, pswd);
+  const admin = adminUsersSchema.findOneAndUpdate({ email: email })
+  if(admin){
+      const reset =  await adminUsersSchema.updateOne({ email: email },{
+      password : password
+    })
+    result.data = reset;
+    result.code = 2015;
+  }else{
     result.code = 2017;
   }
   return result
@@ -171,6 +190,7 @@ const deleteUser = async (req) => {
 
 module.exports = {
   login,
+  forgotPassword,
   addUser,
   updateUser,
   getAllUser,

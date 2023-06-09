@@ -41,6 +41,16 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  2015:{
+    message: 'Reset password successfully',
+    httpCode: 400,
+    status: 0
+  },
+  2016:{
+    message: 'Password and confirm password should not matched',
+    httpCode: 400,
+    status: 0
+  },
   2017: {
     message: 'User not found',
     httpCode: 400,

@@ -114,10 +114,10 @@ const validateAddUserArtistReq = Joi.object({
 
 const validateUpdateUserArtistReq = Joi.object({
     id: Joi.string().required()
-    .messages({
-      'string.pattern.base': `"id" should be a type of 'text'`,
-      'string.empty': `"id" cannot be an empty field`,
-    }),
+        .messages({
+            'string.pattern.base': `"id" should be a type of 'text'`,
+            'string.empty': `"id" cannot be an empty field`,
+        }),
     email: Joi.string().email().trim().messages({
         'string.email': '{{#label}} must be a valid email',
         'string.empty': `"email" cannot be an empty field`,
@@ -208,6 +208,51 @@ const validateUpdateUserArtistReq = Joi.object({
     })
 })
 
+const validateLoginReq = Joi.object({
+    email: Joi.string().email().trim().required()
+        .messages({
+            'string.email': '{{#label}} must be a valid email',
+            'string.empty': `"email" cannot be an empty field`,
+            'string.trim': '{{#label}} must not have leading or trailing whitespace',
+        }),
+    password: Joi.string().required()
+        .messages({
+            'string.empty': `"password" cannot be an empty field`,
+        })
+})
+
+const validateResetPasswordReq = Joi.object({
+    email: Joi.string().email().trim().required()
+        .messages({
+            'string.email': '{{#label}} must be a valid email',
+            'string.empty': `"email" cannot be an empty field`,
+            'string.trim': '{{#label}} must not have leading or trailing whitespace',
+        }),
+    password: Joi.string()
+        .regex(RegExp(passwordRegex))
+        .required()
+        .min(8)
+        .max(16)
+        .message({
+            'string.pattern.base': `"password" must have atleast one uppercase letter, one number and one speacial character`,
+            'string.empty': `"password" cannot be an empty field`,
+            'string.min': `"password" should have a minimum length of {#limit}`,
+            'string.min': `"password" should have a maximum length of {#limit}`,
+        }),
+    confirmPassword: Joi.string()
+        .regex(RegExp(passwordRegex))
+        .required()
+        .min(8)
+        .max(16)
+        .message({
+            'string.pattern.base': `"password" must have atleast one uppercase letter, one number and one speacial character`,
+            'string.empty': `"password" cannot be an empty field`,
+            'string.min': `"password" should have a minimum length of {#limit}`,
+            'string.min': `"password" should have a maximum length of {#limit}`,
+        })
+})
+
+
 module.exports = {
-    validateAddUserArtistReq, validateUpdateUserArtistReq
+    validateAddUserArtistReq, validateUpdateUserArtistReq, validateLoginReq, validateResetPasswordReq
 }
