@@ -9,6 +9,11 @@ const validateAddCoinPriceReq = Joi.object({
       'string.min': `"name" should have a minimum length of {#limit}`,
       'string.trim': '{{#label}} must not have leading or trailing whitespace',
     }),
+    price:Joi.number().required()
+    .messages({
+      'string.pattern.base': `"price" should be a type of 'number'`,
+      'string.empty': `"price" cannot be an empty field`,
+    }),
   status: Joi.array().items(Joi.string().trim().required()).messages({
     'string.empty': `"status" cannot be an empty field`,
     'string.trim': '{{#label}} must not have leading or trailing whitespace',

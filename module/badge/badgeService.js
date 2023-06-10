@@ -1,14 +1,16 @@
 const badgeSchema = require("../../model/badge");
 const { BADGE_ICON_URL } = require("../../config/index")
+const adminUsersSchema = require("../../model/admin_users")
 
 const addBadge = async (req) => {
   const result = { data: null };
-  const { name, updated_by } = req.body;
-  const icon_img = `${BADGE_ICON_URL}` + `${req.file}`
+  const { name } = req.body;
+  const payload = req.decoded;
+  const icon_img = `${BADGE_ICON_URL}` + `${req.file}`;
   const badge = await badgeSchema.create({
     name: name,
     icon: icon_img,
-    updated_by: updated_by
+    updated_by: payload.id,
   })
   if (badge) {
     result.data = badge;
@@ -21,13 +23,14 @@ const addBadge = async (req) => {
 
 const updateBadge = async (req) => {
   const result = { data: null };
-  const { id, name, updated_by } = req.body;
-  //   const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
+  const { id, name } = req.body;
+  const payload = req.decoded;
+    const icon_img = `${BADGE_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
   const badge = await badgeSchema.updateOne(filter, {
     name: name,
-    // icon:icon_img,
-    updated_by: updated_by
+    icon:icon_img,
+    updated_by: payload.id,
   }, {
     where: {
       _id: id
@@ -57,7 +60,9 @@ const getAllBadge = async (req) => {
 const getBadge = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const badge = await badgeSchema.findById(id)
+  const badge = await badgeSchema.findById(id
+  )
+      
   if (badge) {
     result.data = badge;
     result.code = 200;
