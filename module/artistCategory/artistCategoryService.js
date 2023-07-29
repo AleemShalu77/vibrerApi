@@ -29,7 +29,6 @@ const addartistCategory = async (req) => {
 const updateartistCategory = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
-  //   const icon_img = `${ARTIST_CATEGORY_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
   const categoryCheck = await artistCategoriesSchema.findOne({ name: name, _id: { $ne: id } });
   if(categoryCheck)
@@ -40,7 +39,6 @@ const updateartistCategory = async (req) => {
   {
   const artist = await artistCategoriesSchema.updateOne(filter, {
     name: name,
-    // icon:icon_img,
     status: status
   }, {
     where: {

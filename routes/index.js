@@ -5,6 +5,7 @@ const badgeRoute = require('../module/badge/badgeRoute');
 const coinPriceRoute = require('../module/coinPrice/coinPriceRoute');
 const commentRoute = require('../module/comment/commentRoute');
 const concertRoute = require('../module/concert/concertRoute');
+const genreRoute = require('../module/genre/genreRoute')
 const mediaPostRoute = require("../module/mediaPost/mediaPostRoute");
 const platformCommissionRoute = require("../module/platformCommission/platformCommissionRoute");
 const RoleRoute = require("../module/role/roleRoute");
@@ -22,6 +23,7 @@ module.exports = router => {
   coinPriceRoute(router);
   commentRoute(router);
   concertRoute(router);
+  genreRoute(router)
   mediaPostRoute(router);
   platformCommissionRoute(router);
   RoleRoute(router);

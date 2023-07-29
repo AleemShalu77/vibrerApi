@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
-const concertTypeSchema = new mongoose.Schema({
+const genreSchema = new mongoose.Schema({
     name:{
         type:String,
         required:true
     },
     status:{
-        type:Array,
+        type:String,
         required:true
     }
 },
@@ -14,4 +14,5 @@ const concertTypeSchema = new mongoose.Schema({
      timestamps: true 
 })
 
-module.exports = mongoose.model('concert_type',concertTypeSchema) ;
+
+module.exports = mongoose.model('genre',genreSchema) ;

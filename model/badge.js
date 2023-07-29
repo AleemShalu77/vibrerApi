@@ -9,10 +9,10 @@ const badgeSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    status:{
-        type:Array,
+    updated_by:{
+        type:String,
         required:true
-    }
+    },
 },
 {
      timestamps: true 

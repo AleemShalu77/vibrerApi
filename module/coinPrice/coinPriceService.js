@@ -3,11 +3,16 @@ const { COIN_PRICE_ICON_URL } = require("../../config/index")
 
 const addCoinPrice = async (req) => {
   const result = { data: null };
-  const { name, status } = req.body;
+  const { name, status, price } = req.body;
+  const payload = req.decoded;
   const icon_img = `${COIN_PRICE_ICON_URL}` + `${req.file}`
   const CoinPrice = await coinPriceSchema.create({
     name: name,
     icon: icon_img,
+    price: price,
+    admin_id: payload.id,
+    admin_name: payload.email,
+    admin_email: payload.email,
     status: status
   })
   if (CoinPrice) {
@@ -21,12 +26,15 @@ const addCoinPrice = async (req) => {
 
 const updateCoinPrice = async (req) => {
   const result = { data: null };
-  const { id, name, status } = req.body;
-  //   const icon_img = `${COIN_PRICE_ICON_URL}`+`${req.file}`
+  const { id, name, status, price } = req.body;
+  const icon_img = `${COIN_PRICE_ICON_URL}` + `${req.file}`
   const filter = { _id: id };
+  const payload = req.decoded;
   const CoinPrice = await coinPriceSchema.updateOne(filter, {
     name: name,
-    // icon:icon_img,
+    icon: icon_img,
+    price: price,
+    updated_by: payload.id,
     status: status
   }, {
     where: {
