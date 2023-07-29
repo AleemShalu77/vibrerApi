@@ -1,13 +1,18 @@
 const artistCategoriesSchema = require("../../model/artist_categories");
-const { ARTIST_CATEGORY_ICON_URL } = require("../../config/index")
 
 const addartistCategory = async (req) => {
   const result = { data: null };
   const { name, status } = req.body;
-  const icon_img = `${ARTIST_CATEGORY_ICON_URL}` + `${req.file.filename}`
+  const categoryCheck = await artistCategoriesSchema.findOne({ name: name });
+  if(categoryCheck)
+  {
+    result.code = 205;
+    return result; // Return immediately if category already exists
+  }
+  else
+  {
   const artist = await artistCategoriesSchema.create({
     name: name,
-    icon: icon_img,
     status: status
   })
   if (artist) {
@@ -18,12 +23,21 @@ const addartistCategory = async (req) => {
   }
   return result;
 }
+ 
+}
 
 const updateartistCategory = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
   //   const icon_img = `${ARTIST_CATEGORY_ICON_URL}`+`${req.file}`
   const filter = { _id: id };
+  const categoryCheck = await artistCategoriesSchema.findOne({ name: name, _id: { $ne: id } });
+  if(categoryCheck)
+  {
+    result.code = 205;
+  }
+  else
+  {
   const artist = await artistCategoriesSchema.updateOne(filter, {
     name: name,
     // icon:icon_img,
@@ -39,12 +53,13 @@ const updateartistCategory = async (req) => {
   } else {
     result.code = 204;
   }
+}
   return result;
 }
 
 const getAllartistCategory = async (req) => {
   const result = { data: null };
-  const artist = await artistCategoriesSchema.find()
+  const artist = await artistCategoriesSchema.find().sort({ createdAt: -1 });
   if (artist) {
     result.data = artist;
     result.code = 200;
@@ -57,6 +72,7 @@ const getAllartistCategory = async (req) => {
 const getartistCategory = async (req) => {
   const result = { data: null };
   const id = req.params.id;
+  try {
   const artist = await artistCategoriesSchema.findById(id)
   if (artist) {
     result.data = artist;
@@ -64,6 +80,11 @@ const getartistCategory = async (req) => {
   } else {
     result.code = 204;
   }
+}
+catch (error)
+{
+  result.code = 204;
+}
   return result;
 }
 

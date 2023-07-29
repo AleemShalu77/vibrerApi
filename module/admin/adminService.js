@@ -6,17 +6,31 @@ const { ADMIN_IMAGE_URL } = require("../../config/index")
 const nodemailer = require("nodemailer");
 const { getMessage } = require('../../utils/helper');
 
+// let testAccount = await nodemailer.createTestAccount();
+//   let transporter = nodemailer.createTransport({
+//     host: "smtp.gmail.com",
+//     port: 465,
+//     auth: {
+//       user: "abdul.aleem@techstalwarts.com", // generated ethereal user
+//       pass: "lhpexkpsstmysvue", // generated ethereal password
+//     },
+//   });
+
+// const bodyData = await getEmailVerification();
+// const emailMessage = await getMessage(bodyData, 'aleem9860@gmail.com', 'aleem9860@gmail.com', 'Test Message');
+// try {
+//   const send = await transporter.sendMail(emailMessage);
+//   console.log('Test email sent successfully');
+// } catch (error) {
+//   console.error('Error sending test email');
+//   console.error(error);
+//   if (error.response) {
+//     console.error(error.response.body)
+//   }
+// }
+
 const login = async (req) => {
   let result = { data: null };
-  let testAccount = await nodemailer.createTestAccount();
-  let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    auth: {
-      user: "abdul.aleem@techstalwarts.com", // generated ethereal user
-      pass: "lhpexkpsstmysvue", // generated ethereal password
-    },
-  });
   const { email, password } = req.body;
   let user = await adminUsersSchema.findOne({ email: email })
   if (user) {
@@ -30,23 +44,11 @@ const login = async (req) => {
       let options = { expiresIn: "72h" };
       let token = jwt.sign(payload, JWT_SECRET, options);
       let resObj = Object.assign({}, {
-        role: user.role,
-        email: user.email,
-        verification: user.verification,
-        token,
-      });
-      const bodyData = await getEmailVerification();
-      const emailMessage = await getMessage(bodyData, 'aleem9860@gmail.com', 'aleem9860@gmail.com', 'Test Message');
-      try {
-        const send = await transporter.sendMail(emailMessage);
-        console.log('Test email sent successfully');
-      } catch (error) {
-        console.error('Error sending test email');
-        console.error(error);
-        if (error.response) {
-          console.error(error.response.body)
-        }
-      }
+      role: user.role,
+      email: user.email,
+      verification: user.verification,
+      token,
+    });
       result.data = resObj;
       result.code = 2021;
     } else {

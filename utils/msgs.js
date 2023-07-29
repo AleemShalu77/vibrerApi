@@ -26,6 +26,11 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  205: {
+    message: "Record already exists",
+    httpCode: 200,
+    status: 0,
+  },
   400: {
     message: "Bad Request",
     httpCode: 400,
