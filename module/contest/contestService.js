@@ -1,84 +1,18 @@
 const contestTypeSchema = require("../../model/contest_type");
 const contestSchema = require("../../model/contests")
-
-const addContestType = async (req) => {
-  const result = { data: null };
-  const { name, status } = req.body;
-  const contestType = await contestTypeSchema.create({
-    name: name,
-    status: status
-  })
-  if (contestType) {
-    result.data = contestType;
-    result.code = 201;
-  } else {
-    result.code = 204;
-  }
-  return result;
-}
-
-const updateContestType = async (req) => {
-  const result = { data: null };
-  const { id, name, status } = req.body;
-  const filter = { _id: id };
-  const contestType = await contestTypeSchema.updateOne(filter, {
-    name: name,
-    status: status
-  }, {
-    where: {
-      _id: id
-    }
-  })
-  if (contestType) {
-    result.data = contestType;
-    result.code = 202;
-  } else {
-    result.code = 204;
-  }
-  return result;
-}
-
-const getAllContestType = async (req) => {
-  const result = { data: null };
-  const contestType = await contestTypeSchema.find()
-  if (contestType) {
-    result.data = contestType;
-    result.code = 200;
-  } else {
-    result.code = 204;
-  }
-  return result;
-}
-
-const getContestType = async (req) => {
-  const result = { data: null };
-  const id = req.params.id;
-  const contestType = await contestTypeSchema.findById(id)
-  if (contestType) {
-    result.data = contestType;
-    result.code = 200;
-  } else {
-    result.code = 204;
-  }
-  return result;
-}
-
-const deleteContestType = async (req) => {
-  const result = { data: null };
-  const id = req.params.id;
-  const contestType = await contestTypeSchema.findByIdAndRemove(id)
-  if (contestType) {
-    result.data = contestType;
-    result.code = 203;
-  } else {
-    result.code = 204;
-  }
-  return result;
-}
-
 const addContest = async (req) => {
   const result = { data: null };
-  const { contest_type, title, description, conditions, reward, time_zone, starts_on, ends_on, start_date, start_time, end_time, votes, winner, winner_second, winner_third, createdBy, updated_by, status } = req.body;
+  const payload = req.decoded;
+  const { contest_type, title, description, conditions, reward, time_zone, starts_on, ends_on,  banner, status } = req.body;
+  
+  const coinPriceCheck = await contestSchema.findOne({ contest_type: contest_type, title: title });
+  if(coinPriceCheck)
+  {
+    result.code = 205;
+  }
+  else
+  {
+  
   const contest = await contestSchema.create({
     contest_type: contest_type,
     title: title,
@@ -88,15 +22,13 @@ const addContest = async (req) => {
     time_zone: time_zone,
     starts_on: starts_on,
     ends_on: ends_on,
-    start_date: start_date,
-    start_time: start_time,
-    end_time: end_time,
-    votes: votes,
-    winner: winner,
-    winner_second: winner_second,
-    winner_third: winner_third,
-    createdBy: createdBy,
-    updated_by: updated_by,
+    banner: banner,
+    // votes: votes,
+    // winner: winner,
+    // winner_second: winner_second,
+    // winner_third: winner_third,
+    createdBy: payload.id,
+    updatedBy: payload.id,
     status: status
   })
   if (contest) {
@@ -105,6 +37,7 @@ const addContest = async (req) => {
   } else {
     result.code = 204;
   }
+}
   return result;
 }
 
@@ -180,11 +113,6 @@ const deleteContest = async (req) => {
 }
 
 module.exports = {
-  addContestType,
-  updateContestType,
-  getAllContestType,
-  getContestType,
-  deleteContestType,
   addContest,
   updateContest,
   getAllContest,

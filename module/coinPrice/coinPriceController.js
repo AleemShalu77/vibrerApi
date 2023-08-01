@@ -8,6 +8,19 @@ const addCoinPrice = async (req, res, next) => {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
+    if(req.body['icon'])
+    {
+      req.body.icon = JSON.parse(req.body['icon']);
+      if((req.body.icon).length === 0)
+      {
+        return next(createHttpError(400, { message: '`icon` can not be empty' }));
+
+      }
+    }
+    else
+    {
+      return next(createHttpError(400, { message: 'Please pass `icon`' }));
+    }
     let isValid = await validateAddCoinPriceReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)

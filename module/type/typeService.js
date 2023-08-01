@@ -1,21 +1,21 @@
-const genreSchema = require("../../model/genre");
+const typeSchema = require("../../model/type");
 
-const addGenre = async (req) => {
+const addtype = async (req) => {
   const result = { data: null };
   const { name, status } = req.body;
-  const genreCheck = await genreSchema.findOne({ name: name });
-  if(genreCheck)
+  const typeCheck = await typeSchema.findOne({ name: name });
+  if(typeCheck)
   {
     result.code = 205;
   }
   else
   {
-  const genre = await genreSchema.create({
+  const type = await typeSchema.create({
     name: name,
     status: status
   })
-  if (genre) {
-    result.data = genre;
+  if (type) {
+    result.data = type;
     result.code = 201;
   } else {
     result.code = 204;
@@ -24,18 +24,18 @@ const addGenre = async (req) => {
   return result;
 }
 
-const updateGenre = async (req) => {
+const updatetype = async (req) => {
   const result = { data: null };
   const { id, name, status } = req.body;
   const filter = { _id: id };
-  const genreCheck = await genreSchema.findOne({ name: name, _id: { $ne: id } });
-  if(genreCheck)
+  const typeCheck = await typeSchema.findOne({ name: name, _id: { $ne: id } });
+  if(typeCheck)
   {
     result.code = 205;
   }
   else
   {
-  const genre = await genreSchema.updateOne(filter, {
+  const type = await typeSchema.updateOne(filter, {
     name: name,
     status: status
   }, {
@@ -43,8 +43,8 @@ const updateGenre = async (req) => {
       _id: id
     }
   })
-  if (genre) {
-    result.data = genre;
+  if (type) {
+    result.data = type;
     result.code = 202;
   } else {
     result.code = 204;
@@ -53,11 +53,11 @@ const updateGenre = async (req) => {
   return result;
 }
 
-const getAllGenre = async (req) => {
+const getAlltype = async (req) => {
   const result = { data: null };
-  const genre = await genreSchema.find().sort({ createdAt: -1 });
-  if (genre) {
-    result.data = genre;
+  const type = await typeSchema.find().sort({ createdAt: -1 });
+  if (type) {
+    result.data = type;
     result.code = 200;
   } else {
     result.code = 204;
@@ -65,13 +65,13 @@ const getAllGenre = async (req) => {
   return result;
 }
 
-const getGenre = async (req) => {
+const gettype = async (req) => {
   const result = { data: null };
   const id = req.params.id;
   try {
-  const genre = await genreSchema.findById(id)
-  if (genre) {
-    result.data = genre;
+  const type = await typeSchema.findById(id)
+  if (type) {
+    result.data = type;
     result.code = 200;
   } else {
     result.code = 204;
@@ -84,12 +84,12 @@ catch (error)
   return result;
 }
 
-const deleteGenre = async (req) => {
+const deletetype = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const genre = await genreSchema.findByIdAndRemove(id)
-  if (genre) {
-    result.data = genre;
+  const type = await typeSchema.findByIdAndRemove(id)
+  if (type) {
+    result.data = type;
     result.code = 203;
   } else {
     result.code = 204;
@@ -99,9 +99,9 @@ const deleteGenre = async (req) => {
 
 module.exports = {
 
-  addGenre,
-  updateGenre,
-  getAllGenre,
-  getGenre,
-  deleteGenre
+  addtype,
+  updatetype,
+  getAlltype,
+  gettype,
+  deletetype
 }

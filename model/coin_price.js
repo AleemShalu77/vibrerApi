@@ -13,25 +13,13 @@ const coinPriceSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    updated_by: {
-        admin_id: {
-            type: String,
-            required: true
-        },
-        admin_name: {
-            type: String,
-            required: true
-        },
-        admin_email: {
-            type: String,
-            required: true
-        }
+    status:{
+        type:String,
+        required:true
     },
-    status: {
-        type: Array,
-        required: true
-    }
-},
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin_users', required: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin_users', required: true },
+    },
     {
         timestamps: true
     })

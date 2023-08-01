@@ -1,18 +1,18 @@
-const contestService = require('./contestService');
+const typeService = require('./typeService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddContestReq, validateUpdateContestReq } = require("./contestValidation");
+const { validateAddtypeReq, validateUpdatetypeReq } = require("./typeValidation");
 
-const addContest = async (req, res, next) => {
+const addtype = async (req, res, next) => {
   try {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
-    let isValid = await validateAddContestReq.validateAsync(req.body);
+    let isValid = await validateAddtypeReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)
     }
-    let result = await contestService.addContest(req);
+    let result = await typeService.addtype(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -22,16 +22,16 @@ const addContest = async (req, res, next) => {
   }
 }
 
-const updateContest = async (req, res, next) => {
+const updatetype = async (req, res, next) => {
   try {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
-    let isValid = await validateUpdateContestReq.validateAsync(req.body);
+    let isValid = await validateUpdatetypeReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)
     }
-    let result = await contestService.updateContest(req);
+    let result = await typeService.updatetype(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -41,27 +41,33 @@ const updateContest = async (req, res, next) => {
   }
 }
 
-const getAllContest = async (req, res, next) => {
+const getAlltype = async (req, res, next) => {
   try {
-    let result = await contestService.getAllContest(req);
+    let result = await typeService.getAlltype(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
   }
 }
 
-const getContest = async (req, res, next) => {
+const gettype = async (req, res, next) => {
   try {
-    let result = await contestService.getContest(req);
+    if (!req.params.id || (Object.keys(req.params).length) === 0 || req.params.id == "undefined") {
+      return next(createHttpError(400, { message: 'Please pass id' }));
+    }
+    let result = await typeService.gettype(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
   }
 }
 
-const deleteContest = async (req, res, next) => {
+const deletetype = async (req, res, next) => {
   try {
-    let result = await contestService.deleteContest(req);
+    if (!req.params.id || (Object.keys(req.params).length) === 0 || req.params.id == "undefined") {
+      return next(createHttpError(400, { message: 'Please pass id' }));
+    }
+    let result = await typeService.deletetype(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
@@ -69,9 +75,9 @@ const deleteContest = async (req, res, next) => {
 }
 
 module.exports = {
-  addContest,
-  updateContest,
-  getAllContest,
-  getContest,
-  deleteContest
+  addtype,
+  updatetype,
+  getAlltype,
+  gettype,
+  deletetype
 }

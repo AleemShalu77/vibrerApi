@@ -1,18 +1,26 @@
 const coinPriceSchema = require("../../model/coin_price");
 const { COIN_PRICE_ICON_URL } = require("../../config/index")
+const adminUsersSchema = require("../../model/admin_users")
+
 
 const addCoinPrice = async (req) => {
   const result = { data: null };
-  const { name, status, price } = req.body;
+  const { name, status, price, icon } = req.body;
   const payload = req.decoded;
-  const icon_img = `${COIN_PRICE_ICON_URL}` + `${req.file}`
+  const coinPriceCheck = await coinPriceSchema.findOne({ name: name });
+  if(coinPriceCheck)
+  {
+    result.code = 205;
+    return result; // Return immediately if category already exists
+  }
+  else
+  {
   const CoinPrice = await coinPriceSchema.create({
     name: name,
-    icon: icon_img,
+    icon: icon[0].file,
     price: price,
-    admin_id: payload.id,
-    admin_name: payload.email,
-    admin_email: payload.email,
+    createdBy: payload.id,
+    updatedBy: payload.id,
     status: status
   })
   if (CoinPrice) {
@@ -21,6 +29,7 @@ const addCoinPrice = async (req) => {
   } else {
     result.code = 204;
   }
+}
   return result;
 }
 
@@ -52,9 +61,35 @@ const updateCoinPrice = async (req) => {
 
 const getAllCoinPrice = async (req) => {
   const result = { data: null };
-  const CoinPrice = await coinPriceSchema.find()
+  const CoinPrice = await coinPriceSchema.find().sort({ createdAt: -1 });
   if (CoinPrice) {
-    result.data = CoinPrice;
+    let coinPriceArry = [];
+    let allcoinPrices =  CoinPrice.map((coinPriceData, key) => {
+       return new Promise(async (resolve, reject) => {
+       let adminInfo = await adminUsersSchema.findOne({ _id:coinPriceData.updatedBy });
+       if(adminInfo)
+       {
+         let coinPriceObj = {
+         _id :  coinPriceData._id,
+         name :  coinPriceData.name,
+         price :  coinPriceData.price,
+         icon :  coinPriceData.icon,
+         status :  coinPriceData.status,
+         createdBy :  coinPriceData.createdBy,
+         updatedBy :  coinPriceData.updatedBy,
+         createdAt : coinPriceData.createdAt,
+         updatedAt : coinPriceData.updatedAt,
+         updatedName :  adminInfo.name.first_name+' '+adminInfo.name.last_name,
+         updatedEmail :  adminInfo.email,
+         };
+         coinPriceArry.push(coinPriceObj);
+       }
+       return resolve();
+     });	
+     })
+     await Promise.all(allcoinPrices);
+ 
+     result.data = coinPriceArry;
     result.code = 200;
   } else {
     result.code = 204;

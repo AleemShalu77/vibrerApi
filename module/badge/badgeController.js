@@ -8,6 +8,19 @@ const addBadge = async (req, res, next) => {
     if (!req.body || (Object.keys(req.body).length) === 0) {
       return next(createHttpError(400, { message: 'Please pass body parameters' }));
     }
+    if(req.body['icons'])
+    {
+      req.body.icons = JSON.parse(req.body['icons']);
+      if((req.body.icons).length === 0)
+      {
+        return next(createHttpError(400, { message: '`icons` can not be empty' }));
+
+      }
+    }
+    else
+    {
+      return next(createHttpError(400, { message: 'Please pass `icons`' }));
+    }
     let isValid = await validateAddBadgeReq.validateAsync(req.body);
     if (isValid instanceof Error) {
       return next(isValid)

@@ -1,18 +1,16 @@
 const mongoose = require('mongoose');
 
 const badgeSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
-    },
     icon:{
         type:String,
         required:true
     },
-    updated_by:{
+    status:{
         type:String,
         required:true
     },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin_users', required: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'admin_users', required: true },
 },
 {
      timestamps: true 

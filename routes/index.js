@@ -2,7 +2,9 @@ const adminRoute = require('../module/admin/adminRoute');
 const artistCategoryRoute = require('../module/artistCategory/artistCategoryRoute');
 const artistStatusRoute = require('../module/artistStatus/artistStatusRoute');
 const badgeRoute = require('../module/badge/badgeRoute');
+const typeRoute = require('../module/type/typeRoute');
 const coinPriceRoute = require('../module/coinPrice/coinPriceRoute');
+const contestRoute = require('../module/contest/contestRoute');
 const commentRoute = require('../module/comment/commentRoute');
 const concertRoute = require('../module/concert/concertRoute');
 const genreRoute = require('../module/genre/genreRoute')
@@ -20,7 +22,9 @@ module.exports = router => {
   artistCategoryRoute(router);
   artistStatusRoute(router);
   badgeRoute(router);
+  typeRoute(router);
   coinPriceRoute(router);
+  contestRoute(router);
   commentRoute(router);
   concertRoute(router);
   genreRoute(router)
