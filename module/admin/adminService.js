@@ -1,6 +1,5 @@
 const adminUsersSchema = require("../../model/admin_users");
 // const bcrypt = require("bcrypt");
-const argon2 = require('argon2');
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
@@ -36,7 +35,7 @@ const login = async (req) => {
   let user = await adminUsersSchema.findOne({ email: email })
   if (user) {
     // const match = await bcrypt.compare(password, user.password);
-    const match = await argon2.verify(user.password, password);
+    const match = password;
     if (match) {
       let payload = {
         id: user.id,
@@ -71,7 +70,7 @@ const forgotPassword = async (req) => {
   }
   // const pswd = await bcrypt.genSalt(10);
   // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = await argon2.hash(req.body.password);
+  const password = req.body.password;
   const admin = adminUsersSchema.findOneAndUpdate({ email: email })
   if(admin){
       const reset =  await adminUsersSchema.updateOne({ email: email },{
@@ -89,7 +88,7 @@ const addUser = async (req) => {
   const result = { data: null };
   // const pswd = await bcrypt.genSalt(10);
   // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = await argon2.hash(req.body.password);
+  const password = req.body.password;
   const { first_name, last_name, role, email, verification, createdBy, updatedBy, status } = req.body;
   const profile_img = `${ADMIN_IMAGE_URL}` + `${req.file.filename}`
   const user = await adminUsersSchema.create({

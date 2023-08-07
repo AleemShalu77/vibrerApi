@@ -1,6 +1,5 @@
 const userfansSchema = require("../../model/user_fans");
 // const bcrypt = require("bcrypt");
-const argon2 = require('argon2');
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const nodemailer = require("nodemailer");
@@ -21,7 +20,7 @@ const fanLogin = async (req) => {
     const user = await userfansSchema.findOne({ email });
     if (user) {
         // const match = await bcrypt.compare(password, user.password);
-        const match = await argon2.verify(user.password, password);
+        const match = password;
         if (match) {
             let payload = {
                 id: user.id,
@@ -67,7 +66,7 @@ const forgotPasswordfan = async (req) => {
     }
     // const pswd = await bcrypt.genSalt(10);
     // const password = await bcrypt.hash(req.body.password, pswd);
-    const password = await argon2.hash(req.body.password);
+    const password = req.body.password;
     const user = await userfansSchema.findOne({ email });
     if (user) {
         const reset = await userfansSchema.updateOne({ email: email }, {
@@ -84,8 +83,9 @@ const forgotPasswordfan = async (req) => {
 const addUserfan = async (req) => {
     const result = { data: null };
     const { email, first_name, last_name, fan_categories, city, state, country, concert_fan, visibility, chat, bio, profile_img, createdBy, blocked_user, following, votes, playlist, wallet_id, status } = req.body;
-    // const password = await bcrypt.hash(req.body.password, pswd);
-    const password = await argon2.hash(req.body.password);
+    // const password = await bcr
+    ypt.hash(req.body.password, pswd);
+    const password = req.body.password;
     const Userfan = await userfansSchema.create({
         email: email,
         password: password,

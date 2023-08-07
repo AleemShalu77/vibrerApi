@@ -1,8 +1,7 @@
 const userArtistsSchema = require("../../model/user_artists");
 const artistCategoriesSchema = require("../../model/artist_categories");
 const genreSchema = require("../../model/genre");
-// const bcrypt = require("bcrypt");
-const argon2 = require('argon2');
+const bcryptjs = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const nodemailer = require("nodemailer");
@@ -23,7 +22,7 @@ const artistLogin = async (req) => {
     const user = await userArtistsSchema.findOne({ email });
     if (user) {
         // const match = await bcrypt.compare(password, user.password);
-        const match = await argon2.verify(user.password, password);
+        const match = await bcryptjs.compareSync(password, user.password);
         if (match) {
             let payload = {
                 id: user.id,
@@ -69,7 +68,7 @@ const forgotPasswordArtist = async (req) => {
     }
     // const pswd = await bcrypt.genSalt(10);
     // const password = await bcrypt.hash(req.body.password, pswd);
-    const password = await argon2.hash(req.body.password);
+    const password = await bcryptjs.hashSync(req.body.password, 10);
     const user = await userArtistsSchema.findOne({ email });
     if (user) {
         const reset = await userArtistsSchema.updateOne({ email: email }, {
@@ -88,7 +87,7 @@ const addUserArtist = async (req) => {
     const { user_type, email, username, artist_categories, first_name, last_name, gender, date_of_birth, city, country, concert_artist, visibility, bio, profile_img, verified, genres, facebook, twitter, instagram, youtube, website, status } = req.body;
     // const pswd = await bcrypt.genSalt(10);
     // const password = await bcrypt.hash(req.body.password, pswd);
-    const password = await argon2.hash(req.body.password);
+    const password = await bcryptjs.hashSync(req.body.password, 10);
 
     const existingUser = await userArtistsSchema.findOne({ $or: [{ username }, { email }] });
 
