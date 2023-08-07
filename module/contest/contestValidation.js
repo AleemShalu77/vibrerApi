@@ -22,8 +22,12 @@ banner: Joi.object({
     l: Joi.string().required(),
     m: Joi.string().required()
 }).required(),
-  status: Joi.string().required().valid('Deactive', 'Active').messages({
+  status: Joi.string().required().valid('Deactive', 'Active', 'Archived').messages({
     'string.empty': `"status" cannot be an empty field`,
+    'string.trim': '{{#label}} must not have leading or trailing whitespace',
+  }),
+  publish: Joi.string().required().valid('Publish', 'Draft').messages({
+    'string.empty': `"publish" cannot be an empty field`,
     'string.trim': '{{#label}} must not have leading or trailing whitespace',
   })
 });

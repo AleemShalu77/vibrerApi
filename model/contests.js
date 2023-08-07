@@ -89,6 +89,10 @@ const contestSchema = new mongoose.Schema({
     status:{
         type:String,
         required:true
+    },
+    publish:{
+        type:String,
+        required:true
     }
 }, {
     timestamps: true

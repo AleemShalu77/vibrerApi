@@ -1,4 +1,6 @@
 const userArtistsSchema = require("../../model/user_artists");
+const artistCategoriesSchema = require("../../model/artist_categories");
+const genreSchema = require("../../model/genre");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
@@ -80,44 +82,56 @@ const forgotPasswordArtist = async (req) => {
 
 const addUserArtist = async (req) => {
     const result = { data: null };
-    const { email, username, artist_categories, first_name, last_name, city, state, country, concert_artist, visibility, chat, bio, profile_img, profile_cover, verified, badges, gallery_imgs, music_videos, music, facebook, twitter, sportify, instagram, youtube, website, blocked_user, followers, following, likes, liked, votes, playlist, blocked, wallet_id, status } = req.body;
+    const { user_type, email, username, artist_categories, first_name, last_name, gender, date_of_birth, city, country, concert_artist, visibility, bio, profile_img, verified, genres, facebook, twitter, instagram, youtube, website, status } = req.body;
+    const pswd = await bcrypt.genSalt(10);
     const password = await bcrypt.hash(req.body.password, pswd);
+
+    const existingUser = await userArtistsSchema.findOne({ $or: [{ username }, { email }] });
+
+  if (existingUser) {
+        result.code = 205;
+  }
+  else
+  {
+
     const UserArtist = await userArtistsSchema.create({
+        user_type: user_type,
         email: email,
         password: password,
         username: username,
         artist_categories: artist_categories,
-        first_name: first_name,
-        last_name: last_name,
+        name : { first_name: first_name, last_name: last_name },
+        gender: gender,
+        date_of_birth: date_of_birth,
         city: city,
-        state: state,
+        // state: state,
         country: country,
         concert_artist: concert_artist,
         visibility: visibility,
-        chat: chat,
+        // chat: chat,
         bio: bio,
         profile_img: profile_img,
-        profile_cover: profile_cover,
+        // profile_cover: profile_cover,
         verified: verified,
-        badges: badges,
-        gallery_imgs: gallery_imgs,
-        music_videos: music_videos,
-        music: music,
+        genres: genres,
+        // gallery_imgs: gallery_imgs,
+        // music_videos: music_videos,
+        // music: music,
         facebook: facebook,
         twitter: twitter,
-        sportify: sportify,
+        // sportify: sportify,
         instagram: instagram,
         youtube: youtube,
         website: website,
-        blocked_user: blocked_user,
-        followers: followers,
-        following: following,
-        likes: likes,
-        liked: liked,
-        votes: votes,
-        playlist: playlist,
-        blocked: blocked,
-        wallet_id: wallet_id,
+        // blocked_user: blocked_user,
+        // followers: followers,
+        // following: following,
+        // likes: likes,
+        // liked: liked,
+        // votes: votes,
+        // playlist: playlist,
+        // blocked: blocked,
+        // wallet_id: wallet_id,
         status: status
     })
     if (UserArtist) {
@@ -126,6 +140,7 @@ const addUserArtist = async (req) => {
     } else {
         result.code = 204;
     }
+}
     return result;
 }
 
@@ -187,6 +202,24 @@ const getAllUserArtist = async (req) => {
     const result = { data: null };
     const UserArtist = await userArtistsSchema.find()
     if (UserArtist) {
+
+        let allUserArtist =  UserArtist.map((UserArtistData, key) => {
+      return new Promise(async (resolve, reject) => {
+      let artistCategoriesInfo = await artistCategoriesSchema.find({ _id: { $in: UserArtistData.artist_categories } });
+      if(artistCategoriesInfo)
+      {
+        UserArtist[key].artist_categories = artistCategoriesInfo;
+      }
+      let genresInfo = await genreSchema.find({ _id: { $in: UserArtistData.genres } });
+      if(genresInfo)
+      {
+        UserArtist[key].genres = genresInfo;
+      }
+      return resolve();
+    });	
+		})
+    await Promise.all(allUserArtist);
+
         result.data = UserArtist;
         result.code = 200;
     } else {

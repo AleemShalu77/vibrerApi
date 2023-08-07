@@ -53,7 +53,7 @@ const getAllBadge = async (req) => {
   const result = { data: null };
   const badge = await badgeSchema.find().sort({ createdAt: -1 });
   if (badge) {
-    let badgeArry = [];
+  let badgeArry = [];
    let allBadges =  badge.map((badgeData, key) => {
       return new Promise(async (resolve, reject) => {
       let adminInfo = await adminUsersSchema.findOne({ _id:badgeData.updatedBy });

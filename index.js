@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+require("dotenv").config();
 const routes = require('./routes/index')
 const mongoose = require('mongoose');
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
-const url = 'mongodb://0.0.0.0:27017/vibrer'
+const url = process.env.MONGODB_DEV;
 const swaggerDefinition = require("./config").SWAGGER_DEFINATION
 var cors = require('cors')
 var app = express();
