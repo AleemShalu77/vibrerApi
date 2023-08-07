@@ -231,15 +231,24 @@ const getAllUserArtist = async (req) => {
 const getUserArtist = async (req) => {
     const result = { data: null };
     const id = req.params.id;
-    const UserArtist = await userArtistsSchema.findById(id)
-    if (UserArtist) {
-        result.data = UserArtist;
-        result.code = 200;
-    } else {
+    
+    try {
+        const UserArtist = await userArtistsSchema.findById(id);
+
+        if (UserArtist) {
+            result.data = UserArtist;
+            result.code = 200;
+        } else {
+            
+            result.code = 204;
+        }
+    } catch (error) {
         result.code = 204;
+        result.error = error;
     }
+
     return result;
-}
+};
 
 const deleteUserArtist = async (req) => {
     const result = { data: null };

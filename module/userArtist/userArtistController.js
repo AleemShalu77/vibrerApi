@@ -1,4 +1,4 @@
-const UserArtistService = require('./UserArtistService');
+const UserArtistService = require('./userArtistService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
 const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq } = require("./UserArtistValidation");
