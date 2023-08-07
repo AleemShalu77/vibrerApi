@@ -1,7 +1,7 @@
 const UserArtistService = require('./userArtistService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq } = require("./UserArtistValidation");
+const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq } = require("./userArtistValidation");
 
 const artistLogin = async(req,res,next) =>{
     try {
