@@ -79,6 +79,7 @@ const userArtistsSchema = new mongoose.Schema({
     },
     profile_cover:{
         type:String,
+        required:true
     },
     verified:{
         type:Boolean,
@@ -136,7 +137,7 @@ const userArtistsSchema = new mongoose.Schema({
     //     required:true
     // },
     status:{
-        type:Array,
+        type:String,
         required:true
     }
 },

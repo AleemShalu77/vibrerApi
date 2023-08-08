@@ -1,7 +1,7 @@
 const UserArtistService = require('./userArtistService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq } = require("./userArtistValidation");
+const { validateAddUserArtistReq, validateUpdateUserArtistReq,validateLoginReq,validateResetPasswordReq, validateUserArtistSpecificColumn } = require("./userArtistValidation");
 
 const artistLogin = async(req,res,next) =>{
     try {
@@ -14,6 +14,25 @@ const artistLogin = async(req,res,next) =>{
         return next(isValid)
       }
       let result = await UserArtistService.artistLogin(req);
+      helper.send(res,result.code,result.data); 
+    } catch(error) {
+      if(error.isJoi){
+        return next(createHttpError(400,{message:error.message}));
+    }
+    next(error)
+   }
+  }
+  const updateUserArtistSpecificColumn = async(req,res,next) =>{
+    try {
+      if(!req.body || (Object.keys(req.body).length) === 0)
+        {
+            return next(createHttpError(400,{message:'Please pass body parameters'}));
+        }
+      let isValid = await validateUserArtistSpecificColumn.validateAsync(req.body);
+      if(isValid instanceof Error){
+        return next(isValid)
+      }
+      let result = await UserArtistService.updateUserArtistSpecificColumn(req);
       helper.send(res,result.code,result.data); 
     } catch(error) {
       if(error.isJoi){
@@ -114,6 +133,7 @@ module.exports = {
     forgotPasswordArtist,
     addUserArtist,
     updateUserArtist,
+    updateUserArtistSpecificColumn,
     getAllUserArtist,
     getUserArtist,
     deleteUserArtist

@@ -86,6 +86,7 @@ const validateAddUserArtistReq = Joi.object({
         'string.trim': '{{#label}} must not have leading or trailing whitespace',
     }),
     profile_img: Joi.string().required(),
+    profile_cover: Joi.string().required(),
     verified: Joi.boolean().required(),
     genres: Joi.array()
     .items(Joi.string().trim()) // Allow any object in the array
@@ -250,6 +251,21 @@ const validateLoginReq = Joi.object({
         })
 })
 
+const validateUserArtistSpecificColumn = Joi.object({
+    column: Joi.string().required().valid('status', 'verified', 'profile_img', 'profile_cover', 'concert_artist').messages({
+        'string.empty': `"column" cannot be an empty field`,
+        'string.trim': '{{#label}} must not have leading or trailing whitespace',
+      }),
+      id: Joi.string().required()
+      .messages({
+          'string.empty': `"id" cannot be an empty field`,
+      }),
+    value: Joi.required()
+        .messages({
+            'string.empty': `"value" cannot be an empty field`,
+        })
+})
+
 const validateResetPasswordReq = Joi.object({
     email: Joi.string().email().trim().required()
         .messages({
@@ -283,5 +299,5 @@ const validateResetPasswordReq = Joi.object({
 
 
 module.exports = {
-    validateAddUserArtistReq, validateUpdateUserArtistReq, validateLoginReq, validateResetPasswordReq
+    validateAddUserArtistReq, validateUserArtistSpecificColumn, validateUpdateUserArtistReq, validateLoginReq, validateResetPasswordReq
 }

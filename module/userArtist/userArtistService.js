@@ -82,9 +82,45 @@ const forgotPasswordArtist = async (req) => {
     return result
 }
 
+const updateUserArtistSpecificColumn = async (req) => {
+    const result = { data: null };
+    const { id, column, value } = req.body;
+    
+    try {
+        const UserArtist = await userArtistsSchema.findById(id);
+        
+        if (UserArtist) {
+            // Use an object to specify the field you want to update dynamically
+            const updateObject = {};
+            updateObject[column] = value;
+
+            // Update the specified field
+            const reset = await userArtistsSchema.updateOne({ _id: id }, updateObject);
+            if(reset)
+            {
+                result.data = reset;
+                result.code = 202;
+            }
+            else
+            {
+                result.code = 400;
+            }
+           
+        } else {
+            result.code = 2017;
+        }
+    } catch (error) {
+        result.code = 400;
+        result.error = error;
+    }
+    
+    return result;
+}
+
+
 const addUserArtist = async (req) => {
     const result = { data: null };
-    const { user_type, email, username, artist_categories, first_name, last_name, gender, date_of_birth, city, country, concert_artist, visibility, bio, profile_img, verified, genres, facebook, twitter, instagram, youtube, website, status } = req.body;
+    const { user_type, email, username, artist_categories, first_name, last_name, gender, date_of_birth, city, country, concert_artist, visibility, bio, profile_img, profile_cover, verified, genres, facebook, twitter, instagram, youtube, website, status } = req.body;
     // const pswd = await bcrypt.genSalt(10);
     // const password = await bcrypt.hash(req.body.password, pswd);
     const password = await bcryptjs.hashSync(req.body.password, 10);
@@ -114,18 +150,19 @@ const addUserArtist = async (req) => {
         // chat: chat,
         bio: bio,
         profile_img: profile_img,
-        // profile_cover: profile_cover,
+        profile_cover: profile_cover,
         verified: verified,
         genres: genres,
         // gallery_imgs: gallery_imgs,
         // music_videos: music_videos,
         // music: music,
-        facebook: facebook,
-        twitter: twitter,
-        // sportify: sportify,
-        instagram: instagram,
-        youtube: youtube,
-        website: website,
+        link : { facebook: facebook,
+                twitter: twitter,
+                // sportify: sportify,
+                instagram: instagram,
+                youtube: youtube,
+                website: website,
+                },
         // blocked_user: blocked_user,
         // followers: followers,
         // following: following,
@@ -237,6 +274,16 @@ const getUserArtist = async (req) => {
     
     try {
         const UserArtist = await userArtistsSchema.findById(id);
+        let artistCategoriesInfo = await artistCategoriesSchema.find({ _id: { $in: UserArtist.artist_categories } });
+        if(artistCategoriesInfo)
+        {
+            UserArtist.artist_categories = artistCategoriesInfo;
+        }
+        let genresInfo = await genreSchema.find({ _id: { $in: UserArtist.genres } });
+        if(genresInfo)
+        {
+            UserArtist.genres = genresInfo;
+        }
 
         if (UserArtist) {
             result.data = UserArtist;
@@ -269,6 +316,7 @@ const deleteUserArtist = async (req) => {
 module.exports = {
     artistLogin,
     forgotPasswordArtist,
+    updateUserArtistSpecificColumn,
     addUserArtist,
     updateUserArtist,
     getAllUserArtist,
