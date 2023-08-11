@@ -61,11 +61,37 @@ const updateConcertType = async (req) => {
   return result;
 }
 
-const getAllConcertType = async (req) => {
+const getAllConcert = async (req) => {
   const result = { data: null };
-  const concertType = await concertTypeSchema.find()
-  if (concertType) {
-    result.data = concertType;
+  if(req.body.type){ 
+    if(req.body.type == 'Archived')
+    {
+      var concert = await concertSchema.find({
+        status: 'Archived'
+      });
+    }
+    else if(req.body.type == 'Draft')
+    {
+      var concert = await concertSchema.find({
+        publish: 'Draft'
+      });
+    }
+    else if(req.body.type == 'ongoing')
+    {
+      const currentDate = new Date(); // Get the current date and time
+      var concert = await concertSchema.find({
+        concert_date: { $gte: currentDate.toISOString().split('T')[0] },
+        status: 'Active', // assuming active means the concert is ongoing
+        publish: 'Publish' // assuming published means the concert is available to the public
+      });
+    }
+  }
+  else
+  {
+    var concert = await concertSchema.find();
+  }
+  if (concert) {
+    result.data = concert;
     result.code = 200;
   } else {
     result.code = 204;
@@ -102,7 +128,7 @@ const deleteConcertType = async (req) => {
 module.exports = {
   addConcert,
   updateConcertType,
-  getAllConcertType,
+  getAllConcert,
   getConcertType,
   deleteConcertType
 }

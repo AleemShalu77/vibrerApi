@@ -43,7 +43,7 @@ const updateConcert = async (req, res, next) => {
 
 const getAllConcert = async (req, res, next) => {
   try {
-    let result = await concertService.getAllConcertType(req);
+    let result = await concertService.getAllConcert(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error)
