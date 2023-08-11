@@ -1,41 +1,37 @@
 const Joi = require('joi');
 
-const validateAddConcertTypeReq = Joi.object({
-  name: Joi.string().min(3).max(50).trim().regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
-    .required()
-    .messages({
-      'string.pattern.base': `"name" should be a type of 'text'`,
-      'string.empty': `"name" cannot be an empty field`,
-      'string.min': `"name" should have a minimum length of {#limit}`,
-      'string.trim': '{{#label}} must not have leading or trailing whitespace',
+const validateAddConcertReq = Joi.object({
+  concert_type: Joi.string().required(),
+    artist: Joi.string().required(),
+    title: Joi.string().required().trim().regex(/^[A-Za-z\s]+$/).messages({
+      'string.pattern.base': 'Title should only contain alphabets',
+      'string.empty': 'Title is required'
     }),
-  status: Joi.array().items(Joi.string().trim().required()).messages({
-    'string.empty': `"status" cannot be an empty field`,
-    'string.trim': '{{#label}} must not have leading or trailing whitespace',
-  })
-});
-
-const validateUpdateConcertTypeReq = Joi.object({
-  id: Joi.string().required()
-    .messages({
-      'string.pattern.base': `"id" should be a type of 'text'`,
-      'string.empty': `"id" cannot be an empty field`,
-    }),
-  name: Joi.string().min(3).max(50).trim().regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
-    .messages({
-      'string.pattern.base': `"name" should be a type of 'text'`,
-      'string.empty': `"name" cannot be an empty field`,
-      'string.min': `"name" should have a minimum length of {#limit}`,
-      'string.trim': '{{#label}} must not have leading or trailing whitespace',
-    }),
-  status: Joi.array().items(Joi.string().trim())
-    .messages({
+    description: Joi.string().required(),
+    price: Joi.number().required(),
+    time_zone: Joi.string().required(),
+    concert_date: Joi.date().required(),
+    concert_time: Joi.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).required(),
+    tags: Joi.array().items(Joi.string()).required(),
+    password: Joi.string().required(),
+    banner: Joi.object({
+        xl: Joi.string().required(),
+        l: Joi.string().required(),
+        m: Joi.string().required()
+    }).required(),
+    status: Joi.string().required().valid('Deactive', 'Active', 'Archived').messages({
       'string.empty': `"status" cannot be an empty field`,
       'string.trim': '{{#label}} must not have leading or trailing whitespace',
     }),
+    publish: Joi.string().required().valid('Publish', 'Draft').messages({
+      'string.empty': `"publish" cannot be an empty field`,
+      'string.trim': '{{#label}} must not have leading or trailing whitespace',
+    })
+
 });
 
 
+
 module.exports = {
-  validateAddConcertTypeReq, validateUpdateConcertTypeReq
+  validateAddConcertReq
 }

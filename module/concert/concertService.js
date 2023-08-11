@@ -1,18 +1,42 @@
-const concertTypeSchema = require("../../model/concert_type");
-
-const addConcertType = async (req) => {
+const concertSchema = require("../../model/concerts");
+const bcryptjs = require('bcryptjs');
+const addConcert = async (req) => {
   const result = { data: null };
-  const { name, status } = req.body;
-  const concertType = await concertTypeSchema.create({
-    name: name,
-    status: status
+  const payload = req.decoded;
+  const { concert_type, artist, title, description, price, time_zone, concert_date, concert_time, tags, banner, status, publish } = req.body;
+  const password = await bcryptjs.hashSync(req.body.password, 10);
+  const coinPriceCheck = await concertSchema.findOne({ concert_type: concert_type, title: title });
+  if(coinPriceCheck)
+  {
+    result.code = 205;
+  }
+  else
+  {
+  
+  const concert = await concertSchema.create({
+    concert_type: concert_type,
+    title: title,
+    description: description,
+    price: price,
+    artist:artist,
+    time_zone: time_zone,
+    concert_date: concert_date,
+    concert_time: concert_time,
+    banner: banner,
+    tags: tags,
+    password: password,
+    createdBy: payload.id,
+    updatedBy: payload.id,
+    status: status,
+    publish: publish
   })
-  if (concertType) {
-    result.data = concertType;
+  if (concert) {
+    result.data = concert
     result.code = 201;
   } else {
     result.code = 204;
   }
+}
   return result;
 }
 
@@ -76,7 +100,7 @@ const deleteConcertType = async (req) => {
 }
 
 module.exports = {
-  addConcertType,
+  addConcert,
   updateConcertType,
   getAllConcertType,
   getConcertType,
