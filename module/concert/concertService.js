@@ -1,5 +1,7 @@
 const concertSchema = require("../../model/concerts");
 const bcryptjs = require('bcryptjs');
+const { format } = require('date-fns');
+
 const addConcert = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
@@ -79,8 +81,31 @@ const getAllConcert = async (req) => {
     else if(req.body.type == 'ongoing')
     {
       const currentDate = new Date(); // Get the current date and time
+      const currentDateString = currentDate.toISOString().split('T')[0];
+      const currentTimeString = currentDate.toLocaleTimeString('en-US', { hour12: false });
+  
       var concert = await concertSchema.find({
-        concert_date: { $gte: currentDate.toISOString().split('T')[0] },
+        concert_date: { $lte: currentDateString },
+        $or: [
+          { concert_date: currentDateString, concert_time: { $lte: currentTimeString } },
+          { concert_date: { $lt: currentDateString } }
+        ],
+        status: 'Active', // assuming active means the concert is ongoing
+        publish: 'Publish' // assuming published means the concert is available to the public
+      });
+    }
+    else if(req.body.type == 'upcoming')
+    {
+      const currentDate = new Date(); // Get the current date and time
+      const currentDateString = currentDate.toISOString().split('T')[0];
+      const currentTimeString = currentDate.toLocaleTimeString('en-US', { hour12: false });
+  
+      var concert = await concertSchema.find({
+        concert_date: { $gte: currentDateString },
+        $or: [
+          { concert_date: currentDateString, concert_time: { $gte: currentTimeString } },
+          { concert_date: { $gt: currentDateString } }
+        ],
         status: 'Active', // assuming active means the concert is ongoing
         publish: 'Publish' // assuming published means the concert is available to the public
       });
@@ -90,7 +115,7 @@ const getAllConcert = async (req) => {
   {
     var concert = await concertSchema.find();
   }
-  if (concert) {
+  if (concert && concert.length > 0) {
     result.data = concert;
     result.code = 200;
   } else {
