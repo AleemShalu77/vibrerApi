@@ -1,7 +1,7 @@
 const adminService = require('./adminService');
 const helper = require("../../utils/helper");
 const createHttpError = require('http-errors');
-const { validateAddUserReq, validateLoginReq, validateUpdateUserReq,validateResetPasswordReq } = require("./adminValidation");
+const { validateAddUserReq, validateLoginReq, validateUpdateUserReq,validateResetPasswordReq, validateVerificationCodeReq } = require("./adminValidation");
 
 const login = async(req,res,next) =>{
   try {
@@ -34,6 +34,25 @@ const forgotPassword = async(req,res,next) =>{
       return next(isValid)
     }
     let result = await adminService.forgotPassword(req);
+    helper.send(res,result.code,result.data); 
+  } catch(error) {
+    if(error.isJoi){
+      return next(createHttpError(400,{message:error.message}));
+  }
+  next(error)
+ }
+}
+const verificationCode = async(req,res,next) =>{
+  try {
+    if(!req.body || (Object.keys(req.body).length) === 0)
+      {
+          return next(createHttpError(400,{message:'Please pass body parameters'}));
+      }
+    let isValid = await validateVerificationCodeReq.validateAsync(req.body);
+    if(isValid instanceof Error){
+      return next(isValid)
+    }
+    let result = await adminService.verificationCode(req);
     helper.send(res,result.code,result.data); 
   } catch(error) {
     if(error.isJoi){
@@ -113,6 +132,7 @@ const deleteUser = async (req, res, next) => {
 module.exports = {
   login,
   forgotPassword,
+  verificationCode,
   addUser,
   updateUser,
   getAllUser,

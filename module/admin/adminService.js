@@ -64,6 +64,38 @@ const forgotPassword = async (req) => {
   }
   return result
 }
+const verificationCode = async (req) => {
+  let result = { data: null };
+  const {token} = req.body;
+
+  try {
+    const adminUser = await adminUsersSchema.findOne({ verification_token:token, verification:false });
+    if (adminUser) {
+
+        const updateToken =  await adminUsersSchema.updateOne(
+            { _id: adminUser._id },
+            { $set: { verification: true } }
+        );
+
+      if(updateToken)
+      {
+        result.code = 2023;
+      }
+      else
+      {
+        result.code = 500;
+      }
+        
+    } else {
+         result.code = 2022;
+    }
+} catch (error) {
+    console.error('Error checking verification code:', error);
+    result.code = 500;
+}
+
+  return result
+}
 
 const addUser = async (req) => {
   const result = { data: null };
@@ -86,6 +118,14 @@ const addUser = async (req) => {
       pass: process.env.EMAIL_PASSWORD, // generated ethereal password
     },
   });
+
+  const adminCheck = await adminUsersSchema.findOne({ email: email });
+  if(adminCheck)
+  {
+    result.code = 205;
+  }
+  else
+  {
   
   const user = await adminUsersSchema.create({
     name: {
@@ -117,6 +157,7 @@ const addUser = async (req) => {
   } else {
     result.code = 204;
   }
+}
   return result;
 }
 
@@ -192,6 +233,7 @@ const deleteUser = async (req) => {
 module.exports = {
   login,
   forgotPassword,
+  verificationCode,
   addUser,
   updateUser,
   getAllUser,

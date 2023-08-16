@@ -118,7 +118,14 @@ const validateLoginReq = Joi.object({
   .messages({
     'string.empty': `"password" cannot be an empty field`,
   })
-})
+});
+const validateVerificationCodeReq = Joi.object({
+  token: Joi.string().trim().required()
+  .messages({
+    'string.empty': `"token" cannot be an empty field`,
+    'string.trim': '{{#label}} must not have leading or trailing whitespace',
+  })
+});
 
 const validateResetPasswordReq = Joi.object({
   email: Joi.string().email().trim().required()
@@ -155,5 +162,6 @@ module.exports = {
   validateAddUserReq,
   validateUpdateUserReq,
   validateLoginReq,
-  validateResetPasswordReq
+  validateResetPasswordReq,
+  validateVerificationCodeReq
 }

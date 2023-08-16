@@ -71,6 +71,16 @@ const message = {
     httpCode: 200,
     status: 1
   },
+  2022: {
+    message: 'Invalid OR Expired Token',
+    httpCode: 200,
+    status: 0
+  },
+  2023: {
+    message: 'Your account has been verified successfully',
+    httpCode: 200,
+    status: 1
+  },
 };
 
 module.exports = message;
