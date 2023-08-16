@@ -65,7 +65,7 @@ getEmailVerification = (email,verification_token) => {
           <div class="col content" style="width: 100%; padding-left: 30px; padding-right: 30px; padding-top: 15px; padding-bottom: 30px;">
   
             <p style="margin: 0; font-size: 15px; color: #3f3d56; font-family: sans-serif; line-height: 2;">
-            To verify your email <a style="color: #0369ee;" href="https://vibrer.cloud/reset-password?token=`+verification_token+`">Click
+            To verify your email <a style="color: #0369ee;" href="https://vibrer.cloud/email-verification?token=`+verification_token+`">Click
             Here</a><br>
             Thank you for using the Vibrer.
             </p>
