@@ -1,8 +1,7 @@
 const Joi = require('joi');
 
 const validateAddGenreReq = Joi.object({
-  name: Joi.string().min(3).max(50).trim().regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
-    .required()
+  name: Joi.string().min(3).max(50).trim().required()
     .messages({
       'string.pattern.base': `"name" should be a type of 'text'`,
       'string.empty': `"name" cannot be an empty field`,
@@ -21,7 +20,7 @@ const validateUpdateGenreReq = Joi.object({
       'string.pattern.base': `"id" should be a type of 'text'`,
       'string.empty': `"id" cannot be an empty field`,
     }),
-  name: Joi.string().min(3).max(50).trim().regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
+  name: Joi.string().min(3).max(50).trim().required()
     .messages({
       'string.pattern.base': `"name" should be a type of 'text'`,
       'string.empty': `"name" cannot be an empty field`,
