@@ -24,6 +24,10 @@ const adminUsersSchema = new mongoose.Schema({
         required:true
     },
     verification:{
+        type:Boolean,
+        required:true
+    },
+    verification_token:{
         type:String,
         required:true
     },

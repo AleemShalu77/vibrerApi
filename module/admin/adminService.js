@@ -1,33 +1,13 @@
 const adminUsersSchema = require("../../model/admin_users");
-// const bcrypt = require("bcrypt");
+const bcryptjs = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 const { getMessage } = require('../../utils/helper');
-
-// let testAccount = await nodemailer.createTestAccount();
-//   let transporter = nodemailer.createTransport({
-//     host: "smtp.gmail.com",
-//     port: 465,
-//     auth: {
-//       user: "abdul.aleem@techstalwarts.com", // generated ethereal user
-//       pass: "lhpexkpsstmysvue", // generated ethereal password
-//     },
-//   });
-
-// const bodyData = await getEmailVerification();
-// const emailMessage = await getMessage(bodyData, 'aleem9860@gmail.com', 'aleem9860@gmail.com', 'Test Message');
-// try {
-//   const send = await transporter.sendMail(emailMessage);
-//   console.log('Test email sent successfully');
-// } catch (error) {
-//   console.error('Error sending test email');
-//   console.error(error);
-//   if (error.response) {
-//     console.error(error.response.body)
-//   }
-// }
+const sendGridMail = require('@sendgrid/mail');
+sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const login = async (req) => {
   let result = { data: null };
@@ -35,7 +15,8 @@ const login = async (req) => {
   let user = await adminUsersSchema.findOne({ email: email })
   if (user) {
     // const match = await bcrypt.compare(password, user.password);
-    const match = password;
+    const match = await bcryptjs.compareSync(password, user.password);
+    // const match = password;
     if (match) {
       let payload = {
         id: user.id,
@@ -88,9 +69,24 @@ const addUser = async (req) => {
   const result = { data: null };
   // const pswd = await bcrypt.genSalt(10);
   // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = req.body.password;
+  const password = await bcryptjs.hashSync(req.body.password, 10);
+  // const password = req.body.password;
   const { first_name, last_name, role, email, verification, createdBy, updatedBy, status } = req.body;
   const profile_img = `${ADMIN_IMAGE_URL}` + `${req.file.filename}`
+  const verification_token = generateRandomToken(50);
+
+  const message = await getEmailVerification(email,verification_token);
+  const messageData = await getMessage(message,email,process.env.EMAIL_FROM,'Vibrer Email Verification');
+  
+  let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    auth: {
+      user: process.env.EMAIL_FROM, // generated ethereal user
+      pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+    },
+  });
+  
   const user = await adminUsersSchema.create({
     name: {
       first_name: first_name,
@@ -99,23 +95,23 @@ const addUser = async (req) => {
     role: role,
     email: email,
     password: password,
-    verification: verification,
+    verification: false,
+    verification_token : verification_token,
     profile_img: profile_img,
     createdBy: createdBy,
     updatedBy: updatedBy,
     status: status
   })
   if (user) {
-    // try {
-    //   await sendGridMail.send(getMessage());
-    //   console.log('Test email sent successfully');
-    // } catch (error) {
-    //   console.error('Error sending test email');
-    //   console.error(error);
-    //   if (error.response) {
-    //     console.error(error.response.body)
-    //   }
-    // }
+    try {
+      // await sendGridMail.send(messageData);
+        const send = await transporter.sendMail(messageData);
+        } catch (error) {
+      console.error(error);
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    }
     result.data = user;
     result.code = 201;
   } else {

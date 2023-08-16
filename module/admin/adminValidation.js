@@ -28,11 +28,6 @@ const validateAddUserReq = Joi.object({
     'string.empty': `"email" cannot be an empty field`,
     'string.trim': '{{#label}} must not have leading or trailing whitespace',
   }),
-  verification: Joi.string().required()
-    .messages({
-      'string.pattern.base': `"last_name" should be a type of 'text'`,
-      'string.empty': `"last_name" cannot be an empty field`,
-    }),
   createdBy: Joi.number().integer().required()
     .messages({
       'number.pattern.base': `"createdBy" should be a type of 'number'`,
