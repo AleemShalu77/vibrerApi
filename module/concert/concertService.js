@@ -115,7 +115,7 @@ const getAllConcert = async (req) => {
   {
     var concert = await concertSchema.find();
   }
-  if (concert && concert.length > 0) {
+  if (concert) {
     result.data = concert;
     result.code = 200;
   } else {

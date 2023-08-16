@@ -7,14 +7,21 @@ const addBadge = async (req) => {
   const status = req.body.status;
   const icons = req.body.icons;
   const payload = req.decoded;
-  for (let i = 0; i < icons.length; i++) {
+
+  const badgeCheck = await badgeSchema.findOne();
+  if(badgeCheck)
+  {
+    const badgeDelete = await badgeSchema.deleteMany();
+  }
+
+  // for (let i = 0; i < icons.length; i++) {
     var badge = await badgeSchema.create({
-      icon: icons[i].file,
+      icon: icons[0].file,
       status:status,
       createdBy: payload.id,
       updatedBy: payload.id,
     })
-  }
+  // }
   if (badge) {
     result.data = badge;
     result.code = 201;
