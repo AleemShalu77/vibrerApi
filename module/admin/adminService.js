@@ -5,14 +5,22 @@ const { JWT_SECRET } = require("../../config");
 const { ADMIN_IMAGE_URL } = require("../../config/index")
 const nodemailer = require("nodemailer");
 require("dotenv").config();
-const { getMessage } = require('../../utils/helper');
+const { getMessage, getForgotPassword, generateRandomToken } = require('../../utils/helper');
 const sendGridMail = require('@sendgrid/mail');
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  auth: {
+    user: process.env.EMAIL_FROM, // generated ethereal user
+    pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+  },
+});
 
 const login = async (req) => {
   let result = { data: null };
   const { email, password } = req.body;
-  let user = await adminUsersSchema.findOne({ email: email })
+  let user = await adminUsersSchema.findOne({ email: email, verification:true })
   if (user) {
     // const match = await bcrypt.compare(password, user.password);
     const match = await bcryptjs.compareSync(password, user.password);
@@ -43,6 +51,54 @@ const login = async (req) => {
 }
 
 const forgotPassword = async (req) => {
+  let result = { data: null };
+  const {email} = req.body;
+  const verification_token = generateRandomToken(50);
+  const message = await getForgotPassword(email,verification_token);
+  const messageData = await getMessage(message,email,process.env.EMAIL_FROM,'Forgot Password');
+  
+  
+  try {
+    const admin = await adminUsersSchema.findOne({ email: email });
+
+    if (admin) {
+      try {
+        // await sendGridMail.send(messageData);
+          const send = await transporter.sendMail(messageData);
+            if(send)
+            {
+              const expiryDate = new Date(Date.now() + 3600000); // Set the expiry to one hour from now
+              admin.forgotPasswordToken = {
+                    token: verification_token,
+                    expiresAt: expiryDate
+                };
+              await admin.save();
+              result.code = 2024;
+            }
+            else
+            {
+              result.code = 2025;
+            }
+          } catch (error) {
+            console.error(error);
+            if (error.response) {
+              console.error(error.response.body)
+            }
+            result.code = 2025;
+
+      }
+       
+    } else {
+        result.code = 2017;
+    }
+} catch (error) {
+    // Handle the error appropriately
+    console.error('Error occurred:', error);
+    result.code = 2017;
+}
+  return result
+}
+const resetPassword = async (req) => {
   let result = { data: null };
   const {email,confirmPassword} = req.body;
   if(req.body.password != confirmPassword){
@@ -109,15 +165,6 @@ const addUser = async (req) => {
 
   const message = await getEmailVerification(email,verification_token);
   const messageData = await getMessage(message,email,process.env.EMAIL_FROM,'Vibrer Email Verification');
-  
-  let transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    auth: {
-      user: process.env.EMAIL_FROM, // generated ethereal user
-      pass: process.env.EMAIL_PASSWORD, // generated ethereal password
-    },
-  });
 
   const adminCheck = await adminUsersSchema.findOne({ email: email });
   if(adminCheck)
@@ -233,6 +280,7 @@ const deleteUser = async (req) => {
 module.exports = {
   login,
   forgotPassword,
+  resetPassword,
   verificationCode,
   addUser,
   updateUser,

@@ -81,6 +81,16 @@ const message = {
     httpCode: 200,
     status: 1
   },
+  2024:{
+    message: 'Reset password link has been sent to your E-mail',
+    httpCode: 200,
+    status: 1
+  },
+  2025:{
+    message: 'Something went wrong while sending E-mail',
+    httpCode: 400,
+    status: 0
+  },
 };
 
 module.exports = message;

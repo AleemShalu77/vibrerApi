@@ -31,6 +31,10 @@ const adminUsersSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    forgotPasswordToken: {
+        token: String,
+        expiresAt: Date
+    },
     profile_img:{
         type:String,
         required:true
