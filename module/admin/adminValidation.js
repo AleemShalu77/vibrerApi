@@ -136,10 +136,9 @@ const validateForgotPasswordReq = Joi.object({
   }),
 });
 const validateResetPasswordReq = Joi.object({
-  email: Joi.string().email().trim().required()
+  token: Joi.string().trim().required()
   .messages({
-    'string.email': '{{#label}} must be a valid email',
-    'string.empty': `"email" cannot be an empty field`,
+    'string.empty': `"token" cannot be an empty field`,
     'string.trim': '{{#label}} must not have leading or trailing whitespace',
   }),
   password:Joi.string()

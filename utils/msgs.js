@@ -52,12 +52,17 @@ const message = {
     status: 0
   },
   2016:{
-    message: 'Password and confirm password should not matched',
+    message: 'Password and confirm password did not match',
     httpCode: 400,
     status: 0
   },
   2017: {
     message: 'User not found',
+    httpCode: 400,
+    status: 0
+  },
+  2018: {
+    message: 'Token is expired',
     httpCode: 400,
     status: 0
   },

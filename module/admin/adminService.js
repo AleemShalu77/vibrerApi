@@ -100,26 +100,46 @@ const forgotPassword = async (req) => {
 }
 const resetPassword = async (req) => {
   let result = { data: null };
-  const {email,confirmPassword} = req.body;
-  if(req.body.password != confirmPassword){
-    result.code = 2016;
-    return result;
+  const { token, confirmPassword } = req.body;
+
+  if (req.body.password !== confirmPassword) {
+      result.code = 2016;
+      return result;
   }
-  // const pswd = await bcrypt.genSalt(10);
-  // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = req.body.password;
-  const admin = adminUsersSchema.findOneAndUpdate({ email: email })
-  if(admin){
-      const reset =  await adminUsersSchema.updateOne({ email: email },{
-      password : password
-    })
-    result.data = reset;
-    result.code = 2015;
-  }else{
-    result.code = 2017;
+
+  const password = await bcryptjs.hashSync(req.body.password, 10);
+
+  try {
+      const admin = await adminUsersSchema.findOne({ 'forgotPasswordToken.token': token });
+
+      if (admin) {
+          const currentTimestamp = new Date();
+          if (admin.forgotPasswordToken.expiresAt < currentTimestamp) {
+              result.code = 2018; // Token has expired
+          } else {
+              const reset = await adminUsersSchema.updateOne(
+                  { 'forgotPasswordToken.token': token },
+                  {
+                      $set: { password: password },
+                      $unset: { forgotPasswordToken: 1 } 
+                  }
+              );
+
+              result.data = reset;
+              result.code = 2015; // Password reset success
+          }
+      } else {
+          result.code = 2017; // Invalid token
+      }
+  } catch (error) {
+      console.error('Error:', error);
+      result.code = 500; // Handle error cases appropriately
   }
-  return result
+
+  return result;
 }
+
+
 const verificationCode = async (req) => {
   let result = { data: null };
   const {token} = req.body;
