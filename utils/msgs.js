@@ -48,8 +48,8 @@ const message = {
   },
   2015:{
     message: 'Reset password successfully',
-    httpCode: 400,
-    status: 0
+    httpCode: 200,
+    status: 1
   },
   2016:{
     message: 'Password and confirm password did not match',
