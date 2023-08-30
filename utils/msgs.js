@@ -31,6 +31,11 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  206: {
+    message: "Record does not exists",
+    httpCode: 200,
+    status: 0,
+  },
   400: {
     message: "Bad Request",
     httpCode: 400,

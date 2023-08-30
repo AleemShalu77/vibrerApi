@@ -45,36 +45,55 @@ const addContest = async (req) => {
 
 const updateContest = async (req) => {
   const result = { data: null };
-  const filter = { _id: id };
-  const { contest_type, title, description, conditions, reward, time_zone, starts_on, ends_on, start_date, start_time, end_time, votes, winner, winner_second, winner_third, createdBy, updated_by, status } = req.body;
-  const contest = await contestSchema.findOneAndUpdate(filter, {
-    contest_type: contest_type,
-    title: title,
-    description: description,
-    conditions: conditions,
-    reward: reward,
-    time_zone: time_zone,
-    starts_on: starts_on,
-    ends_on: ends_on,
-    start_date: start_date,
-    start_time: start_time,
-    end_time: end_time,
-    votes: votes,
-    winner: winner,
-    winner_second: winner_second,
-    winner_third: winner_third,
-    createdBy: createdBy,
-    updated_by: updated_by,
-    status: status
-  })
-  if (contest) {
-    result.data = contest
-    result.code = 202;
-  } else {
-    result.code = 204;
+  const payload = req.decoded;
+  const { id, contest_type, title, description, conditions, reward, time_zone, starts_on, ends_on, banner, status, publish } = req.body;
+
+  try {
+    const contest = await contestSchema.findOne({  _id: id });
+
+    if (!contest) {
+      result.code = 206; // Contest not found
+    } else {
+      const contestAlreadyExists = await contestSchema.findOne({  _id: { $ne: id },  contest_type: contest_type, title:title });
+        if(contestAlreadyExists)
+        {
+          result.code = 205; // Contest exists with same data
+        }
+        else
+        {
+      // Update contest fields
+      contest.contest_type = contest_type;
+      contest.title = title;
+      contest.description = description;
+      contest.conditions = conditions;
+      contest.reward = reward;
+      contest.time_zone = time_zone;
+      contest.starts_on = starts_on;
+      contest.ends_on = ends_on;
+      contest.banner = banner;
+      contest.updatedBy = payload.id;
+      contest.updatedAt = new Date();
+      contest.status = status;
+      contest.publish = publish;
+
+      const updatedContest = await contest.save(); // Save the updated contest
+
+      if (updatedContest) {
+        result.data = updatedContest;
+        result.code = 202; // Successful update
+      } else {
+        result.code = 204; // Update failed
+      }
+    }
+    }
+  } catch (error) {
+    console.error('Error updating contest:', error);
+    result.code = 500; // Internal server error
   }
+
   return result;
-}
+};
+
 
 const getAllContest = async (req) => {
   const result = { data: null };
@@ -124,15 +143,23 @@ const getAllContest = async (req) => {
 const getContest = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const contest = await contestSchema.findOne({ _id: id });
-  if (contest) {
-    result.data = contest;
-    result.code = 200;
-  } else {
+
+  try {
+    const contest = await contestSchema.findOne({ _id: id });
+
+    if (contest) {
+      result.data = contest;
+      result.code = 200;
+    } else {
+      result.code = 204;
+    }
+  } catch (error) {
     result.code = 204;
   }
+
   return result;
-}
+};
+
 
 const deleteContest = async (req) => {
   const result = { data: null };
