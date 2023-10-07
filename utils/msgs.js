@@ -51,55 +51,70 @@ const message = {
     httpCode: 200,
     status: 0,
   },
-  2015:{
-    message: 'Reset password successfully',
+  2015: {
+    message: "Reset password successfully",
     httpCode: 200,
-    status: 1
+    status: 1,
   },
-  2016:{
-    message: 'Password and confirm password did not match',
+  2016: {
+    message: "Password and confirm password did not match",
     httpCode: 400,
-    status: 0
+    status: 0,
   },
   2017: {
-    message: 'User not found',
+    message: "User not found",
     httpCode: 400,
-    status: 0
+    status: 0,
   },
   2018: {
-    message: 'Token is expired',
+    message: "Token is expired",
     httpCode: 400,
-    status: 0
+    status: 0,
   },
   2019: {
-    message: 'Invalid email and/or password',
+    message: "Invalid email and/or password",
     httpCode: 400,
-    status: 0
+    status: 0,
   },
   2021: {
-    message: 'Login Successfull',
+    message: "Login Successfull",
     httpCode: 200,
-    status: 1
+    status: 1,
   },
   2022: {
-    message: 'Invalid OR Expired Token',
+    message: "Invalid OR Expired Token",
     httpCode: 200,
-    status: 0
+    status: 0,
   },
   2023: {
-    message: 'Your account has been verified successfully',
+    message: "Your account has been verified successfully",
     httpCode: 200,
-    status: 1
+    status: 1,
   },
-  2024:{
-    message: 'Reset password link has been sent to your E-mail',
+  2024: {
+    message: "Reset password link has been sent to your E-mail",
     httpCode: 200,
-    status: 1
+    status: 1,
   },
-  2025:{
-    message: 'Something went wrong while sending E-mail',
+  2025: {
+    message: "Something went wrong while sending E-mail",
     httpCode: 400,
-    status: 0
+    status: 0,
+  },
+  2026: {
+    message: "Project not found",
+    httpCode: 400,
+    status: 0,
+  },
+  2027: {
+    message: "Applicant successfully added",
+    httpCode: 200,
+    status: 0,
+  },
+  2028: {
+    message: "Something went wrong please try again later",
+    httpCode: 400,
+    status: 0,
   },
 };
 
