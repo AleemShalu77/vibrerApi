@@ -1,6 +1,8 @@
 const userArtistsSchema = require("../../model/user_artists");
 const artistCategoriesSchema = require("../../model/artist_categories");
 const genreSchema = require("../../model/genre");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
@@ -8,64 +10,134 @@ const nodemailer = require("nodemailer");
 const { getMessage } = require("../../utils/helper");
 require("dotenv").config();
 
-const artistLogin = async (req) => {
-  let result = { data: null };
-  // let testAccount = await nodemailer.createTestAccount();
-  let transporter = nodemailer.createTransport({
-    host: "smtp.ionos.com",
-    port: 587,
-    auth: {
-      user: process.env.EMAIL_FROM, // generated ethereal user
-      pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+passport.use(
+  "local-signup",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
     },
-  });
-  const { email, password } = req.body;
-  const user = await userArtistsSchema.findOne({ email });
-  if (user) {
-    // const match = await bcrypt.compare(password, user.password);
-    const match = await bcryptjs.compareSync(password, user.password);
-    if (match) {
-      let payload = {
-        id: user.id,
-        mobile: user.email,
-        role: user.role,
-      };
-      let options = { expiresIn: "72h" };
-      let token = jwt.sign(payload, JWT_SECRET, options);
-      let resObj = Object.assign(
-        {},
-        {
+    async (req, email, password, done) => {
+      try {
+        const existingUser = await userArtistsSchema.findOne({ email });
+
+        if (existingUser) {
+          return done(null, false, { message: "Email is already taken." });
+        }
+
+        const hashedPassword = await bcryptjs.hashSync(password, 10);
+
+        const newUser = await userArtistsSchema.create({
+          user_type: req.body.user_type,
+          email,
+          password: hashedPassword,
+          username: req.body.username,
+          artist_categories: req.body.artist_categories,
+          name: {
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+          },
+          gender: req.body.gender,
+          date_of_birth: req.body.date_of_birth,
+          city: req.body.city,
+          country: req.body.country,
+          concert_artist: req.body.concert_artist,
+          visibility: req.body.visibility,
+          bio: req.body.bio,
+          profile_img: req.body.profile_img,
+          profile_cover: req.body.profile_cover,
+          verified: req.body.verified,
+          genres: req.body.genres,
+          link: {
+            facebook: req.body.facebook,
+            twitter: req.body.twitter,
+            instagram: req.body.instagram,
+            youtube: req.body.youtube,
+            website: req.body.website,
+          },
+          status: req.body.status,
+        });
+
+        return done(null, newUser);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
+  "local-login-artist",
+  new LocalStrategy(
+    { usernameField: "email", passwordField: "password" },
+    async (email, password, done) => {
+      try {
+        const user = await userArtistsSchema.findOne({ email });
+
+        if (!user) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+
+        const match = await bcryptjs.compareSync(password, user.password);
+
+        if (match) {
+          return done(null, user);
+        } else {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await userArtistsSchema.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
+const artistLogin = async (req) => {
+  return new Promise((resolve, reject) => {
+    passport.authenticate("local-login-artist", (err, user, info) => {
+      let result = { data: null };
+
+      if (err) {
+        reject(err);
+      } else if (!user) {
+        result.code = 2019; // Invalid email or password
+        resolve(result);
+      } else {
+        let payload = {
+          id: user.id,
+          mobile: user.email,
+          role: user.role,
+        };
+
+        let options = { expiresIn: "72h" };
+        let token = jwt.sign(payload, JWT_SECRET, options);
+
+        let resObj = {
           role: user.role,
           email: user.email,
           token,
-        }
-      );
-      const bodyData = await getEmailVerification();
-      const emailMessage = await getMessage(
-        bodyData,
-        "aleem9860@gmail.com",
-        "aleem9860@gmail.com",
-        "Test Message"
-      );
-      try {
-        const send = await transporter.sendMail(emailMessage);
-        console.log("Test email sent successfully");
-      } catch (error) {
-        console.error("Error sending test email");
-        console.error(error);
-        if (error.response) {
-          console.error(error.response.body);
-        }
+        };
+
+        result.data = resObj;
+        result.code = 2021;
+        resolve(result);
       }
-      result.data = resObj;
-      result.code = 2021;
-    } else {
-      result.code = 2019;
-    }
-  } else {
-    result.code = 2017;
-  }
-  return result;
+    })(req);
+  });
 };
 
 const forgotPasswordArtist = async (req) => {
@@ -127,95 +199,24 @@ const updateUserArtistSpecificColumn = async (req) => {
 
   return result;
 };
-
 const addUserArtist = async (req) => {
-  const result = { data: null };
-  const {
-    user_type,
-    email,
-    username,
-    artist_categories,
-    first_name,
-    last_name,
-    gender,
-    date_of_birth,
-    city,
-    country,
-    concert_artist,
-    visibility,
-    bio,
-    profile_img,
-    profile_cover,
-    verified,
-    genres,
-    facebook,
-    twitter,
-    instagram,
-    youtube,
-    website,
-    status,
-  } = req.body;
-  // const pswd = await bcrypt.genSalt(10);
-  // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = await bcryptjs.hashSync(req.body.password, 10);
-
-  const existingUser = await userArtistsSchema.findOne({
-    $or: [{ username }, { email }],
+  return new Promise((resolve, reject) => {
+    const result = { data: null };
+    passport.authenticate("local-signup", async (err, user, info) => {
+      if (err) {
+        throw err;
+      }
+      if (!user) {
+        result.code = 205; // Email is already taken
+        resolve(result);
+      } else {
+        // Registration successful
+        result.data = user;
+        result.code = 201;
+        resolve(result);
+      }
+    })(req);
   });
-
-  if (existingUser) {
-    result.code = 205;
-  } else {
-    const UserArtist = await userArtistsSchema.create({
-      user_type: user_type,
-      email: email,
-      password: password,
-      username: username,
-      artist_categories: artist_categories,
-      name: { first_name: first_name, last_name: last_name },
-      gender: gender,
-      date_of_birth: date_of_birth,
-      city: city,
-      // state: state,
-      country: country,
-      concert_artist: concert_artist,
-      visibility: visibility,
-      // chat: chat,
-      bio: bio,
-      profile_img: profile_img,
-      profile_cover: profile_cover,
-      verified: verified,
-      genres: genres,
-      // gallery_imgs: gallery_imgs,
-      // music_videos: music_videos,
-      // music: music,
-      link: {
-        facebook: facebook,
-        twitter: twitter,
-        // sportify: sportify,
-        instagram: instagram,
-        youtube: youtube,
-        website: website,
-      },
-      // blocked_user: blocked_user,
-      // followers: followers,
-      // following: following,
-      // likes: likes,
-      // liked: liked,
-      // votes: votes,
-      // playlist: playlist,
-      // blocked: blocked,
-      // wallet_id: wallet_id,
-      status: status,
-    });
-    if (UserArtist) {
-      result.data = UserArtist;
-      result.code = 201;
-    } else {
-      result.code = 204;
-    }
-  }
-  return result;
 };
 
 const updateUserArtist = async (req) => {

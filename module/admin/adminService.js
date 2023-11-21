@@ -1,4 +1,6 @@
 const adminUsersSchema = require("../../model/admin_users");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
@@ -21,43 +23,146 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+passport.use(
+  "local-signup",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
+    },
+    async (req, email, password, done) => {
+      try {
+        const adminCheck = await adminUsersSchema.findOne({ email: email });
+
+        if (adminCheck) {
+          return done(null, false, { message: "Email is already taken." });
+        } else {
+          const hashedPassword = await bcryptjs.hash(password, 10);
+
+          const user = await adminUsersSchema.create({
+            name: {
+              first_name: req.body.first_name,
+              last_name: req.body.last_name,
+            },
+            role: req.body.role,
+            email: email,
+            password: hashedPassword,
+            verification: false,
+            verification_token: generateRandomToken(50),
+            profile_img: `${ADMIN_IMAGE_URL}${req.file.filename}`,
+            createdBy: req.body.createdBy,
+            updatedBy: req.body.updatedBy,
+            status: req.body.status,
+          });
+
+          if (user) {
+            const verification_token = generateRandomToken(50);
+            const message = await getEmailVerification(
+              email,
+              verification_token
+            );
+            const messageData = await getMessage(
+              message,
+              email,
+              process.env.EMAIL_FROM,
+              "Vibrer Email Verification"
+            );
+
+            // Assuming you have a function to send the verification email
+            const send = await transporter.sendMail(messageData);
+
+            return done(null, user);
+          } else {
+            return done(null, false, { message: "User registration failed." });
+          }
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
+  "local-login",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email, password, done) => {
+      try {
+        const user = await adminUsersSchema.findOne({
+          email: email,
+          verification: true,
+        });
+
+        if (!user) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+
+        const match = await bcryptjs.compareSync(password, user.password);
+
+        if (match) {
+          return done(null, user);
+        } else {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+// Serialize and deserialize user
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await adminUsersSchema.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
 const login = async (req) => {
-  let result = { data: null };
-  const { email, password } = req.body;
-  let user = await adminUsersSchema.findOne({
-    email: email,
-    verification: true,
-  });
-  if (user) {
-    // const match = await bcrypt.compare(password, user.password);
-    const match = await bcryptjs.compareSync(password, user.password);
-    // const match = password;
-    if (match) {
-      let payload = {
-        id: user.id,
-        mobile: user.email,
-        role: user.role,
-      };
-      let options = { expiresIn: "72h" };
-      let token = jwt.sign(payload, JWT_SECRET, options);
-      let resObj = Object.assign(
-        {},
-        {
+  return new Promise((resolve, reject) => {
+    passport.authenticate("local-login", (err, user, info) => {
+      let result = { data: null };
+
+      if (err) {
+        reject(err);
+      } else if (!user) {
+        result.code = 2019; // Invalid email or password
+        resolve(result);
+      } else {
+        let payload = {
+          id: user.id,
+          mobile: user.email,
+          role: user.role,
+        };
+
+        let options = { expiresIn: "72h" };
+        let token = jwt.sign(payload, JWT_SECRET, options);
+
+        let resObj = {
           role: user.role,
           email: user.email,
           verification: user.verification,
           token,
-        }
-      );
-      result.data = resObj;
-      result.code = 2021;
-    } else {
-      result.code = 2019;
-    }
-  } else {
-    result.code = 2017;
-  }
-  return result;
+        };
+
+        result.data = resObj;
+        result.code = 2021;
+        resolve(result);
+      }
+    })(req);
+  });
 };
 
 const forgotPassword = async (req) => {
@@ -181,69 +286,21 @@ const verificationCode = async (req) => {
   return result;
 };
 
-const addUser = async (req) => {
-  const result = { data: null };
-  // const pswd = await bcrypt.genSalt(10);
-  // const password = await bcrypt.hash(req.body.password, pswd);
-  const password = await bcryptjs.hashSync(req.body.password, 10);
-  // const password = req.body.password;
-  const {
-    first_name,
-    last_name,
-    role,
-    email,
-    verification,
-    createdBy,
-    updatedBy,
-    status,
-  } = req.body;
-  const profile_img = `${ADMIN_IMAGE_URL}` + `${req.file.filename}`;
-  const verification_token = generateRandomToken(50);
-
-  const message = await getEmailVerification(email, verification_token);
-  const messageData = await getMessage(
-    message,
-    email,
-    process.env.EMAIL_FROM,
-    "Vibrer Email Verification"
-  );
-
-  const adminCheck = await adminUsersSchema.findOne({ email: email });
-  if (adminCheck) {
-    result.code = 205;
-  } else {
-    const user = await adminUsersSchema.create({
-      name: {
-        first_name: first_name,
-        last_name: last_name,
-      },
-      role: role,
-      email: email,
-      password: password,
-      verification: false,
-      verification_token: verification_token,
-      profile_img: profile_img,
-      createdBy: createdBy,
-      updatedBy: updatedBy,
-      status: status,
-    });
-    if (user) {
-      try {
-        // await sendGridMail.send(messageData);
-        const send = await transporter.sendMail(messageData);
-      } catch (error) {
-        console.error(error);
-        if (error.response) {
-          console.error(error.response.body);
-        }
-      }
-      result.data = user;
-      result.code = 201;
-    } else {
-      result.code = 204;
+const addUser = (req, res, next) => {
+  passport.authenticate("local-signup", (err, user, info) => {
+    if (err) {
+      return next(err);
     }
-  }
-  return result;
+    if (!user) {
+      return res.status(400).json({ code: 204, message: info.message });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.status(201).json({ code: 201, data: user });
+    });
+  })(req, res, next);
 };
 
 const updateUser = async (req) => {
