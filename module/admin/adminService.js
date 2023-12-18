@@ -39,6 +39,7 @@ passport.use(
           return done(null, false, { message: "Email is already taken." });
         } else {
           const hashedPassword = await bcryptjs.hash(password, 10);
+          const verification_token = generateRandomToken(50);
 
           const user = await adminUsersSchema.create({
             name: {
@@ -49,7 +50,7 @@ passport.use(
             email: email,
             password: hashedPassword,
             verification: false,
-            verification_token: generateRandomToken(50),
+            verification_token: verification_token,
             profile_img: `${ADMIN_IMAGE_URL}${req.file.filename}`,
             createdBy: req.body.createdBy,
             updatedBy: req.body.updatedBy,
@@ -57,7 +58,6 @@ passport.use(
           });
 
           if (user) {
-            const verification_token = generateRandomToken(50);
             const message = await getEmailVerification(
               email,
               verification_token
@@ -99,6 +99,9 @@ passport.use(
         });
 
         if (!user) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
+        if (!user.verification) {
           return done(null, false, { message: "Invalid email or password" });
         }
 

@@ -9,10 +9,22 @@ module.exports = (router) => {
   );
   router.post("/loginUser", userArtistController.artistLogin);
   router.post(
-    "/artist/reset-password",
-    middleware.validateToken,
-    userArtistController.forgotPasswordArtist
+    "/user-artist/forgot-password",
+    userArtistController.forgotPassword
   );
+  router.post(
+    "/user-artist/reset-password",
+    userArtistController.resetPassword
+  );
+  router.post(
+    "/user-artist/verification-code",
+    userArtistController.verificationCode
+  );
+  // router.post(
+  //   "/artist/reset-password",
+  //   middleware.validateToken,
+  //   userArtistController.forgotPasswordArtist
+  // );
   router.post(
     "/add/UserArtist",
     middleware.validateToken,

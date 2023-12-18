@@ -5,7 +5,9 @@ const {
   validateAddUserArtistReq,
   validateUpdateUserArtistReq,
   validateLoginReq,
+  validateForgotPasswordReq,
   validateResetPasswordReq,
+  validateVerificationCodeReq,
   validateUserArtistSpecificColumn,
 } = require("./userArtistValidation");
 
@@ -51,8 +53,27 @@ const updateUserArtistSpecificColumn = async (req, res, next) => {
     next(error);
   }
 };
-
-const forgotPasswordArtist = async (req, res, next) => {
+const forgotPassword = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateForgotPasswordReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await UserArtistService.forgotPassword(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+const resetPassword = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
@@ -63,7 +84,7 @@ const forgotPasswordArtist = async (req, res, next) => {
     if (isValid instanceof Error) {
       return next(isValid);
     }
-    let result = await UserArtistService.forgotPasswordArtist(req);
+    let result = await UserArtistService.resetPassword(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -72,6 +93,46 @@ const forgotPasswordArtist = async (req, res, next) => {
     next(error);
   }
 };
+const verificationCode = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateVerificationCodeReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await UserArtistService.verificationCode(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+// const forgotPasswordArtist = async (req, res, next) => {
+//   try {
+//     if (!req.body || Object.keys(req.body).length === 0) {
+//       return next(
+//         createHttpError(400, { message: "Please pass body parameters" })
+//       );
+//     }
+//     let isValid = await validateResetPasswordReq.validateAsync(req.body);
+//     if (isValid instanceof Error) {
+//       return next(isValid);
+//     }
+//     let result = await UserArtistService.forgotPasswordArtist(req);
+//     helper.send(res, result.code, result.data);
+//   } catch (error) {
+//     if (error.isJoi) {
+//       return next(createHttpError(400, { message: error.message }));
+//     }
+//     next(error);
+//   }
+// };
 
 const addUserArtist = async (req, res, next) => {
   try {
@@ -144,11 +205,14 @@ const deleteUserArtist = async (req, res, next) => {
 
 module.exports = {
   artistLogin,
-  forgotPasswordArtist,
+  // forgotPasswordArtist,
   addUserArtist,
   updateUserArtist,
   updateUserArtistSpecificColumn,
   getAllUserArtist,
   getUserArtist,
   deleteUserArtist,
+  resetPassword,
+  forgotPassword,
+  verificationCode,
 };

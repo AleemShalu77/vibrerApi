@@ -7,8 +7,22 @@ const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const nodemailer = require("nodemailer");
-const { getMessage } = require("../../utils/helper");
 require("dotenv").config();
+const {
+  getMessage,
+  getForgotPassword,
+  generateRandomToken,
+} = require("../../utils/helper");
+const sendGridMail = require("@sendgrid/mail");
+sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: "smtp.ionos.com",
+  port: 587,
+  auth: {
+    user: process.env.EMAIL_FROM, // generated ethereal user
+    pass: process.env.EMAIL_PASSWORD, // generated ethereal password
+  },
+});
 
 passport.use(
   "local-signup",
@@ -27,6 +41,7 @@ passport.use(
         }
 
         const hashedPassword = await bcryptjs.hashSync(password, 10);
+        const verification_token = generateRandomToken(50);
 
         const newUser = await userArtistsSchema.create({
           user_type: req.body.user_type,
@@ -48,6 +63,8 @@ passport.use(
           profile_img: req.body.profile_img,
           profile_cover: req.body.profile_cover,
           verified: req.body.verified,
+          verification: false,
+          verification_token: verification_token,
           genres: req.body.genres,
           link: {
             facebook: req.body.facebook,
@@ -58,8 +75,22 @@ passport.use(
           },
           status: req.body.status,
         });
+        if (newUser) {
+          const message = await getEmailVerification(email, verification_token);
+          const messageData = await getMessage(
+            message,
+            email,
+            process.env.EMAIL_FROM,
+            "Vibrer Email Verification"
+          );
 
-        return done(null, newUser);
+          // Assuming you have a function to send the verification email
+          const send = await transporter.sendMail(messageData);
+
+          return done(null, newUser);
+        } else {
+          return done(null, false, { message: "User registration failed." });
+        }
       } catch (error) {
         return done(error);
       }
@@ -78,7 +109,9 @@ passport.use(
         if (!user) {
           return done(null, false, { message: "Invalid email or password" });
         }
-
+        if (!user.verification) {
+          return done(null, false, { message: "Invalid email or password" });
+        }
         const match = await bcryptjs.compareSync(password, user.password);
 
         if (match) {
@@ -140,29 +173,151 @@ const artistLogin = async (req) => {
   });
 };
 
-const forgotPasswordArtist = async (req) => {
-  const result = { data: null };
-  const { email, confirmPassword } = req.body;
-  if (req.body.password != confirmPassword) {
+// const forgotPasswordArtist = async (req) => {
+//   const result = { data: null };
+//   const { email, confirmPassword } = req.body;
+//   if (req.body.password != confirmPassword) {
+//     result.code = 2016;
+//     return result;
+//   }
+//   // const pswd = await bcrypt.genSalt(10);
+//   // const password = await bcrypt.hash(req.body.password, pswd);
+//   const password = await bcryptjs.hashSync(req.body.password, 10);
+//   const user = await userArtistsSchema.findOne({ email });
+//   if (user) {
+//     const reset = await userArtistsSchema.updateOne(
+//       { email: email },
+//       {
+//         password: password,
+//       }
+//     );
+//     result.data = reset;
+//     result.code = 2015;
+//   } else {
+//     result.code = 2017;
+//   }
+//   return result;
+// };
+
+const forgotPassword = async (req) => {
+  let result = { data: null };
+  const { email } = req.body;
+  const verification_token = generateRandomToken(50);
+  const message = await getForgotPassword(email, verification_token);
+  const messageData = await getMessage(
+    message,
+    email,
+    process.env.EMAIL_FROM,
+    "Forgot Password"
+  );
+
+  try {
+    const admin = await userArtistsSchema.findOne({ email: email });
+
+    if (admin) {
+      try {
+        // await sendGridMail.send(messageData);
+        const send = await transporter.sendMail(messageData);
+        if (send) {
+          const expiryDate = new Date(Date.now() + 3600000); // Set the expiry to one hour from now
+          admin.forgotPasswordToken = {
+            token: verification_token,
+            expiresAt: expiryDate,
+          };
+          await admin.save();
+          result.code = 2024;
+        } else {
+          result.code = 2025;
+        }
+      } catch (error) {
+        console.error(error);
+        if (error.response) {
+          console.error(error.response.body);
+        }
+        result.code = 2025;
+      }
+    } else {
+      result.code = 2017;
+    }
+  } catch (error) {
+    // Handle the error appropriately
+    console.error("Error occurred:", error);
+    result.code = 2017;
+  }
+  return result;
+};
+
+const resetPassword = async (req) => {
+  let result = { data: null };
+  const { token, confirmPassword } = req.body;
+
+  if (req.body.password !== confirmPassword) {
     result.code = 2016;
     return result;
   }
-  // const pswd = await bcrypt.genSalt(10);
-  // const password = await bcrypt.hash(req.body.password, pswd);
+
   const password = await bcryptjs.hashSync(req.body.password, 10);
-  const user = await userArtistsSchema.findOne({ email });
-  if (user) {
-    const reset = await userArtistsSchema.updateOne(
-      { email: email },
-      {
-        password: password,
+
+  try {
+    const admin = await userArtistsSchema.findOne({
+      "forgotPasswordToken.token": token,
+    });
+
+    if (admin) {
+      const currentTimestamp = new Date();
+      if (admin.forgotPasswordToken.expiresAt < currentTimestamp) {
+        result.code = 2018; // Token has expired
+      } else {
+        const reset = await userArtistsSchema.updateOne(
+          { "forgotPasswordToken.token": token },
+          {
+            $set: { password: password },
+            $unset: { forgotPasswordToken: 1 },
+          }
+        );
+
+        result.data = reset;
+        result.code = 2015; // Password reset success
       }
-    );
-    result.data = reset;
-    result.code = 2015;
-  } else {
-    result.code = 2017;
+    } else {
+      result.code = 2017; // Invalid token
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    result.code = 500; // Handle error cases appropriately
   }
+
+  return result;
+};
+
+const verificationCode = async (req) => {
+  let result = { data: null };
+  const { token } = req.body;
+
+  try {
+    const adminUser = await userArtistsSchema.findOne({
+      verification_token: token,
+      verification: false,
+    });
+    if (adminUser) {
+      const updateToken = await userArtistsSchema.updateOne(
+        { _id: adminUser._id },
+        { $set: { verification: true } }
+      );
+
+      if (updateToken) {
+        result.code = 2023;
+      } else {
+        result.code = 500;
+      }
+    } else {
+      result.code = 2022;
+    }
+  } catch (error) {
+    console.error("Error checking verification code:", error);
+    result.code = 500;
+  }
+
   return result;
 };
 
@@ -393,11 +548,14 @@ const deleteUserArtist = async (req) => {
 
 module.exports = {
   artistLogin,
-  forgotPasswordArtist,
+  // forgotPasswordArtist,
   updateUserArtistSpecificColumn,
   addUserArtist,
   updateUserArtist,
   getAllUserArtist,
   getUserArtist,
   deleteUserArtist,
+  forgotPassword,
+  resetPassword,
+  verificationCode,
 };
