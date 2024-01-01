@@ -17,7 +17,7 @@ const message = {
     status: 1,
   },
   203: {
-    message: "Record delete Successfully",
+    message: "Record deleted Successfully",
     httpCode: 201,
     status: 1,
   },
@@ -113,6 +113,21 @@ const message = {
   },
   2028: {
     message: "Something went wrong please try again later",
+    httpCode: 400,
+    status: 0,
+  },
+  2029: {
+    message: "File is required",
+    httpCode: 400,
+    status: 0,
+  },
+  2030: {
+    message: "File uploaded successfully",
+    httpCode: 200,
+    status: 1,
+  },
+  2031: {
+    message: "Contest not found",
     httpCode: 400,
     status: 0,
   },

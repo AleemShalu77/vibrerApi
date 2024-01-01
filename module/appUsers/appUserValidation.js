@@ -3,7 +3,7 @@ const passwordRegex = /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,16}$/;
 const urlRegex =
   /^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/;
 
-const validateAddUserArtistReq = Joi.object({
+const validateAddappUserReq = Joi.object({
   user_type: Joi.string().required().valid("Artist", "Fan").messages({
     "string.empty": `"user_type" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
@@ -141,29 +141,72 @@ const validateAddUserArtistReq = Joi.object({
   }),
 });
 
-const validateUpdateUserArtistReq = Joi.object({
-  id: Joi.string().required().messages({
-    "string.pattern.base": `"id" should be a type of 'text'`,
-    "string.empty": `"id" cannot be an empty field`,
+const validateRegisterappUserReq = Joi.object({
+  user_type: Joi.string().required().valid("Artist", "Fan").messages({
+    "string.empty": `"user_type" cannot be an empty field`,
+    "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  email: Joi.string().email().trim().messages({
+  email: Joi.string().email().trim().required().messages({
     "string.email": "{{#label}} must be a valid email",
     "string.empty": `"email" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  username: Joi.string().trim().messages({
+  password: Joi.string()
+    .regex(RegExp(passwordRegex))
+    .required()
+    .min(8)
+    .max(16)
+    .message({
+      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
+      "string.empty": `"password" cannot be an empty field`,
+      "string.min": `"password" should have a minimum length of {#limit}`,
+      "string.min": `"password" should have a maximum length of {#limit}`,
+    }),
+  confirmPassword: Joi.string()
+    .regex(RegExp(passwordRegex))
+    .required()
+    .min(8)
+    .max(16)
+    .message({
+      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
+      "string.empty": `"password" cannot be an empty field`,
+      "string.min": `"password" should have a minimum length of {#limit}`,
+      "string.min": `"password" should have a maximum length of {#limit}`,
+    }),
+});
+
+const validateUpdateappUserReq = Joi.object({
+  email: Joi.string().email().trim().optional().messages({
+    "string.email": "{{#label}} must be a valid email",
+    "string.empty": `"email" cannot be an empty field`,
+    "string.trim": "{{#label}} must not have leading or trailing whitespace",
+  }),
+  username: Joi.string().trim().optional().messages({
     "string.empty": `"username" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  artist_categories: Joi.array().items(Joi.string().trim()).messages({
-    "string.empty": `"artist_categories" cannot be an empty field`,
-    "string.trim": "{{#label}} must not have leading or trailing whitespace",
+  artist_categories: Joi.when("user_type", {
+    is: Joi.string().valid("Fan"),
+    then: Joi.array().items(Joi.string().trim()).optional(),
+    otherwise: Joi.array()
+      .items(Joi.string().trim())
+      .min(1)
+      .required()
+      .messages({
+        "string.base": `{{#label}} should be a type of string`,
+        "string.empty": `{{#label}} cannot be an empty field`,
+        "any.required": `{{#label}} is a required field`,
+        "array.base": `{{#label}} should be an array`,
+        "array.min": `{{#label}} should contain at least 1 item`,
+        "object.base": `{{#label}} should be of type object`,
+      }),
   }),
   first_name: Joi.string()
     .min(3)
     .max(50)
     .trim()
     .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
+    .required()
     .messages({
       "string.pattern.base": `"first_name" should be a type of 'text'`,
       "string.empty": `"first_name" cannot be an empty field`,
@@ -175,66 +218,84 @@ const validateUpdateUserArtistReq = Joi.object({
     .max(50)
     .trim()
     .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
+    .required()
     .messages({
       "string.pattern.base": `"last_name" should be a type of 'text'`,
       "string.empty": `"last_name" cannot be an empty field`,
       "string.min": `"last_name" should have a minimum length of {#limit}`,
       "string.trim": "{{#label}} must not have leading or trailing whitespace",
     }),
-  city: Joi.string().trim().messages({
+  gender: Joi.string().required().valid("Male", "Female", "Other").messages({
+    "string.empty": `"gender" cannot be an empty field`,
+    "string.trim": "{{#label}} must not have leading or trailing whitespace",
+    "any.only": "Invalid gender value",
+  }),
+  visibility: Joi.string().optional().valid("Private", "Public").messages({
+    "string.empty": `"visibility" cannot be an empty field`,
+    "string.trim": "{{#label}} must not have leading or trailing whitespace",
+    "any.only": "Invalid visibility value",
+  }),
+  date_of_birth: Joi.date().required().messages({
+    "string.empty": `"date of birth" cannot be an empty field`,
+  }), // Add Joi validation for date_of_birth field
+  city: Joi.string().trim().required().messages({
     "string.empty": `"city" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  state: Joi.string().trim().messages({
-    "string.empty": `"state" cannot be an empty field`,
-    "string.trim": "{{#label}} must not have leading or trailing whitespace",
-  }),
-  country: Joi.string().trim().messages({
+  // state: Joi.string().trim().required().messages({
+  //     'string.empty': `"state" cannot be an empty field`,
+  //     'string.trim': '{{#label}} must not have leading or trailing whitespace',
+  // }),
+  country: Joi.string().trim().required().messages({
     "string.empty": `"country" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  concert_artist: Joi.boolean(),
-  visibility: Joi.boolean(),
-  chat: Joi.string().trim().messages({
-    "string.empty": `"chat" cannot be an empty field`,
-    "string.trim": "{{#label}} must not have leading or trailing whitespace",
-  }),
-  bio: Joi.string().trim().messages({
+  concert_artist: Joi.boolean().optional(),
+  bio: Joi.string().trim().required().messages({
     "string.empty": `"bio" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  verified: Joi.boolean().optional(),
-  badges: Joi.array().items(Joi.string().trim()).messages({
-    "string.empty": `"badges" cannot be an empty field`,
-    "string.trim": "{{#label}} must not have leading or trailing whitespace",
+  profile_img: Joi.string().required(),
+  profile_cover: Joi.string().required(),
+  genres: Joi.when("user_type", {
+    is: Joi.string().valid("Fan"),
+    then: Joi.array().items(Joi.string().trim()).optional(),
+    otherwise: Joi.array()
+      .items(Joi.string().trim())
+      .min(1)
+      .required()
+      .messages({
+        "string.base": `{{#label}} should be a type of string`,
+        "string.empty": `{{#label}} cannot be an empty field`,
+        "any.required": `{{#label}} is a required field`,
+        "array.base": `{{#label}} should be an array`,
+        "array.min": `{{#label}} should contain at least 1 item`,
+        "object.base": `{{#label}} should be of type object`,
+      }),
   }),
-  facebook: Joi.string().regex(RegExp(urlRegex)).messages({
+  facebook: Joi.string().regex(RegExp(urlRegex)).allow("").messages({
     "string.pattern.base": `"facebook" should be a type of 'URL'`,
     "string.empty": `"facebook" cannot be an empty field`,
   }),
-  twitter: Joi.string().regex(RegExp(urlRegex)).messages({
+  twitter: Joi.string().regex(RegExp(urlRegex)).allow("").messages({
     "string.pattern.base": `"twitter" should be a type of 'URL'`,
     "string.empty": `"twitter" cannot be an empty field`,
   }),
-  sportify: Joi.string().regex(RegExp(urlRegex)).messages({
-    "string.pattern.base": `"sportify" should be a type of 'URL'`,
-    "string.empty": `"sportify" cannot be an empty field`,
-  }),
-  instagram: Joi.string().regex(RegExp(urlRegex)).messages({
+  // sportify: Joi.string().regex(RegExp(urlRegex)).allow('').messages({
+  //     'string.pattern.base': `"sportify" should be a type of 'URL'`,
+  //     'string.empty': `"sportify" cannot be an empty field`,
+  // }),
+  instagram: Joi.string().regex(RegExp(urlRegex)).allow("").messages({
     "string.pattern.base": `"instagram" should be a type of 'URL'`,
     "string.empty": `"instagram" cannot be an empty field`,
   }),
-  youtube: Joi.string().regex(RegExp(urlRegex)).messages({
+  youtube: Joi.string().regex(RegExp(urlRegex)).allow("").messages({
     "string.pattern.base": `"youtube" should be a type of 'URL'`,
     "string.empty": `"youtube" cannot be an empty field`,
   }),
-  website: Joi.string().regex(RegExp(urlRegex)).messages({
+  website: Joi.string().regex(RegExp(urlRegex)).allow("").messages({
     "string.pattern.base": `"website" should be a type of 'URL'`,
     "string.empty": `"website" cannot be an empty field`,
-  }),
-  status: Joi.array().items(Joi.string().trim()).messages({
-    "string.empty": `"status" cannot be an empty field`,
-    "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
 });
 
@@ -249,7 +310,7 @@ const validateLoginReq = Joi.object({
   }),
 });
 
-const validateUserArtistSpecificColumn = Joi.object({
+const validateappUserSpecificColumn = Joi.object({
   column: Joi.string()
     .required()
     .valid(
@@ -315,9 +376,10 @@ const validateForgotPasswordReq = Joi.object({
 });
 
 module.exports = {
-  validateAddUserArtistReq,
-  validateUserArtistSpecificColumn,
-  validateUpdateUserArtistReq,
+  validateAddappUserReq,
+  validateRegisterappUserReq,
+  validateappUserSpecificColumn,
+  validateUpdateappUserReq,
   validateLoginReq,
   validateVerificationCodeReq,
   validateForgotPasswordReq,

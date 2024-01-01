@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const router = express.Router();
 require("dotenv").config();
 const routes = require("./routes/index");
@@ -6,7 +7,7 @@ const mongoose = require("mongoose");
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const passport = require("passport");
-const url = process.env.MONGODB_PROD;
+const url = process.env.MONGODB_DEV;
 const swaggerDefinition = require("./config").SWAGGER_DEFINATION;
 var cors = require("cors");
 var app = express();
@@ -16,6 +17,14 @@ app.use(
     origin: "*",
   })
 );
+app.use(
+  session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use("/public", express.static("public"));
 
 mongoose.connect(url, { useNewUrlParser: true });
 

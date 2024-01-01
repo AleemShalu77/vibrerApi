@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const userArtistsSchema = new mongoose.Schema(
+const appUsersSchema = new mongoose.Schema(
   {
     user_type: {
       type: String,
@@ -17,7 +17,7 @@ const userArtistsSchema = new mongoose.Schema(
     },
     username: {
       type: String,
-      required: true,
+      required: false,
     },
     artist_categories: {
       type: [
@@ -26,30 +26,30 @@ const userArtistsSchema = new mongoose.Schema(
           ref: "artist_categories", // Reference the artistCategories model
         },
       ],
-      required: true,
+      required: false,
     },
     name: {
       first_name: {
         type: String,
-        required: true,
+        required: false,
       },
       last_name: {
         type: String,
-        required: true,
+        required: false,
       },
     },
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
-      required: true,
+      required: false,
     },
     date_of_birth: {
       type: Date, // Assuming date of birth will be stored as a Date type
-      required: true,
+      required: false,
     },
     city: {
       type: String,
-      required: true,
+      required: false,
     },
     // state:{
     //     type:String,
@@ -57,16 +57,16 @@ const userArtistsSchema = new mongoose.Schema(
     // },
     country: {
       type: String,
-      required: true,
+      required: false,
     },
     concert_artist: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     visibility: {
       type: String,
       enum: ["Private", "Public"],
-      required: true,
+      required: false,
     },
     // chat:{
     //     type:String,
@@ -74,11 +74,11 @@ const userArtistsSchema = new mongoose.Schema(
     // },
     bio: {
       type: String,
-      required: true,
+      required: false,
     },
     profile_img: {
       type: String,
-      required: true,
+      required: false,
     },
     profile_cover: {
       type: String,
@@ -107,7 +107,7 @@ const userArtistsSchema = new mongoose.Schema(
           ref: "genre", // Reference the artistCategories model
         },
       ],
-      required: true,
+      required: false,
     },
     // gallery_imgs:[{String}],
     // music_videos:[{ _id:String }],
@@ -163,4 +163,4 @@ const userArtistsSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("user_artists", userArtistsSchema);
+module.exports = mongoose.model("app_users", appUsersSchema);

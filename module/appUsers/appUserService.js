@@ -1,4 +1,4 @@
-const userArtistsSchema = require("../../model/user_artists");
+const appUsersSchema = require("../../model/app_users");
 const artistCategoriesSchema = require("../../model/artist_categories");
 const genreSchema = require("../../model/genre");
 const passport = require("passport");
@@ -6,6 +6,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
+const { PROFILE_COVER_URL } = require("../../config/index");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 const {
@@ -34,7 +35,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
-        const existingUser = await userArtistsSchema.findOne({ email });
+        const existingUser = await appUsersSchema.findOne({ email });
 
         if (existingUser) {
           return done(null, false, { message: "Email is already taken." });
@@ -43,7 +44,7 @@ passport.use(
         const hashedPassword = await bcryptjs.hashSync(password, 10);
         const verification_token = generateRandomToken(50);
 
-        const newUser = await userArtistsSchema.create({
+        const newUser = await appUsersSchema.create({
           user_type: req.body.user_type,
           email,
           password: hashedPassword,
@@ -99,19 +100,80 @@ passport.use(
 );
 
 passport.use(
+  "local-registerappUser",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
+    },
+    async (req, email, password, done) => {
+      try {
+        const { confirmPassword } = req.body;
+
+        // Validate password and confirmPassword
+        if (password !== confirmPassword) {
+          return done(null, false, { message: "Passwords do not match." });
+        }
+
+        const existingUser = await appUsersSchema.findOne({ email });
+
+        if (existingUser) {
+          return done(null, false, { message: "Email is already taken." });
+        }
+
+        const hashedPassword = await bcryptjs.hashSync(password, 10);
+        const verification_token = generateRandomToken(50);
+
+        const newUser = await appUsersSchema.create({
+          user_type: req.body.user_type,
+          email,
+          password: hashedPassword,
+          verification: false,
+          verification_token: verification_token,
+          status: "Active",
+        });
+
+        if (newUser) {
+          const message = await getEmailVerificationappUser(
+            email,
+            verification_token
+          );
+          const messageData = await getMessage(
+            message,
+            email,
+            process.env.EMAIL_FROM,
+            "Vibrer Email Verification"
+          );
+
+          // Assuming you have a function to send the verification email
+          const send = await transporter.sendMail(messageData);
+
+          return done(null, newUser);
+        } else {
+          return done(null, false, { message: "User registration failed." });
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
   "local-login-artist",
   new LocalStrategy(
     { usernameField: "email", passwordField: "password" },
     async (email, password, done) => {
       try {
-        const user = await userArtistsSchema.findOne({ email });
+        const user = await appUsersSchema.findOne({ email });
 
         if (!user) {
           return done(null, false, { message: "Invalid email or password" });
         }
-        if (!user.verification) {
-          return done(null, false, { message: "Invalid email or password" });
-        }
+        // if (!user.verification) {
+        //   return done(null, false, { message: "Invalid email or password" });
+        // }
         const match = await bcryptjs.compareSync(password, user.password);
 
         if (match) {
@@ -132,7 +194,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await userArtistsSchema.findById(id);
+    const user = await appUsersSchema.findById(id);
     done(null, user);
   } catch (error) {
     done(error);
@@ -183,9 +245,9 @@ const artistLogin = async (req) => {
 //   // const pswd = await bcrypt.genSalt(10);
 //   // const password = await bcrypt.hash(req.body.password, pswd);
 //   const password = await bcryptjs.hashSync(req.body.password, 10);
-//   const user = await userArtistsSchema.findOne({ email });
+//   const user = await appUsersSchema.findOne({ email });
 //   if (user) {
-//     const reset = await userArtistsSchema.updateOne(
+//     const reset = await appUsersSchema.updateOne(
 //       { email: email },
 //       {
 //         password: password,
@@ -203,7 +265,7 @@ const forgotPassword = async (req) => {
   let result = { data: null };
   const { email } = req.body;
   const verification_token = generateRandomToken(50);
-  const message = await getForgotPassword(email, verification_token);
+  const message = await getForgotPasswordappUser(email, verification_token);
   const messageData = await getMessage(
     message,
     email,
@@ -212,7 +274,7 @@ const forgotPassword = async (req) => {
   );
 
   try {
-    const admin = await userArtistsSchema.findOne({ email: email });
+    const admin = await appUsersSchema.findOne({ email: email });
 
     if (admin) {
       try {
@@ -259,7 +321,7 @@ const resetPassword = async (req) => {
   const password = await bcryptjs.hashSync(req.body.password, 10);
 
   try {
-    const admin = await userArtistsSchema.findOne({
+    const admin = await appUsersSchema.findOne({
       "forgotPasswordToken.token": token,
     });
 
@@ -268,7 +330,7 @@ const resetPassword = async (req) => {
       if (admin.forgotPasswordToken.expiresAt < currentTimestamp) {
         result.code = 2018; // Token has expired
       } else {
-        const reset = await userArtistsSchema.updateOne(
+        const reset = await appUsersSchema.updateOne(
           { "forgotPasswordToken.token": token },
           {
             $set: { password: password },
@@ -295,12 +357,12 @@ const verificationCode = async (req) => {
   const { token } = req.body;
 
   try {
-    const adminUser = await userArtistsSchema.findOne({
+    const adminUser = await appUsersSchema.findOne({
       verification_token: token,
       verification: false,
     });
     if (adminUser) {
-      const updateToken = await userArtistsSchema.updateOne(
+      const updateToken = await appUsersSchema.updateOne(
         { _id: adminUser._id },
         { $set: { verification: true } }
       );
@@ -321,23 +383,20 @@ const verificationCode = async (req) => {
   return result;
 };
 
-const updateUserArtistSpecificColumn = async (req) => {
+const updateappUserSpecificColumn = async (req) => {
   const result = { data: null };
   const { id, column, value } = req.body;
 
   try {
-    const UserArtist = await userArtistsSchema.findById(id);
+    const appUser = await appUsersSchema.findById(id);
 
-    if (UserArtist) {
+    if (appUser) {
       // Use an object to specify the field you want to update dynamically
       const updateObject = {};
       updateObject[column] = value;
 
       // Update the specified field
-      const reset = await userArtistsSchema.updateOne(
-        { _id: id },
-        updateObject
-      );
+      const reset = await appUsersSchema.updateOne({ _id: id }, updateObject);
       if (reset) {
         result.data = reset;
         result.code = 202;
@@ -354,7 +413,7 @@ const updateUserArtistSpecificColumn = async (req) => {
 
   return result;
 };
-const addUserArtist = async (req) => {
+const addappUser = async (req) => {
   return new Promise((resolve, reject) => {
     const result = { data: null };
     passport.authenticate("local-signup", async (err, user, info) => {
@@ -374,125 +433,145 @@ const addUserArtist = async (req) => {
   });
 };
 
-const updateUserArtist = async (req) => {
+const registerappUser = async (req) => {
+  return new Promise((resolve, reject) => {
+    const result = { data: null };
+
+    passport.authenticate("local-registerappUser", async (err, user, info) => {
+      try {
+        if (err) {
+          throw err;
+        }
+        if (!user) {
+          result.code = 205; // Email is already taken
+          resolve(result);
+        } else {
+          // Registration successful
+          let payload = {
+            id: user._id,
+            mobile: user.email,
+            role: user.user_type,
+          };
+
+          let options = { expiresIn: "72h" };
+          let token = jwt.sign(payload, JWT_SECRET, options);
+
+          const modifiedUser = {
+            _id: user._id,
+            token: token,
+            email: user.email,
+            user_type: user.user_type,
+          };
+
+          // Update the result.data before resolving the promise
+          result.data = modifiedUser;
+          result.code = 201;
+
+          // Resolve the promise with the updated result
+          resolve(result);
+        }
+      } catch (error) {
+        reject(error);
+      }
+    })(req);
+  });
+};
+
+const updateappUser = async (req) => {
   const result = { data: null };
+  const payload = req.decoded;
   const {
-    id,
     email,
     username,
     artist_categories,
     first_name,
     last_name,
+    gender,
+    date_of_birth,
     city,
-    state,
     country,
     concert_artist,
     visibility,
-    chat,
     bio,
     profile_img,
     profile_cover,
-    verified,
-    badges,
-    gallery_imgs,
-    music_videos,
-    music,
+    genres,
     facebook,
     twitter,
-    sportify,
     instagram,
     youtube,
     website,
-    blocked_user,
-    followers,
-    following,
-    likes,
-    liked,
-    votes,
-    playlist,
-    blocked,
-    wallet_id,
-    status,
   } = req.body;
-  const filter = { _id: id };
-  const UserArtist = await userArtistsSchema.updateOne(
-    filter,
-    {
-      email: email,
-      username: username,
-      artist_categories: artist_categories,
-      first_name: first_name,
-      last_name: last_name,
-      city: city,
-      state: state,
-      country: country,
-      concert_artist: concert_artist,
-      visibility: visibility,
-      chat: chat,
-      bio: bio,
-      profile_img: profile_img,
-      profile_cover: profile_cover,
-      verified: verified,
-      badges: badges,
-      gallery_imgs: gallery_imgs,
-      music_videos: music_videos,
-      music: music,
-      facebook: facebook,
-      twitter: twitter,
-      sportify: sportify,
-      instagram: instagram,
-      youtube: youtube,
-      website: website,
-      blocked_user: blocked_user,
-      followers: followers,
-      following: following,
-      likes: likes,
-      liked: liked,
-      votes: votes,
-      playlist: playlist,
-      blocked: blocked,
-      wallet_id: wallet_id,
-      status: status,
-    },
-    {
-      where: {
-        _id: id,
+
+  try {
+    const filter = { _id: payload.id };
+    const update = {
+      email,
+      username,
+      artist_categories,
+      name: {
+        first_name,
+        last_name,
       },
+      gender,
+      date_of_birth,
+      city,
+      country,
+      concert_artist,
+      visibility,
+      bio,
+      profile_img,
+      profile_cover,
+      genres,
+      link: {
+        facebook,
+        twitter,
+        instagram,
+        youtube,
+        website,
+      },
+    };
+
+    const updatedUser = await appUsersSchema.updateOne(filter, update);
+
+    if (updatedUser) {
+      result.data = updatedUser;
+      result.code = 202;
+    } else {
+      result.code = 2017;
     }
-  );
-  if (UserArtist) {
-    result.data = UserArtist;
-    result.code = 202;
-  } else {
-    result.code = 204;
+  } catch (error) {
+    console.error("Error updating user:", error);
+    result.code = 500;
   }
+
   return result;
 };
 
-const getAllUserArtist = async (req) => {
+const getAllappUser = async (req) => {
   const result = { data: null };
-  const UserArtist = await userArtistsSchema.find();
-  if (UserArtist) {
-    let allUserArtist = UserArtist.map((UserArtistData, key) => {
+  const appUser = await appUsersSchema.find();
+  if (appUser) {
+    let allappUser = appUser.map((appUserData, key) => {
       return new Promise(async (resolve, reject) => {
         let artistCategoriesInfo = await artistCategoriesSchema.find({
-          _id: { $in: UserArtistData.artist_categories },
+          _id: { $in: appUserData.artist_categories },
         });
         if (artistCategoriesInfo) {
-          UserArtist[key].artist_categories = artistCategoriesInfo;
+          appUser[key].artist_categories = artistCategoriesInfo;
         }
         let genresInfo = await genreSchema.find({
-          _id: { $in: UserArtistData.genres },
+          _id: { $in: appUserData.genres },
         });
         if (genresInfo) {
-          UserArtist[key].genres = genresInfo;
+          appUser[key].genres = genresInfo;
         }
         return resolve();
       });
     });
-    await Promise.all(allUserArtist);
+    await Promise.all(allappUser);
 
-    result.data = UserArtist;
+    result.data = appUser;
     result.code = 200;
   } else {
     result.code = 204;
@@ -500,27 +579,27 @@ const getAllUserArtist = async (req) => {
   return result;
 };
 
-const getUserArtist = async (req) => {
+const getappUser = async (req) => {
   const result = { data: null };
   const id = req.params.id;
 
   try {
-    const UserArtist = await userArtistsSchema.findById(id);
+    const appUser = await appUsersSchema.findById(id);
     let artistCategoriesInfo = await artistCategoriesSchema.find({
-      _id: { $in: UserArtist.artist_categories },
+      _id: { $in: appUser.artist_categories },
     });
     if (artistCategoriesInfo) {
-      UserArtist.artist_categories = artistCategoriesInfo;
+      appUser.artist_categories = artistCategoriesInfo;
     }
     let genresInfo = await genreSchema.find({
-      _id: { $in: UserArtist.genres },
+      _id: { $in: appUser.genres },
     });
     if (genresInfo) {
-      UserArtist.genres = genresInfo;
+      appUser.genres = genresInfo;
     }
 
-    if (UserArtist) {
-      result.data = UserArtist;
+    if (appUser) {
+      result.data = appUser;
       result.code = 200;
     } else {
       result.code = 204;
@@ -533,12 +612,46 @@ const getUserArtist = async (req) => {
   return result;
 };
 
-const deleteUserArtist = async (req) => {
+const getappUserProfile = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  const id = payload.id;
+
+  try {
+    const appUser = await appUsersSchema.findById(id);
+    let artistCategoriesInfo = await artistCategoriesSchema.find({
+      _id: { $in: appUser.artist_categories },
+    });
+    if (artistCategoriesInfo) {
+      appUser.artist_categories = artistCategoriesInfo;
+    }
+    let genresInfo = await genreSchema.find({
+      _id: { $in: appUser.genres },
+    });
+    if (genresInfo) {
+      appUser.genres = genresInfo;
+    }
+
+    if (appUser) {
+      result.data = appUser;
+      result.code = 200;
+    } else {
+      result.code = 204;
+    }
+  } catch (error) {
+    result.code = 204;
+    result.error = error;
+  }
+
+  return result;
+};
+
+const deleteappUser = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const UserArtist = await userArtistsSchema.findByIdAndRemove(id);
-  if (UserArtist) {
-    result.data = UserArtist;
+  const appUser = await appUsersSchema.findByIdAndRemove(id);
+  if (appUser) {
+    result.data = appUser;
     result.code = 203;
   } else {
     result.code = 204;
@@ -546,16 +659,32 @@ const deleteUserArtist = async (req) => {
   return result;
 };
 
+const profileCoverImage = async (req) => {
+  const result = { data: null };
+  if (!req.file) {
+    result.code = 2029;
+    return result;
+  }
+  const imagePath = `${PROFILE_COVER_URL}${req.file.filename}`;
+  result.data = imagePath;
+  result.code = 2030;
+
+  return result;
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
-  updateUserArtistSpecificColumn,
-  addUserArtist,
-  updateUserArtist,
-  getAllUserArtist,
-  getUserArtist,
-  deleteUserArtist,
+  updateappUserSpecificColumn,
+  addappUser,
+  registerappUser,
+  updateappUser,
+  getAllappUser,
+  getappUser,
+  deleteappUser,
   forgotPassword,
   resetPassword,
   verificationCode,
+  profileCoverImage,
+  getappUserProfile,
 };

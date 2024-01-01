@@ -11,7 +11,7 @@ const genreRoute = require("../module/genre/genreRoute");
 const mediaPostRoute = require("../module/mediaPost/mediaPostRoute");
 const platformCommissionRoute = require("../module/platformCommission/platformCommissionRoute");
 const RoleRoute = require("../module/role/roleRoute");
-const userArtistRoute = require("../module/userArtist/userArtistRoute");
+const appUserRoute = require("../module/appUsers/appUserRoute");
 const userFanRoute = require("../module/userFans/userFanRoute");
 const verificationRoute = require("../module/verification/verificationRoute");
 const virtualGiftRoute = require("../module/virtualGifts/virtualGiftsRoute");
@@ -33,7 +33,7 @@ module.exports = (router) => {
   mediaPostRoute(router);
   platformCommissionRoute(router);
   RoleRoute(router);
-  userArtistRoute(router);
+  appUserRoute(router);
   userFanRoute(router);
   verificationRoute(router);
   virtualGiftRoute(router);
