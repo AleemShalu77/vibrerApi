@@ -104,7 +104,7 @@ getEmailVerificationappUser = (email, verification_token) => {
     "registration.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace("[firstName & lastName]", `${email}`);
+  emailTemplate = emailTemplate.replace("[firstName & lastName]", ``);
   emailTemplate = emailTemplate.replace(
     "[verificationUrl]",
     `https://vibrer.cloud/email-verified?token=${verification_token}`
