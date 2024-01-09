@@ -4,6 +4,8 @@ const createHttpError = require("http-errors");
 const {
   validateaddMediaPostReq,
   validateContestParticipateVoteReq,
+  validateaddToFavouriteReq,
+  validateupdateMediaPostStatusReq,
 } = require("./mediaPostValidation");
 
 const addMediaPost = async (req, res, next) => {
@@ -18,6 +20,29 @@ const addMediaPost = async (req, res, next) => {
       return next(isValid);
     }
     let result = await mediaPostService.addMediaPost(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
+const updateMediaPostStatus = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateupdateMediaPostStatusReq.validateAsync(
+      req.body
+    );
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await mediaPostService.updateMediaPostStatus(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -50,33 +75,52 @@ const contestParticipateVote = async (req, res, next) => {
   }
 };
 
-// const updateMediaPost = async (req, res, next) => {
-//     try {
-//         if (!req.body || (Object.keys(req.body).length) === 0) {
-//             return next(createHttpError(400, { message: 'Please pass body parameters' }));
-//         }
-//         let isValid = await validateupdateMediaPostReq.validateAsync(req.body);
-//         if (isValid instanceof Error) {
-//             return next(isValid)
-//         }
-//         let result = await concertService.updateMediaPost(req);
-//         helper.send(res, result.code, result.data);
-//     } catch (error) {
-//         if (error.isJoi) {
-//             return next(createHttpError(400, { message: error.message }));
-//         }
-//         next(error)
-//     }
-// }
+const addToFavourite = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateaddToFavouriteReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await mediaPostService.addToFavourite(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
 
-// const getAllMediaPost = async (req, res, next) => {
-//     try {
-//         let result = await concertService.getAllMediaPost(req);
-//         helper.send(res, result.code, result.data);
-//     } catch (error) {
-//         next(error)
-//     }
-// }
+const getAllFavouriteContestParticipants = async (req, res, next) => {
+  try {
+    let result = await mediaPostService.getAllFavouriteContestParticipants(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getVotedContestParticipants = async (req, res, next) => {
+  try {
+    let result = await mediaPostService.getVotedContestParticipants(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+const getUserParticipatedContests = async (req, res, next) => {
+  try {
+    let result = await mediaPostService.getUserParticipatedContests(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
 
 // const getMediaPost = async (req, res, next) => {
 //     try {
@@ -99,8 +143,12 @@ const deleteMediaPost = async (req, res, next) => {
 module.exports = {
   addMediaPost,
   contestParticipateVote,
-  // updateMediaPost,
+  updateMediaPostStatus,
   // getAllMediaPost,
   // getMediaPost,
   deleteMediaPost,
+  addToFavourite,
+  getAllFavouriteContestParticipants,
+  getVotedContestParticipants,
+  getUserParticipatedContests,
 };

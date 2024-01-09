@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-
+require("dotenv").config();
 send = (res, code, data, msg = "", customMsg = "", totalRecords) => {
   let result = {};
   const m = require("./msgs")[code];
@@ -107,7 +107,7 @@ getEmailVerificationappUser = (email, verification_token) => {
   emailTemplate = emailTemplate.replace("[firstName & lastName]", ``);
   emailTemplate = emailTemplate.replace(
     "[verificationUrl]",
-    `https://vibrer.cloud/email-verified?token=${verification_token}`
+    `${process.env.FRONTEND_URL}email-verified?token=${verification_token}`
   );
 
   return emailTemplate;
@@ -182,71 +182,76 @@ getForgotPassword = (email, verification_token) => {
 };
 
 getForgotPasswordappUser = (email, verification_token) => {
-  let data =
-    `<!DOCTYPE html>
-  <html lang="en" style="margin: 0; padding: 0; overflow-x: hidden; box-sizing: border-box;">
-  
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Forgot Password</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway:500,700&display=swap" rel="stylesheet">
-  </head>
-  
-  <body style="margin: 0; padding: 0; overflow-x: hidden; box-sizing: border-box; background-color: #444;">
-    <section class="container" style="display: grid; justify-content: center;">
-      <div class="template-wrapper" style="background-color: #fff; width: 100%;">
-        <!--div class="row" style="width: 100%; display: flex;">
-          <div class="text-center col logo" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; background: #f4f4f4; border: solid 1px #e4e4e4; padding: 30px 10px;">
-            <img src="https://vibrer.cloud/public/images/viberer-logo-light.svg" alt="Hello Worker Logo" style="width: 200px;">
-          </div>
-        </div-->
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col text-center resPW" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; background-color: #ff5d5d; padding: 30px 10px;">
-            <h1 style="font-family: sans-serif; color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0; text-transform: uppercase;">
-            Reset Password
-            </h1>
-          </div>
-        </div>
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col content" style="width: 100%; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 15px;">
-            <h3 style="margin: 0; font-family: sans-serif; font-size: 1.1rem; color: #3f3d56; margin-bottom: 8px;">
-            Dear ` +
-    email +
-    `</h3>
-            <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #ff5d5d; font-size: 1.3rem;">
-            Here is your reset password link
-            </p>
-          </div>
-        </div>
-        
-  
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col content" style="width: 100%; padding-left: 30px; padding-right: 30px; padding-top: 15px; padding-bottom: 30px;">
-  
-            <p style="margin: 0; font-size: 15px; color: #3f3d56; font-family: sans-serif; line-height: 2;">
-            To reset password <a style="color: #0369ee;" href="https://vibrer.cloud/new-password?token=` +
-    verification_token +
-    `">Click
-            Here</a><br>
-            Thank you for using the Vibrer.
-            </p>
-          </div>
-        </div>
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col footer text-center" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; padding: 30px 10px; background-color: #3f3d56; margin-top: 15px;">
-            <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #e9e8e8; font-size: 14px;">©
-              2023 Vibrer</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </body>
-  
-  </html>`;
+  const emailTemplatePath = path.join(
+    __dirname,
+    "..",
+    "emails",
+    "passResetEmail.html"
+  );
+  let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
+  emailTemplate = emailTemplate.replace("[firstName & lastName]", `${email}`);
+  emailTemplate = emailTemplate.replace(
+    "[verificationUrl]",
+    `${process.env.FRONTEND_URL}reset-password?token=${verification_token}`
+  );
 
-  return data;
+  return emailTemplate;
+};
+
+getContestParticipantMailappUser = (user, mediaPost, contestData, genres) => {
+  const emailTemplatePath = path.join(
+    __dirname,
+    "..",
+    "emails",
+    "contestParticipation.html"
+  );
+  let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
+  emailTemplate = emailTemplate.replace(
+    "[FirstName] [LastName]",
+    `${user.name.first_name} ${user.name.last_name}`
+  );
+  emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
+  emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
+  emailTemplate = emailTemplate.replace(
+    "[Description]",
+    `${mediaPost.description}`
+  );
+  emailTemplate = emailTemplate.replace("[Link]", `${mediaPost.media}`);
+  emailTemplate = emailTemplate.replace("[status]", `${mediaPost.status}`);
+  emailTemplate = emailTemplate.replace(
+    "[ContestBanner]",
+    `${process.env.ADMIN_PANEL_URL}/uploads/${contestData.banner.xl}`
+  );
+
+  return emailTemplate;
+};
+
+getContestApprovalMailappUser = (user, mediaPost, contestData, genres) => {
+  const emailTemplatePath = path.join(
+    __dirname,
+    "..",
+    "emails",
+    "contestEntryApproved.html"
+  );
+  let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
+  emailTemplate = emailTemplate.replace(
+    "[FirstName] [LastName]",
+    `${user.name.first_name} ${user.name.last_name}`
+  );
+  emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
+  emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
+  emailTemplate = emailTemplate.replace(
+    "[Description]",
+    `${mediaPost.description}`
+  );
+  emailTemplate = emailTemplate.replace("[Link]", `${mediaPost.media}`);
+  emailTemplate = emailTemplate.replace("[status]", `${mediaPost.status}`);
+  emailTemplate = emailTemplate.replace(
+    "[Entry Link]",
+    `${process.env.FRONTEND_URL}app/pre-participate/${contestData._id}`
+  );
+
+  return emailTemplate;
 };
 
 getMessage = (body, to, from, subject) => {
@@ -271,4 +276,6 @@ module.exports = {
   getForgotPassword,
   generateRandomToken,
   getForgotPasswordappUser,
+  getContestParticipantMailappUser,
+  getContestApprovalMailappUser,
 };

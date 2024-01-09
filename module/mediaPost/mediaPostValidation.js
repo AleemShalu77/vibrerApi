@@ -64,6 +64,35 @@ const validateContestParticipateVoteReq = Joi.object({
     "string.trim": `"participate_id" must not have leading or trailing whitespace`,
   }),
 });
+const validateaddToFavouriteReq = Joi.object({
+  contest_id: Joi.string().trim().required().messages({
+    "string.empty": `"contest_id" cannot be an empty field`,
+    "string.trim": `"contest_id" must not have leading or trailing whitespace`,
+  }),
+  participate_id: Joi.string().trim().required().messages({
+    "string.empty": `"participate_id" cannot be an empty field`,
+    "string.trim": `"participate_id" must not have leading or trailing whitespace`,
+  }),
+});
+const validateupdateMediaPostStatusReq = Joi.object({
+  contest_id: Joi.string().trim().required().messages({
+    "string.empty": `"contest_id" cannot be an empty field`,
+    "string.trim": `"contest_id" must not have leading or trailing whitespace`,
+  }),
+  participate_id: Joi.string().trim().required().messages({
+    "string.empty": `"participate_id" cannot be an empty field`,
+    "string.trim": `"participate_id" must not have leading or trailing whitespace`,
+  }),
+  status: Joi.string()
+    .trim()
+    .valid("Rejected", "Under Review", "Active")
+    .required()
+    .messages({
+      "string.empty": `"status" cannot be an empty field`,
+      "string.trim": `"status" must not have leading or trailing whitespace`,
+      "any.only": `"status" must be one of 'Rejected', 'Under Review', 'Active'`,
+    }),
+});
 
 // const validateupdateMediaPostReq = Joi.object({
 //     id: Joi.string().required()
@@ -115,4 +144,6 @@ const validateContestParticipateVoteReq = Joi.object({
 module.exports = {
   validateaddMediaPostReq,
   validateContestParticipateVoteReq,
+  validateaddToFavouriteReq,
+  validateupdateMediaPostStatusReq,
 };

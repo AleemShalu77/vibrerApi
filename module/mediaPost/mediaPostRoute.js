@@ -15,11 +15,34 @@ module.exports = (router) => {
     mediaPostController.contestParticipateVote
   );
   router.post(
+    "/addContestParticipantToFavourite",
+    middleware.validateToken,
+    mediaPostController.addToFavourite
+  );
+  router.get(
+    "/getAllFavouriteContestParticipants",
+    middleware.validateToken,
+    mediaPostController.getAllFavouriteContestParticipants
+  );
+  router.get(
+    "/getVotedContestParticipants",
+    middleware.validateToken,
+    mediaPostController.getVotedContestParticipants
+  );
+  router.get(
+    "/getUserParticipatedContests",
+    middleware.validateToken,
+    mediaPostController.getUserParticipatedContests
+  );
+  router.post(
     "/remove/MediaPost/:id",
     middleware.validateToken,
     mediaPostController.deleteMediaPost
   );
-  // router.put("/update/MediaPost", mediaPostController.updateMediaPost);
+  router.put(
+    "/update/MediaPostStatus",
+    mediaPostController.updateMediaPostStatus
+  );
   // router.get("/all/MediaPost", mediaPostController.getAllMediaPost);
   // router.get("/MediaPost/:id", mediaPostController.getMediaPost);
   // router.post("/remove/MediaPost/:id", mediaPostController.deleteMediaPost);

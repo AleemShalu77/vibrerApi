@@ -131,6 +131,31 @@ const message = {
     httpCode: 400,
     status: 0,
   },
+  2032: {
+    message: "Participant not found",
+    httpCode: 400,
+    status: 0,
+  },
+  2033: {
+    message: "Added to favourite successfully",
+    httpCode: 201,
+    status: 1,
+  },
+  2034: {
+    message: "Participant removed from favourites successfully",
+    httpCode: 200,
+    status: 1,
+  },
+  2035: {
+    message: "You have voted successfully",
+    httpCode: 201,
+    status: 1,
+  },
+  2036: {
+    message: "Vote is removed successfully",
+    httpCode: 200,
+    status: 1,
+  },
 };
 
 module.exports = message;

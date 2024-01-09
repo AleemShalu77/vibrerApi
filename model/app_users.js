@@ -120,6 +120,21 @@ const appUsersSchema = new mongoose.Schema(
       youtube: String,
       website: String,
     },
+    favourites: [
+      {
+        contest_id: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "contests",
+        },
+        participant_ids: [
+          {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "user_artists",
+          },
+        ],
+      },
+    ],
+
     // blocked_user:[{
     // 	type: mongoose.Schema.Types.ObjectId,
     // 	ref: 'user'

@@ -1,5 +1,6 @@
 const contestTypeSchema = require("../../model/contest_type");
 const contestSchema = require("../../model/contests");
+const appUserSchema = require("../../model/app_users");
 const { format } = require("date-fns");
 const addContest = async (req) => {
   const result = { data: null };
@@ -231,28 +232,46 @@ const getContest = async (req) => {
     const contest = await contestSchema.findOne({ _id: id }).populate({
       path: "participates.user_id",
       model: "app_users",
-      select: "name username email profile_img profile_cover verified",
+      select:
+        "name username email profile_img profile_cover verified city country",
     });
 
     if (contest) {
+      const appUserId = req.decoded ? req.decoded.id : null;
+      const appUser = appUserId
+        ? await appUserSchema.findById(appUserId)
+        : null;
+
       let isParticipated = false;
+
       // Flatten participant details
       const participants = contest.participates.map((participant) => {
         let isVoted = false;
+        let isFavourite = false;
 
         // Check if payload.id exists in votes
-        if (req.decoded) {
+        if (appUserId) {
           isVoted = participant.votes.some(
-            (vote) => String(vote.user_id) === String(req.decoded.id)
+            (vote) => String(vote.user_id) === String(appUserId)
           );
         }
 
         // Check if the user has participated
         if (
-          req.decoded &&
-          String(participant.user_id._id) === String(req.decoded.id)
+          appUserId &&
+          String(participant.user_id._id) === String(appUserId)
         ) {
           isParticipated = true;
+        }
+
+        // Check if the participant exists in the user's favourite list
+        if (
+          appUser &&
+          appUser.favourites.some((favorite) =>
+            favorite.participant_ids.includes(participant.user_id._id)
+          )
+        ) {
+          isFavourite = true;
         }
 
         return {
@@ -260,6 +279,7 @@ const getContest = async (req) => {
           description: participant.description,
           media: participant.media,
           genres: participant.genres,
+          status: participant.status,
           votes: participant.votes,
           user: {
             _id: participant.user_id._id,
@@ -269,8 +289,11 @@ const getContest = async (req) => {
             profile_img: participant.user_id.profile_img,
             profile_cover: participant.user_id.profile_cover,
             verified: participant.user_id.verified,
+            city: participant.user_id.city,
+            country: participant.user_id.country,
           },
           is_voted: isVoted,
+          is_favourite: isFavourite,
         };
       });
 

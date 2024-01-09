@@ -25,6 +25,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+class UniqueUsernameGenerator {
+  async generateUsername(firstname, lastname) {
+    const baseUsername = `${firstname.slice(0, 3)}${lastname.slice(0, 3)}`;
+
+    let username;
+    do {
+      username = baseUsername + Math.floor(Math.random() * 900 + 100);
+    } while (await this.usernameExists(username));
+
+    return username;
+  }
+
+  async usernameExists(username) {
+    const existingUser = await appUsersSchema.findOne({ username });
+    return existingUser !== null;
+  }
+}
+
 passport.use(
   "local-signup",
   new LocalStrategy(
@@ -505,9 +523,21 @@ const updateappUser = async (req) => {
 
   try {
     const filter = { _id: payload.id };
+    const existingUser = await appUsersSchema.findById(payload.id);
+    let updatedUsername;
+
+    if (!existingUser.username && !req.body.username) {
+      updatedUsername = await new UniqueUsernameGenerator().generateUsername(
+        req.body.first_name,
+        req.body.last_name
+      );
+    } else {
+      updatedUsername = req.body.username || existingUser.username;
+    }
+
     const update = {
       email,
-      username,
+      username: updatedUsername,
       artist_categories,
       name: {
         first_name,

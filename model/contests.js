@@ -85,7 +85,7 @@ const contestSchema = new mongoose.Schema(
           required: true,
         },
         media: {
-          type: String, // Assuming media is a URL or file path
+          type: String,
           required: true,
         },
         genres: [
@@ -94,6 +94,11 @@ const contestSchema = new mongoose.Schema(
             ref: "genre", // Reference the genre model
           },
         ],
+        status: {
+          type: String,
+          required: true,
+          enum: ["Rejected", "Under Review", "Active"],
+        },
       },
     ],
     // participants: {
