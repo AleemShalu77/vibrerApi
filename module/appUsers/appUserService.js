@@ -8,10 +8,6 @@ const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const { PROFILE_COVER_URL } = require("../../config/index");
 const nodemailer = require("nodemailer");
-const sharp = require("sharp");
-const heicConvert = require("heic-convert");
-const path = require("path");
-const fs = require("fs");
 require("dotenv").config();
 const {
   getMessage,
@@ -28,13 +24,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD, // generated ethereal password
   },
 });
-
-const generateUniqueFileName = () => {
-  const timestamp = Date.now();
-  const randomString = Math.random().toString(36).substring(2, 8); // Generates a random string of length 6
-  const uniqueFileName = `${timestamp}_${randomString}`;
-  return uniqueFileName;
-};
 
 class UniqueUsernameGenerator {
   async generateUsername(firstname, lastname) {
@@ -702,47 +691,11 @@ const deleteappUser = async (req) => {
 
 const profileCoverImage = async (req) => {
   const result = { data: null };
-
   if (!req.file) {
     result.code = 2029;
     return result;
   }
-
-  const file = req.file;
-  const newFileName = generateUniqueFileName();
-
-  const tempPath = file.path;
-  const targetPath = path.join(
-    __dirname,
-    `../../public/profileCoverImage/${newFileName}.webp`
-  );
-  const extension = path.extname(file.originalname).toLowerCase();
-
-  if (extension === ".heic") {
-    const inputBuffer = fs.readFileSync(tempPath);
-    const outputBuffer = await heicConvert({
-      buffer: inputBuffer,
-      format: "JPEG",
-      quality: 1,
-    });
-    fs.writeFileSync(tempPath, outputBuffer);
-  }
-
-  try {
-    await sharp(tempPath)
-      .resize(800, null)
-      .webp({ quality: 100 })
-      .toFile(targetPath);
-  } catch (error) {
-    console.error("Failed to convert image:", error);
-    result.code = 2031;
-    return result;
-  }
-
-  // Delete temp file
-  fs.unlink(tempPath, () => {});
-
-  const imagePath = `${PROFILE_COVER_URL}${newFileName}.webp`;
+  const imagePath = `${PROFILE_COVER_URL}${req.file.filename}`;
   result.data = imagePath;
   result.code = 2030;
 
