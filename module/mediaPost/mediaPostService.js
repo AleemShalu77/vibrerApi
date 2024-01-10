@@ -10,6 +10,11 @@ const genreSchema = require("../../model/genre");
 const { MEDIA_VIDEO_URL } = require("../../config/index");
 const helper = require("../../utils/helper");
 const sendGridMail = require("@sendgrid/mail");
+const ffmpegInstaller = require("@ffmpeg-installer/ffmpeg");
+const ffmpeg = require("fluent-ffmpeg");
+
+// Set the path to the ffmpeg binary
+ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
 const transporter = nodemailer.createTransport({
   host: "smtp.ionos.com",
@@ -56,9 +61,45 @@ const addMediaPost = async (req) => {
     title: title,
     description: description,
     genres: genresArray,
-    media: `${MEDIA_VIDEO_URL}${req.file.filename}`,
     status: "Under Review",
   };
+
+  // Convert video to mp4 format and compress if it's a video file
+  if (req.file && req.file.mimetype.startsWith("video/")) {
+    const mp4FileName = `${req.file.filename.split(".")[0]}.mp4`;
+    const mp4FilePath = path.join(
+      __dirname,
+      `../../public/mediaVideo/${mp4FileName}`
+    );
+
+    await new Promise((resolve, reject) => {
+      ffmpeg()
+        .input(req.file.path)
+        .videoCodec("libx264") // Use H.264 codec for video
+        .audioCodec("aac") // Use AAC codec for audio
+        .outputOptions([
+          "-vf",
+          "scale=640:480", // Resize video to 640x480 (adjust as needed)
+          "-crf",
+          "28", // Set Constant Rate Factor for video quality (adjust as needed)
+          "-preset",
+          "medium", // Set the encoding preset for speed vs compression ratio (adjust as needed)
+        ])
+        .output(mp4FilePath)
+        .on("end", resolve)
+        .on("error", reject)
+        .run();
+    });
+
+    // Update the mediaPost object with the mp4 file path
+    mediaPost.media = `${MEDIA_VIDEO_URL}${mp4FileName}`;
+
+    // Delete the original video file
+    fs.unlink(req.file.path, () => {});
+  } else if (req.file) {
+    // If it's not a video, update mediaPost with the original file path
+    mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
+  }
 
   // Update the contest with the new mediaPost
   const updatedContest = await contestSchema.findOneAndUpdate(
