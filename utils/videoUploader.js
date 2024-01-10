@@ -4,7 +4,15 @@ const createHttpError = require("http-errors");
 
 const video_dir = path.join(__dirname, "../public/mediaVideo"); // Add a directory for video uploads
 
-const allowed_video_formats = [".mp4", ".avi", ".mov"]; // Add allowed video formats
+const allowed_video_formats = [
+  ".mp4",
+  ".avi",
+  ".mov",
+  ".mkv",
+  ".webm",
+  ".m4v",
+  ".flv",
+]; // Add more video formats as needed
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
