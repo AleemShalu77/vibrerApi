@@ -65,7 +65,12 @@ const addMediaPost = async (req) => {
   };
 
   // Convert video to mp4 format and compress if it's a video file
-  if (req.file && req.file.mimetype.startsWith("video/")) {
+  if (
+    req.file &&
+    (req.file.mimetype.startsWith("video/") ||
+      req.file.mimetype.startsWith("application/")) &&
+    !req.file.originalname.endsWith(".mp4")
+  ) {
     const mp4FileName = `${req.file.filename.split(".")[0]}.mp4`;
     const mp4FilePath = path.join(
       __dirname,
@@ -86,58 +91,108 @@ const addMediaPost = async (req) => {
           "medium", // Set the encoding preset for speed vs compression ratio (adjust as needed)
         ])
         .output(mp4FilePath)
-        .on("end", resolve)
-        .on("error", reject)
+        .on("end", async () => {
+          // Delete the original video file
+          fs.unlink(req.file.path, () => {});
+
+          // Update the mediaPost object with the mp4 file path
+          mediaPost.media = `${MEDIA_VIDEO_URL}${mp4FileName}`;
+
+          // Update the contest with the new mediaPost
+          const updatedContest = await contestSchema.findOneAndUpdate(
+            { _id: contest_id },
+            { $push: { participates: mediaPost } },
+            { new: true }
+          );
+
+          if (updatedContest) {
+            const user = await appUserSchema.findById(payload.id);
+            const contestData = await contestSchema.findById({
+              _id: contest_id,
+            });
+            let newGenres = await Promise.all(
+              genresArray.map(async (genr) => {
+                const genreObject = await genreSchema.findById(genr);
+                return genreObject ? genreObject.name : null;
+              })
+            );
+
+            newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+            const message = await helper.getContestParticipantMailappUser(
+              user,
+              mediaPost,
+              contestData,
+              newGenres
+            );
+            const messageData = await helper.getMessage(
+              message,
+              user.email,
+              process.env.EMAIL_FROM,
+              "Vibrer Participation confirmation"
+            );
+
+            // Assuming you have a function to send the verification email
+            const send = await transporter.sendMail(messageData);
+            result.data = mediaPost;
+            result.code = 201;
+          } else {
+            result.code = 204;
+          }
+
+          resolve();
+        })
+        .on("error", (err) => {
+          console.error("Error during video conversion:", err);
+          reject(err);
+        })
         .run();
     });
-
-    // Update the mediaPost object with the mp4 file path
-    mediaPost.media = `${MEDIA_VIDEO_URL}${mp4FileName}`;
-
-    // Delete the original video file
-    fs.unlink(req.file.path, () => {});
-  } else if (req.file) {
+  } else if (
+    req.file &&
+    req.file.mimetype.startsWith("video/") &&
+    req.file.originalname.endsWith(".mp4")
+  ) {
     // If it's not a video, update mediaPost with the original file path
     mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
-  }
 
-  // Update the contest with the new mediaPost
-  const updatedContest = await contestSchema.findOneAndUpdate(
-    { _id: contest_id },
-    { $push: { participates: mediaPost } },
-    { new: true }
-  );
-
-  if (updatedContest) {
-    const user = await appUserSchema.findById(payload.id);
-    const contestData = await contestSchema.findById({ _id: contest_id });
-    let newGenres = await Promise.all(
-      genresArray.map(async (genr) => {
-        const genreObject = await genreSchema.findById(genr);
-        return genreObject ? genreObject.name : null;
-      })
+    // Update the contest with the new mediaPost
+    const updatedContest = await contestSchema.findOneAndUpdate(
+      { _id: contest_id },
+      { $push: { participates: mediaPost } },
+      { new: true }
     );
 
-    newGenres = newGenres.filter((genre) => genre !== null).join(", ");
-    const message = await helper.getContestParticipantMailappUser(
-      user,
-      mediaPost,
-      contestData,
-      newGenres
-    );
-    const messageData = await helper.getMessage(
-      message,
-      user.email,
-      process.env.EMAIL_FROM,
-      "Vibrer Participation confirmation"
-    );
+    if (updatedContest) {
+      const user = await appUserSchema.findById(payload.id);
+      const contestData = await contestSchema.findById({ _id: contest_id });
+      let newGenres = await Promise.all(
+        genresArray.map(async (genr) => {
+          const genreObject = await genreSchema.findById(genr);
+          return genreObject ? genreObject.name : null;
+        })
+      );
 
-    // Assuming you have a function to send the verification email
-    const send = await transporter.sendMail(messageData);
-    result.data = mediaPost;
-    result.code = 201;
-  } else {
-    result.code = 204;
+      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+      const message = await helper.getContestParticipantMailappUser(
+        user,
+        mediaPost,
+        contestData,
+        newGenres
+      );
+      const messageData = await helper.getMessage(
+        message,
+        user.email,
+        process.env.EMAIL_FROM,
+        "Vibrer Participation confirmation"
+      );
+
+      // Assuming you have a function to send the verification email
+      const send = await transporter.sendMail(messageData);
+      result.data = mediaPost;
+      result.code = 201;
+    } else {
+      result.code = 204;
+    }
   }
 
   return result;
