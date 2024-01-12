@@ -38,7 +38,9 @@ const generateUniqueFileName = () => {
 
 class UniqueUsernameGenerator {
   async generateUsername(firstname, lastname) {
-    const baseUsername = `${firstname.slice(0, 3)}${lastname.slice(0, 3)}`;
+    const baseUsername = `${firstname.slice(0, 3).toLowerCase()}${lastname
+      .slice(0, 3)
+      .toLowerCase()}`;
 
     let username;
     do {

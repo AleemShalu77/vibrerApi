@@ -222,6 +222,10 @@ getContestParticipantMailappUser = (user, mediaPost, contestData, genres) => {
     "[ContestBanner]",
     `${process.env.ADMIN_PANEL_URL}/uploads/${contestData.banner.xl}`
   );
+  emailTemplate = emailTemplate.replace(
+    "[entryPage]",
+    `${process.env.FRONTEND_URL}app/pre-participate/${contestData._id}`
+  );
 
   return emailTemplate;
 };
