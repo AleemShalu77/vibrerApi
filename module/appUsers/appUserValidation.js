@@ -251,12 +251,11 @@ const validateUpdateappUserReq = Joi.object({
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
   concert_artist: Joi.boolean().optional(),
-  bio: Joi.string().trim().required().messages({
-    "string.empty": `"bio" cannot be an empty field`,
+  bio: Joi.string().trim().allow("").optional().messages({
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  profile_img: Joi.string().required(),
-  profile_cover: Joi.string().required(),
+  profile_img: Joi.string().allow("").optional(),
+  profile_cover: Joi.string().allow("").optional(),
   genres: Joi.when("user_type", {
     is: Joi.string().valid("Fan"),
     then: Joi.array().items(Joi.string().trim()).optional(),
