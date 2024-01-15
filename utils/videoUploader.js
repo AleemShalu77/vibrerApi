@@ -1,5 +1,5 @@
-var multer = require("multer");
-var path = require("path");
+const multer = require("multer");
+const path = require("path");
 const createHttpError = require("http-errors");
 
 const video_dir = path.join(__dirname, "../public/mediaVideo"); // Add a directory for video uploads
@@ -55,6 +55,9 @@ const fileFilter = (req, file, cb) => {
 const videoUploader = multer({
   storage: storage,
   fileFilter: fileFilter,
+  limits: {
+    fileSize: 512 * 1024 * 1024, // 512 MB
+  },
 });
 
 module.exports = {
