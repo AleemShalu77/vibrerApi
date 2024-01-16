@@ -84,7 +84,7 @@ getEmailVerification = (email, verification_token) => {
         <div class="row" style="width: 100%; display: flex;">
           <div class="col footer text-center" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; padding: 30px 10px; background-color: #3f3d56; margin-top: 15px;">
             <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #e9e8e8; font-size: 14px;">©
-              2023 Vibrer</p>
+            © 2024 All rights reserved | Vibrer Internet Content Provider L.L.C, UAE</p>
           </div>
         </div>
       </div>
@@ -169,7 +169,7 @@ getForgotPassword = (email, verification_token) => {
         <div class="row" style="width: 100%; display: flex;">
           <div class="col footer text-center" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; padding: 30px 10px; background-color: #3f3d56; margin-top: 15px;">
             <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #e9e8e8; font-size: 14px;">©
-              2023 Vibrer</p>
+            © 2024 All rights reserved | Vibrer Internet Content Provider L.L.C, UAE</p>
           </div>
         </div>
       </div>
