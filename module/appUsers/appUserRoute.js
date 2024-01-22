@@ -59,4 +59,16 @@ module.exports = (router) => {
     uploader.single("profile_cover_image"),
     appUserController.profileCoverImage
   );
+  router.post(
+    "/upload/gallery-image",
+    middleware.validateToken,
+    uploader.single("gallery_img"),
+    appUserController.uploadGalleryImage
+  );
+
+  router.post(
+    "/remove/gallery-image/:id",
+    middleware.validateToken,
+    appUserController.deleteGalleryImage
+  );
 };

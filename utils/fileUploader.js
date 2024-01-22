@@ -23,6 +23,9 @@ const storage = multer.diskStorage({
     if (req.path === "/upload/profile-cover-image") {
       dirname = profile_cover_dir;
     }
+    if (req.path === "/add/gallery") {
+      dirname = profile_cover_dir;
+    }
     if (req.path === "/add/artist-category") {
       dirname = artist_category_icon_dir;
     }

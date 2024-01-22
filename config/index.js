@@ -31,4 +31,5 @@ module.exports = {
   VERTUAL_GIFT_ICON_URL: process.env.virtualGiftIcon_url,
   PROFILE_COVER_URL: process.env.profile_cover_image,
   MEDIA_VIDEO_URL: process.env.media_video_url,
+  GALLERY_IMAGE_URL: process.env.gallery_image_url,
 };

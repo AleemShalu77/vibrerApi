@@ -1,4 +1,24 @@
 const mongoose = require("mongoose");
+const gallerySchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    media_url: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["active", "inactive", "disabled"],
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 const appUsersSchema = new mongoose.Schema(
   {
@@ -109,7 +129,7 @@ const appUsersSchema = new mongoose.Schema(
       ],
       required: false,
     },
-    // gallery_imgs:[{String}],
+    gallery: [gallerySchema],
     // music_videos:[{ _id:String }],
     // music:[{ _id:String }],
     link: {

@@ -244,6 +244,27 @@ const profileCoverImage = async (req, res, next) => {
   }
 };
 
+const uploadGalleryImage = async (req, res, next) => {
+  try {
+    let result = await appUserService.uploadGalleryImage(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
+const deleteGalleryImage = async (req, res, next) => {
+  try {
+    let result = await appUserService.deleteGalleryImage(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -259,4 +280,6 @@ module.exports = {
   verificationCode,
   profileCoverImage,
   getappUserProfile,
+  uploadGalleryImage,
+  deleteGalleryImage,
 };

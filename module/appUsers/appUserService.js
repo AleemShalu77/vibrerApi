@@ -6,7 +6,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcryptjs = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
-const { PROFILE_COVER_URL } = require("../../config/index");
+const { PROFILE_COVER_URL, GALLERY_IMAGE_URL } = require("../../config/index");
 const nodemailer = require("nodemailer");
 const sharp = require("sharp");
 const heicConvert = require("heic-convert");
@@ -751,6 +751,116 @@ const profileCoverImage = async (req) => {
   return result;
 };
 
+const uploadGalleryImage = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+
+  if (!req.file) {
+    result.code = 2029;
+    return result;
+  }
+
+  const file = req.file;
+  const newFileName = generateUniqueFileName();
+
+  const tempPath = file.path;
+  const targetPath = path.join(
+    __dirname,
+    `../../public/galleryImages/${newFileName}.webp`
+  );
+  const extension = path.extname(file.originalname).toLowerCase();
+
+  if (extension === ".heic") {
+    const inputBuffer = fs.readFileSync(tempPath);
+    const outputBuffer = await heicConvert({
+      buffer: inputBuffer,
+      format: "JPEG",
+      quality: 1,
+    });
+    fs.writeFileSync(tempPath, outputBuffer);
+  }
+
+  try {
+    await sharp(tempPath)
+      .resize(800, null)
+      .webp({ quality: 100 })
+      .toFile(targetPath);
+  } catch (error) {
+    console.error("Failed to convert image:", error);
+    result.code = 2031;
+    return result;
+  }
+
+  fs.unlink(tempPath, () => {});
+
+  const imagePath = `${GALLERY_IMAGE_URL}${newFileName}.webp`;
+
+  try {
+    const updatedUser = await appUsersSchema.findByIdAndUpdate(
+      payload.id,
+      {
+        $push: {
+          gallery: {
+            title: "Image Title",
+            media_url: imagePath,
+            status: "active",
+          },
+        },
+      },
+      { new: true }
+    );
+    if (updatedUser) {
+      result.data = imagePath;
+      result.code = 2030;
+    } else {
+    }
+  } catch (updateError) {
+    console.error("Error updating user with gallery image:", updateError);
+    result.code = 2028;
+  }
+
+  return result;
+};
+
+const deleteGalleryImage = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  const galleryImageId = req.params.id;
+
+  try {
+    const user = await appUsersSchema.findById(payload.id);
+
+    const galleryImageIndex = user.gallery.findIndex(
+      (image) => String(image._id) === String(galleryImageId)
+    );
+
+    if (galleryImageIndex === -1) {
+      result.code = 404;
+      return result;
+    }
+
+    const fileName = user.gallery[galleryImageIndex].media_url.split("/").pop();
+
+    const absoluteFilePath = path.join(
+      __dirname,
+      `../../public/galleryImages/${fileName}`
+    );
+
+    await fs.promises.unlink(absoluteFilePath);
+
+    user.gallery.splice(galleryImageIndex, 1);
+
+    await user.save();
+
+    result.code = 203;
+  } catch (error) {
+    console.error("Error deleting gallery image:", error);
+    result.code = 500;
+  }
+
+  return result;
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -766,4 +876,6 @@ module.exports = {
   verificationCode,
   profileCoverImage,
   getappUserProfile,
+  uploadGalleryImage,
+  deleteGalleryImage,
 };
