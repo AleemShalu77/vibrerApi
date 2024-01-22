@@ -374,6 +374,20 @@ const validateForgotPasswordReq = Joi.object({
   }),
 });
 
+const validateCheckUsernameReq = Joi.object({
+  username: Joi.string()
+    .trim()
+    .min(3)
+    .regex(/^[a-zA-Z0-9 _.-]+$/)
+    .required()
+    .messages({
+      "string.empty": `"username" cannot be an empty field`,
+      "string.trim": "{{#label}} must not have leading or trailing whitespace",
+      "string.min": `"username" must be at least 3 characters long`,
+      "string.pattern.base": `"username" must only contain alphabets, numbers, spaces, underscores, hyphens, and dots`,
+    }),
+});
+
 module.exports = {
   validateAddappUserReq,
   validateRegisterappUserReq,
@@ -383,4 +397,5 @@ module.exports = {
   validateVerificationCodeReq,
   validateForgotPasswordReq,
   validateResetPasswordReq,
+  validateCheckUsernameReq,
 };

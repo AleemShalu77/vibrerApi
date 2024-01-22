@@ -71,4 +71,9 @@ module.exports = (router) => {
     middleware.validateToken,
     appUserController.deleteGalleryImage
   );
+  router.post(
+    "/check/username",
+    middleware.validateToken,
+    appUserController.checkUsername
+  );
 };

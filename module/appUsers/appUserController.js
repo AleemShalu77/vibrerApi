@@ -10,6 +10,7 @@ const {
   validateResetPasswordReq,
   validateVerificationCodeReq,
   validateappUserSpecificColumn,
+  validateCheckUsernameReq,
 } = require("./appUserValidation");
 
 const artistLogin = async (req, res, next) => {
@@ -265,6 +266,27 @@ const deleteGalleryImage = async (req, res, next) => {
   }
 };
 
+const checkUsername = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateCheckUsernameReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.checkUsername(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -282,4 +304,5 @@ module.exports = {
   getappUserProfile,
   uploadGalleryImage,
   deleteGalleryImage,
+  checkUsername,
 };

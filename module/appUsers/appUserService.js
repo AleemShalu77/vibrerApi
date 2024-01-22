@@ -548,6 +548,17 @@ const updateappUser = async (req) => {
       updatedUsername = req.body.username || existingUser.username;
     }
 
+    if (req.body.username) {
+      const existingUsernameOther = await appUsersSchema.findOne({
+        username: req.body.username,
+        _id: { $ne: payload.id },
+      });
+      if (existingUsernameOther) {
+        result.code = 2038;
+        return result;
+      }
+    }
+
     const update = {
       email,
       username: updatedUsername,
@@ -650,6 +661,29 @@ const getappUser = async (req) => {
   } catch (error) {
     result.code = 204;
     result.error = error;
+  }
+
+  return result;
+};
+
+const checkUsername = async (req) => {
+  const result = { data: null };
+  const { username } = req.body;
+
+  try {
+    const appUser = await appUsersSchema.findOne({ username: username });
+
+    if (appUser) {
+      result.data = { is_exists: true };
+      result.code = 205;
+    } else {
+      result.data = { is_exists: false };
+      result.code = 2037;
+    }
+  } catch (error) {
+    console.error("Error checking username:", error);
+    result.code = 2028;
+    result.error = error.message;
   }
 
   return result;
@@ -787,7 +821,7 @@ const uploadGalleryImage = async (req) => {
       .toFile(targetPath);
   } catch (error) {
     console.error("Failed to convert image:", error);
-    result.code = 2031;
+    result.code = 2028;
     return result;
   }
 
@@ -835,7 +869,7 @@ const deleteGalleryImage = async (req) => {
     );
 
     if (galleryImageIndex === -1) {
-      result.code = 404;
+      result.code = 204;
       return result;
     }
 
@@ -878,4 +912,5 @@ module.exports = {
   getappUserProfile,
   uploadGalleryImage,
   deleteGalleryImage,
+  checkUsername,
 };
