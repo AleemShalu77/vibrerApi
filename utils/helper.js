@@ -206,10 +206,7 @@ getContestParticipantMailappUser = (user, mediaPost, contestData, genres) => {
     "contestParticipation.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace(
-    "[FirstName] [LastName]",
-    `${user.name.first_name} ${user.name.last_name}`
-  );
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
   emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
   emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
   emailTemplate = emailTemplate.replace(
@@ -238,10 +235,7 @@ getContestApprovalMailappUser = (user, mediaPost, contestData, genres) => {
     "contestEntryApproved.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace(
-    "[FirstName] [LastName]",
-    `${user.name.first_name} ${user.name.last_name}`
-  );
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
   emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
   emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
   emailTemplate = emailTemplate.replace(

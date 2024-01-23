@@ -48,6 +48,10 @@ const appUsersSchema = new mongoose.Schema(
       ],
       required: false,
     },
+    full_name: {
+      type: String,
+      required: false,
+    },
     name: {
       first_name: {
         type: String,

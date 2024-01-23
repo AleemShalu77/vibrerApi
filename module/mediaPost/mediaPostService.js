@@ -485,7 +485,7 @@ const getAllFavouriteContestParticipants = async (req) => {
               user_id: {
                 _id: participant.user_id._id,
                 email: participant.user_id.email,
-                name: participant.user_id.name,
+                full_name: participant.user_id.full_name,
                 profile_img: participant.user_id.profile_img,
                 profile_cover: participant.user_id.profile_cover,
                 username: participant.user_id.username,
@@ -593,7 +593,7 @@ const getVotedContestParticipants = async (req) => {
             user_id: {
               _id: participant.user_id._id,
               email: participant.user_id.email,
-              name: participant.user_id.name,
+              full_name: participant.user_id.full_name,
               profile_img: participant.user_id.profile_img,
               profile_cover: participant.user_id.profile_cover,
               username: participant.user_id.username,
@@ -706,7 +706,7 @@ const getUserParticipatedContests = async (req) => {
               user_id: {
                 _id: participant.user_id._id,
                 email: participant.user_id.email,
-                name: participant.user_id.name,
+                full_name: participant.user_id.full_name,
                 profile_img: participant.user_id.profile_img,
                 profile_cover: participant.user_id.profile_cover,
                 username: participant.user_id.username,

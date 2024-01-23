@@ -37,6 +37,20 @@ const generateUniqueFileName = () => {
 };
 
 class UniqueUsernameGenerator {
+  async generateUsernameByFullName(fullName) {
+    // Remove spaces and make lowercase
+    const baseUsername = fullName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+    let username;
+    let suffix = 0;
+    do {
+      // Append a number suffix if needed
+      username = baseUsername + (suffix > 0 ? suffix : "");
+      suffix++;
+    } while (await this.usernameExists(username));
+
+    return username;
+  }
   async generateUsername(firstname, lastname) {
     const baseUsername = `${firstname.slice(0, 3).toLowerCase()}${lastname
       .slice(0, 3)
@@ -85,6 +99,7 @@ passport.use(
             first_name: req.body.first_name,
             last_name: req.body.last_name,
           },
+          full_name: req.body.full_name,
           gender: req.body.gender,
           date_of_birth: req.body.date_of_birth,
           city: req.body.city,
@@ -517,6 +532,7 @@ const updateappUser = async (req) => {
     artist_categories,
     first_name,
     last_name,
+    full_name,
     gender,
     date_of_birth,
     city,
@@ -540,10 +556,17 @@ const updateappUser = async (req) => {
     let updatedUsername;
 
     if (!existingUser.username && !req.body.username) {
-      updatedUsername = await new UniqueUsernameGenerator().generateUsername(
-        req.body.first_name,
-        req.body.last_name
-      );
+      if (req.body.first_name && req.body.last_name) {
+        updatedUsername = await new UniqueUsernameGenerator().generateUsername(
+          req.body.first_name,
+          req.body.last_name
+        );
+      } else if (req.body.full_name) {
+        updatedUsername =
+          await new UniqueUsernameGenerator().generateUsernameByFullName(
+            req.body.full_name
+          );
+      }
     } else {
       updatedUsername = req.body.username || existingUser.username;
     }
@@ -567,6 +590,7 @@ const updateappUser = async (req) => {
         first_name,
         last_name,
       },
+      full_name,
       gender,
       date_of_birth,
       city,
@@ -688,7 +712,6 @@ const checkUsername = async (req) => {
 
   return result;
 };
-
 const getappUserProfile = async (req) => {
   const result = { data: null };
   const payload = req.decoded;

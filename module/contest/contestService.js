@@ -173,7 +173,7 @@ const getAllContest = async (req) => {
     const contests = await contestSchema.find(contestQuery).populate({
       path: "participates.user_id",
       model: "app_users",
-      select: "username email name profile_img profile_cover verified",
+      select: "username email full_name profile_img profile_cover verified",
     });
 
     const contestsWithEndDays = contests.map((contest) => {
@@ -198,7 +198,7 @@ const getAllContest = async (req) => {
     const contests = await contestSchema.find().populate({
       path: "participates.user_id",
       model: "app_users",
-      select: "username email name profile_img profile_cover verified",
+      select: "username email full_name profile_img profile_cover verified",
     });
 
     const contestsWithEndDays = contests.map((contest) => {
@@ -233,7 +233,7 @@ const getContest = async (req) => {
       path: "participates.user_id",
       model: "app_users",
       select:
-        "name username email profile_img profile_cover verified city country",
+        "full_name username email profile_img profile_cover verified city country",
     });
 
     if (contest) {
@@ -284,7 +284,7 @@ const getContest = async (req) => {
           user: {
             _id: participant.user_id._id,
             username: participant.user_id.username,
-            name: participant.user_id.name,
+            full_name: participant.user_id.full_name,
             email: participant.user_id.email,
             profile_img: participant.user_id.profile_img,
             profile_cover: participant.user_id.profile_cover,

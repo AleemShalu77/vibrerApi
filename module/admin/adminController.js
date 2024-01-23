@@ -119,7 +119,18 @@ const addUser = async (req, res, next) => {
       }
 
       // User registration successful
-      const name = `${req.body.first_name} account`;
+      let registered_name = "";
+
+      if (req.body.first_name) {
+        registered_name = req.body.first_name;
+
+        if (req.body.last_name) {
+          registered_name += ` ${req.body.last_name}`;
+        }
+      } else if (req.body.full_name) {
+        registered_name = req.body.full_name;
+      }
+      const name = `${registered_name} account`;
       helper.send(res, 201, user, "", name);
     })(req, res, next);
   } catch (error) {
