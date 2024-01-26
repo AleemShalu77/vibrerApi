@@ -12,6 +12,8 @@ const sharp = require("sharp");
 const heicConvert = require("heic-convert");
 const path = require("path");
 const fs = require("fs");
+const https = require("https");
+const AWS = require("aws-sdk");
 require("dotenv").config();
 const {
   getMessage,
@@ -28,6 +30,51 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD, // generated ethereal password
   },
 });
+
+// R2 Starts
+
+// Cloudflare R2 credentials
+const accessKeyId = "8ff1d4257361a25dee210eac2afd1849";
+const secretAccessKey =
+  "d29572be1ee6560a2084cd1425b182b08fbab98e68653c4762cd24eed5e13715";
+const endpoint =
+  "https://c53c5a5e9a01f9d11e27a9f74c803061.r2.cloudflarestorage.com";
+const endpoint_dev = "https://pub-80a12f42f2b044358ba1d4396cf13bfb.r2.dev";
+const bucketName = "vibrer-app-media"; // Replace with your actual bucket name
+
+// Configure the AWS SDK to use your Cloudflare R2 credentials and endpoint
+const s3 = new AWS.S3({
+  endpoint: endpoint,
+  accessKeyId: accessKeyId,
+  secretAccessKey: secretAccessKey,
+  signatureVersion: "v4",
+  region: "auto", // Cloudflare R2 does not require a specific region
+  s3ForcePathStyle: true, // This forces the request to use path-style addressing
+});
+
+// Example function to upload a file to Cloudflare R2
+function uploadFileToR2(fileBuffer, fileName, mimeType) {
+  const params = {
+    Bucket: bucketName,
+    Key: fileName,
+    Body: fileBuffer,
+    ContentType: mimeType,
+  };
+
+  return s3.upload(params).promise();
+}
+
+// Example function to download a file from Cloudflare R2
+function getFileFromR2(fileName) {
+  const params = {
+    Bucket: bucketName,
+    Key: fileName,
+  };
+
+  return s3.getObject(params).promise();
+}
+
+// R2 Ends
 
 const generateUniqueFileName = () => {
   const timestamp = Date.now();
@@ -693,9 +740,13 @@ const getappUser = async (req) => {
 const checkUsername = async (req) => {
   const result = { data: null };
   const { username } = req.body;
+  const payload = req.decoded;
 
   try {
-    const appUser = await appUsersSchema.findOne({ username: username });
+    const appUser = await appUsersSchema.findOne({
+      username: username,
+      _id: { $ne: payload.id },
+    });
 
     if (appUser) {
       result.data = { is_exists: true };
@@ -878,6 +929,90 @@ const uploadGalleryImage = async (req) => {
 
   return result;
 };
+
+// const uploadGalleryImage = async (req) => {
+//   const result = { data: null };
+//   const payload = req.decoded;
+
+//   if (!req.file) {
+//     result.code = 2029;
+//     return result;
+//   }
+
+//   const file = req.file;
+//   const newFileName = generateUniqueFileName();
+//   const targetFileName = `${newFileName}.webp`; // The file will be saved as a .webp
+//   const mimeType = "image/webp"; // MIME type for the webp image
+
+//   const tempPath = file.path;
+//   const extension = path.extname(file.originalname).toLowerCase();
+
+//   if (extension === ".heic") {
+//     // Convert HEIC to JPEG first
+//     const inputBuffer = fs.readFileSync(tempPath);
+//     const outputBuffer = await heicConvert({
+//       buffer: inputBuffer,
+//       format: "JPEG",
+//       quality: 1,
+//     });
+//     fs.writeFileSync(tempPath, outputBuffer);
+//   }
+
+//   let uploadBuffer;
+//   try {
+//     // Process the image with sharp and get buffer for upload
+//     uploadBuffer = await sharp(tempPath)
+//       .resize(800, null) // Resizing the image
+//       .webp({ quality: 100 }) // Converting to webp
+//       .toBuffer();
+//   } catch (error) {
+//     console.error("Failed to process image:", error);
+//     result.code = 2028;
+//     return result;
+//   } finally {
+//     // Delete the temporary file
+//     fs.unlinkSync(tempPath);
+//   }
+
+//   try {
+//     // Upload the processed image buffer to Cloudflare R2
+//     const uploadResponse = await uploadFileToR2(
+//       uploadBuffer,
+//       targetFileName,
+//       mimeType
+//     );
+//     // The URL to access the image on Cloudflare R2, adjust as necessary
+//     const imagePath = `${endpoint_dev}/${uploadResponse.Key}`;
+
+//     // Update the user schema with the new image path
+//     const updatedUser = await appUsersSchema.findByIdAndUpdate(
+//       payload.id,
+//       {
+//         $push: {
+//           gallery: {
+//             title: "Image Title",
+//             media_url: imagePath,
+//             status: "active",
+//           },
+//         },
+//       },
+//       { new: true }
+//     );
+
+//     if (updatedUser) {
+//       result.data = imagePath;
+//       result.code = 2030;
+//     } else {
+//       // Handle the case where the user is not found or not updated
+//       result.code = 2027; // You should define an appropriate error code for this case
+//     }
+//   } catch (uploadError) {
+//     console.error("Error uploading image to R2:", uploadError);
+//     result.code = 2028;
+//   }
+
+//   return result;
+// };
 
 const deleteGalleryImage = async (req) => {
   const result = { data: null };
