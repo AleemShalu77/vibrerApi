@@ -126,7 +126,9 @@ const getAllContest = async (req) => {
   if (req.body.type) {
     let contestQuery = {};
 
-    if (req.body.type === "Archived") {
+    if (req.body.type === "Active") {
+      contestQuery = { status: "Active" };
+    } else if (req.body.type === "Archived") {
       contestQuery = { status: "Archived" };
     } else if (req.body.type === "Draft") {
       contestQuery = { publish: "Draft" };
