@@ -13,17 +13,10 @@ const validateAddappUserReq = Joi.object({
     "string.empty": `"email" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  password: Joi.string()
-    .regex(RegExp(passwordRegex))
-    .required()
-    .min(8)
-    .max(16)
-    .message({
-      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
-      "string.empty": `"password" cannot be an empty field`,
-      "string.min": `"password" should have a minimum length of {#limit}`,
-      "string.min": `"password" should have a maximum length of {#limit}`,
-    }),
+  password: Joi.string().required().min(6).message({
+    "string.empty": `"password" cannot be an empty field`,
+    "string.min": `"password" should have a minimum length of {#limit}`,
+  }),
   username: Joi.string().trim().required().messages({
     "string.empty": `"username" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
@@ -163,28 +156,14 @@ const validateRegisterappUserReq = Joi.object({
     "string.empty": `"email" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  password: Joi.string()
-    .regex(RegExp(passwordRegex))
-    .required()
-    .min(8)
-    .max(16)
-    .message({
-      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
-      "string.empty": `"password" cannot be an empty field`,
-      "string.min": `"password" should have a minimum length of {#limit}`,
-      "string.min": `"password" should have a maximum length of {#limit}`,
-    }),
-  confirmPassword: Joi.string()
-    .regex(RegExp(passwordRegex))
-    .required()
-    .min(8)
-    .max(16)
-    .message({
-      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
-      "string.empty": `"password" cannot be an empty field`,
-      "string.min": `"password" should have a minimum length of {#limit}`,
-      "string.min": `"password" should have a maximum length of {#limit}`,
-    }),
+  password: Joi.string().required().min(6).message({
+    "string.empty": `"password" cannot be an empty field`,
+    "string.min": `"password" should have a minimum length of {#limit}`,
+  }),
+  confirmPassword: Joi.string().required().min(6).message({
+    "string.empty": `"confirm password" cannot be an empty field`,
+    "string.min": `"confirm password" should have a minimum length of {#limit}`,
+  }),
 });
 
 const validateUpdateappUserReq = Joi.object({
@@ -367,28 +346,14 @@ const validateResetPasswordReq = Joi.object({
     "string.empty": `"token" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  password: Joi.string()
-    .regex(RegExp(passwordRegex))
-    .required()
-    .min(8)
-    .max(16)
-    .message({
-      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
-      "string.empty": `"password" cannot be an empty field`,
-      "string.min": `"password" should have a minimum length of {#limit}`,
-      "string.min": `"password" should have a maximum length of {#limit}`,
-    }),
-  confirmPassword: Joi.string()
-    .regex(RegExp(passwordRegex))
-    .required()
-    .min(8)
-    .max(16)
-    .message({
-      "string.pattern.base": `"password" must have atleast one uppercase letter, one number and one speacial character`,
-      "string.empty": `"password" cannot be an empty field`,
-      "string.min": `"password" should have a minimum length of {#limit}`,
-      "string.min": `"password" should have a maximum length of {#limit}`,
-    }),
+  password: Joi.string().required().min(6).message({
+    "string.empty": `"password" cannot be an empty field`,
+    "string.min": `"password" should have a minimum length of {#limit}`,
+  }),
+  confirmPassword: Joi.string().required().min(6).message({
+    "string.empty": `"confirm password" cannot be an empty field`,
+    "string.min": `"confirm password" should have a minimum length of {#limit}`,
+  }),
 });
 const validateForgotPasswordReq = Joi.object({
   email: Joi.string().email().trim().required().messages({
