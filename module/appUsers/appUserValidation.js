@@ -59,7 +59,7 @@ const validateAddappUserReq = Joi.object({
     }),
   full_name: Joi.string()
     .min(3)
-    .max(50)
+    .max(20)
     .trim()
     .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
     .required()
@@ -218,7 +218,7 @@ const validateUpdateappUserReq = Joi.object({
     }),
   full_name: Joi.string()
     .min(3)
-    .max(50)
+    .max(20)
     .trim()
     .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
     .required()

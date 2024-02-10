@@ -34,12 +34,12 @@ const transporter = nodemailer.createTransport({
 // R2 Starts
 
 // Cloudflare R2 credentials
-const accessKeyId = "8ff1d4257361a25dee210eac2afd1849";
+const accessKeyId = "386b04b4d5afce845c78f20643b717ec";
 const secretAccessKey =
-  "d29572be1ee6560a2084cd1425b182b08fbab98e68653c4762cd24eed5e13715";
+  "c198ec502aec658099e4c19f18b9f7d889b718525c61121f156f602d716ae791";
 const endpoint =
-  "https://c53c5a5e9a01f9d11e27a9f74c803061.r2.cloudflarestorage.com";
-const endpoint_dev = "https://pub-80a12f42f2b044358ba1d4396cf13bfb.r2.dev";
+  "https://c53c5a5e9a01f9d11e27a9f74c803061.eu.r2.cloudflarestorage.com";
+// const endpoint_dev = "https://pub-80a12f42f2b044358ba1d4396cf13bfb.r2.dev";
 const bucketName = "vibrer-app-media"; // Replace with your actual bucket name
 
 // Configure the AWS SDK to use your Cloudflare R2 credentials and endpoint
@@ -85,19 +85,21 @@ const generateUniqueFileName = () => {
 
 class UniqueUsernameGenerator {
   async generateUsernameByFullName(fullName) {
-    // Remove spaces and make lowercase
-    const baseUsername = fullName.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    const baseUsername = fullName
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toLowerCase()
+      .slice(0, 10);
 
     let username;
     let suffix = 0;
     do {
-      // Append a number suffix if needed
       username = baseUsername + (suffix > 0 ? suffix : "");
       suffix++;
     } while (await this.usernameExists(username));
 
     return username;
   }
+
   async generateUsername(firstname, lastname) {
     const baseUsername = `${firstname.slice(0, 3).toLowerCase()}${lastname
       .slice(0, 3)
@@ -981,8 +983,9 @@ const uploadGalleryImage = async (req) => {
 //       targetFileName,
 //       mimeType
 //     );
+//     console.log(uploadResponse);
 //     // The URL to access the image on Cloudflare R2, adjust as necessary
-//     const imagePath = `${endpoint_dev}/${uploadResponse.Key}`;
+//     const imagePath = `${endpoint}/${uploadResponse.Key}`;
 
 //     // Update the user schema with the new image path
 //     const updatedUser = await appUsersSchema.findByIdAndUpdate(
