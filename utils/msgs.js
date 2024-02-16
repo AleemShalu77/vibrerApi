@@ -166,6 +166,11 @@ const message = {
     httpCode: 400,
     status: 0,
   },
+  2039: {
+    message: "This video format is not supported",
+    httpCode: 200,
+    status: 0,
+  },
 };
 
 module.exports = message;

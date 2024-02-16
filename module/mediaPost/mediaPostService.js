@@ -65,40 +65,40 @@ const addMediaPost = async (req) => {
   };
 
   // Convert video to mp4 format and compress if it's a video file
-  if (
-    req.file &&
-    (req.file.mimetype.startsWith("video/") ||
-      req.file.mimetype.startsWith("application/")) &&
-    !req.file.originalname.endsWith(".mp4")
-  ) {
-    const mp4FileName = `${req.file.filename.split(".")[0]}.mp4`;
-    const mp4FilePath = path.join(
+  if (req.file && req.file.mimetype.startsWith("video/")) {
+    const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    const baseFileName = path.basename(req.file.filename, fileExtension);
+    const uniqueSuffix = Date.now().toString();
+    const outputFileName = `${baseFileName}-${uniqueSuffix}.mp4`;
+    const outputFilePath = path.join(
       __dirname,
-      `../../public/mediaVideo/${mp4FileName}`
+      `../../public/mediaVideo/${outputFileName}`
     );
 
+    // Check if the video is already in MP4 format and just needs compression/resolution adjustment
+    const needsConversion = fileExtension !== ".mp4";
+
     await new Promise((resolve, reject) => {
-      ffmpeg()
+      const ffmpegCommand = ffmpeg()
         .input(req.file.path)
         .videoCodec("libx264") // Use H.264 codec for video
         .audioCodec("aac") // Use AAC codec for audio
         .outputOptions([
           "-vf",
-          "scale=640:480", // Resize video to 640x480 (adjust as needed)
+          "scale='min(1280,iw)':min'(720,ih)':force_original_aspect_ratio=decrease",
           "-crf",
-          "28", // Set Constant Rate Factor for video quality (adjust as needed)
+          "23", // Adjust CRF for quality
           "-preset",
-          "medium", // Set the encoding preset for speed vs compression ratio (adjust as needed)
+          "medium", // Adjust preset for encoding speed vs quality
         ])
-        .output(mp4FilePath)
+        .output(outputFilePath)
         .on("end", async () => {
-          // Delete the original video file
           fs.unlink(req.file.path, () => {});
 
-          // Update the mediaPost object with the mp4 file path
-          mediaPost.media = `${MEDIA_VIDEO_URL}${mp4FileName}`;
+          // Update the mediaPost object with the MP4 file path
+          mediaPost.media = `${MEDIA_VIDEO_URL}${outputFileName}`;
 
-          // Update the contest with the new mediaPost
+          // Additional logic to update contest, send confirmation email, etc.
           const updatedContest = await contestSchema.findOneAndUpdate(
             { _id: contest_id },
             { $push: { participates: mediaPost } },
@@ -142,57 +142,14 @@ const addMediaPost = async (req) => {
           resolve();
         })
         .on("error", (err) => {
-          console.error("Error during video conversion:", err);
+          console.error("Error during video processing:", err);
           reject(err);
-        })
-        .run();
+        });
+
+      ffmpegCommand.run();
     });
-  } else if (
-    req.file &&
-    req.file.mimetype.startsWith("video/") &&
-    req.file.originalname.endsWith(".mp4")
-  ) {
-    // If it's not a video, update mediaPost with the original file path
-    mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
-
-    // Update the contest with the new mediaPost
-    const updatedContest = await contestSchema.findOneAndUpdate(
-      { _id: contest_id },
-      { $push: { participates: mediaPost } },
-      { new: true }
-    );
-
-    if (updatedContest) {
-      const user = await appUserSchema.findById(payload.id);
-      const contestData = await contestSchema.findById({ _id: contest_id });
-      let newGenres = await Promise.all(
-        genresArray.map(async (genr) => {
-          const genreObject = await genreSchema.findById(genr);
-          return genreObject ? genreObject.name : null;
-        })
-      );
-
-      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
-      const message = await helper.getContestParticipantMailappUser(
-        user,
-        mediaPost,
-        contestData,
-        newGenres
-      );
-      const messageData = await helper.getMessage(
-        message,
-        user.email,
-        process.env.EMAIL_FROM,
-        "Vibrer Participation confirmation"
-      );
-
-      // Assuming you have a function to send the verification email
-      const send = await transporter.sendMail(messageData);
-      result.data = mediaPost;
-      result.code = 201;
-    } else {
-      result.code = 204;
-    }
+  } else {
+    result.code = 2039;
   }
 
   return result;
