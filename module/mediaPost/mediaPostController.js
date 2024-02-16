@@ -140,6 +140,15 @@ const deleteMediaPost = async (req, res, next) => {
   }
 };
 
+const adminDashboardCount = async (req, res, next) => {
+  try {
+    let result = await mediaPostService.adminDashboardCount(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addMediaPost,
   contestParticipateVote,
@@ -151,4 +160,5 @@ module.exports = {
   getAllFavouriteContestParticipants,
   getVotedContestParticipants,
   getUserParticipatedContests,
+  adminDashboardCount,
 };

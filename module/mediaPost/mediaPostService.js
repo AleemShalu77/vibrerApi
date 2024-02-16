@@ -842,6 +842,126 @@ const deleteMediaPost = async (req) => {
   return result;
 };
 
+const adminDashboardCount = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  const customObj = {};
+
+  try {
+    const today = new Date();
+    const sixMonthsAgo = new Date(today);
+    sixMonthsAgo.setMonth(today.getMonth() - 6);
+
+    const allappUser = await appUserSchema.count();
+    const activeappUser = await appUserSchema.count({ status: "Active" });
+    const inactiveappUserCount = await appUserSchema.count({
+      status: { $ne: "Active" },
+    });
+    const artistappUserCount = await appUserSchema.count({
+      user_type: "Artist",
+    });
+    const fanappUserCount = await appUserSchema.count({ user_type: "Fan" });
+    const verifiedAritstsCount = await appUserSchema.count({
+      user_type: "Artist",
+      verified: true,
+    });
+    const emailNotVerifiedCount = await appUserSchema.count({
+      verification: false,
+    });
+    const activeContestsCount = await contestSchema.count({ status: "Active" });
+
+    const usersLastTenDays = [];
+    const usersLastSixMonths = [];
+
+    // Get data for the last 10 days
+    for (let i = 0; i < 15; i++) {
+      const startOfDay = new Date(today);
+      startOfDay.setDate(today.getDate() - i);
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(startOfDay.getDate() + 1);
+
+      const count = await appUserSchema.count({
+        createdAt: { $gte: startOfDay, $lt: endOfDay },
+      });
+
+      const dateOnly = startOfDay.toISOString().slice(0, 10);
+      usersLastTenDays.push({ date: dateOnly, count });
+    }
+
+    // Get data for the last 6 months
+    for (let i = 0; i < 7; i++) {
+      // Changed the loop condition to include current month
+      const startOfMonth = new Date(sixMonthsAgo);
+      startOfMonth.setMonth(sixMonthsAgo.getMonth() + i);
+
+      const endOfMonth = new Date(startOfMonth);
+      endOfMonth.setMonth(startOfMonth.getMonth() + 1);
+
+      let count;
+      if (i === 6) {
+        // Check if it's the current month
+        const startOfCurrentMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
+        );
+        const endOfCurrentMonth = new Date(
+          today.getFullYear(),
+          today.getMonth() + 1,
+          0
+        );
+        count = await appUserSchema.count({
+          createdAt: { $gte: startOfCurrentMonth, $lte: endOfCurrentMonth },
+        });
+      } else {
+        count = await appUserSchema.count({
+          $expr: {
+            $and: [
+              { $eq: [{ $year: "$createdAt" }, { $year: startOfMonth }] },
+              { $eq: [{ $month: "$createdAt" }, { $month: startOfMonth }] },
+            ],
+          },
+        });
+      }
+
+      const monthYear =
+        startOfMonth.toLocaleString("default", { month: "long" }) +
+        " " +
+        startOfMonth.getFullYear();
+      usersLastSixMonths.push({ monthYear, count });
+    }
+
+    const countryCounts = await appUserSchema.aggregate([
+      {
+        $group: {
+          _id: "$country",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    customObj.allappUser = allappUser;
+    customObj.activeappUser = activeappUser;
+    customObj.inactiveappUser = inactiveappUserCount;
+    customObj.artistappUser = artistappUserCount;
+    customObj.fanappUser = fanappUserCount;
+    customObj.verifiedAritsts = verifiedAritstsCount;
+    customObj.emailNotVerified = emailNotVerifiedCount;
+    customObj.activeContests = activeContestsCount;
+    customObj.usersLastTenDays = usersLastTenDays;
+    customObj.usersLastSixMonths = usersLastSixMonths;
+    customObj.usersCountryWiseCount = countryCounts;
+
+    result.data = customObj;
+    result.code = 200;
+  } catch (error) {
+    console.error("Error getting admin counts:", error);
+    result.code = 500;
+  }
+
+  return result;
+};
+
 module.exports = {
   addMediaPost,
   contestParticipateVote,
@@ -853,4 +973,5 @@ module.exports = {
   getAllFavouriteContestParticipants,
   getVotedContestParticipants,
   getUserParticipatedContests,
+  adminDashboardCount,
 };

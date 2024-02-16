@@ -43,6 +43,12 @@ module.exports = (router) => {
     "/update/MediaPostStatus",
     mediaPostController.updateMediaPostStatus
   );
+
+  router.get(
+    "/count/adminDashboardCount",
+    middleware.validateToken,
+    mediaPostController.adminDashboardCount
+  );
   // router.get("/all/MediaPost", mediaPostController.getAllMediaPost);
   // router.get("/MediaPost/:id", mediaPostController.getMediaPost);
   // router.post("/remove/MediaPost/:id", mediaPostController.deleteMediaPost);
