@@ -149,6 +149,7 @@ const addMediaPost = async (req) => {
       ffmpegCommand.run();
     });
   } else {
+    fs.unlink(req.file.path, () => {});
     result.code = 2039;
   }
 
