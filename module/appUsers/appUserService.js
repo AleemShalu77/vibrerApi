@@ -633,7 +633,7 @@ const updateappUser = async (req) => {
 
     const update = {
       email,
-      username: updatedUsername,
+      username: updatedUsername.toLowerCase(),
       artist_categories,
       name: {
         first_name,
@@ -746,7 +746,7 @@ const checkUsername = async (req) => {
 
   try {
     const appUser = await appUsersSchema.findOne({
-      username: username,
+      username: username.toLowerCase(),
       _id: { $ne: payload.id },
     });
 

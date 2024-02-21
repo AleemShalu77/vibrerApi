@@ -28,7 +28,7 @@ module.exports = (router) => {
     middleware.validateToken,
     appUserController.updateappUserSpecificColumn
   );
-  router.put(
+  router.patch(
     "/update/appUser",
     middleware.validateToken,
     appUserController.updateappUser
