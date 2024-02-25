@@ -377,6 +377,30 @@ const validateCheckUsernameReq = Joi.object({
     }),
 });
 
+const validateProfileCoverImageReq = Joi.object({
+  type: Joi.string()
+    .valid("profile_cover", "profile_img")
+    .trim()
+    .required()
+    .messages({
+      "string.empty": `"type" cannot be an empty field`,
+      "string.trim": `"type" must not have leading or trailing whitespace`,
+      "any.only": `"type" must be either 'profile_cover' or 'profile_img'`,
+    }),
+});
+
+const validateRemoveProfileCoverImageReq = Joi.object({
+  type: Joi.string()
+    .valid("profile_cover", "profile_img")
+    .trim()
+    .required()
+    .messages({
+      "string.empty": `"type" cannot be an empty field`,
+      "string.trim": `"type" must not have leading or trailing whitespace`,
+      "any.only": `"type" must be either 'profile_cover' or 'profile_img'`,
+    }),
+});
+
 module.exports = {
   validateAddappUserReq,
   validateRegisterappUserReq,
@@ -387,4 +411,6 @@ module.exports = {
   validateForgotPasswordReq,
   validateResetPasswordReq,
   validateCheckUsernameReq,
+  validateProfileCoverImageReq,
+  validateRemoveProfileCoverImageReq,
 };

@@ -72,6 +72,11 @@ module.exports = (router) => {
     appUserController.deleteGalleryImage
   );
   router.post(
+    "/remove/profile-cover-image",
+    middleware.validateToken,
+    appUserController.removeProfileCoverImage
+  );
+  router.post(
     "/check/username",
     middleware.validateToken,
     appUserController.checkUsername

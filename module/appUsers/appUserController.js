@@ -11,6 +11,8 @@ const {
   validateVerificationCodeReq,
   validateappUserSpecificColumn,
   validateCheckUsernameReq,
+  validateProfileCoverImageReq,
+  validateRemoveProfileCoverImageReq,
 } = require("./appUserValidation");
 
 const artistLogin = async (req, res, next) => {
@@ -235,6 +237,10 @@ const deleteappUser = async (req, res, next) => {
 
 const profileCoverImage = async (req, res, next) => {
   try {
+    let isValid = await validateProfileCoverImageReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
     let result = await appUserService.profileCoverImage(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
@@ -260,6 +266,21 @@ const uploadGalleryImage = async (req, res, next) => {
 const deleteGalleryImage = async (req, res, next) => {
   try {
     let result = await appUserService.deleteGalleryImage(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const removeProfileCoverImage = async (req, res, next) => {
+  try {
+    let isValid = await validateRemoveProfileCoverImageReq.validateAsync(
+      req.body
+    );
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.removeProfileCoverImage(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
@@ -305,4 +326,5 @@ module.exports = {
   uploadGalleryImage,
   deleteGalleryImage,
   checkUsername,
+  removeProfileCoverImage,
 };

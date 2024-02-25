@@ -814,6 +814,7 @@ const deleteappUser = async (req) => {
 
 const profileCoverImage = async (req) => {
   const result = { data: null };
+  const payload = req.decoded;
 
   if (!req.file) {
     result.code = 2029;
@@ -851,10 +852,38 @@ const profileCoverImage = async (req) => {
     return result;
   }
 
-  // Delete temp file
   fs.unlink(tempPath, () => {});
-
   const imagePath = `${PROFILE_COVER_URL}${newFileName}.webp`;
+
+  if (req.body.type) {
+    const user = await appUsersSchema.findById(payload.id);
+    let oldImagePath = "";
+    if (req.body.type === "profile_img") {
+      oldImagePath = user.profile_img;
+    } else if (req.body.type === "profile_cover") {
+      oldImagePath = user.profile_cover;
+    }
+
+    if (oldImagePath && oldImagePath.trim() !== "") {
+      oldImagePath = oldImagePath.split("/").pop();
+      const oldImageFilePath = path.join(
+        __dirname,
+        `../../public/profileCoverImage/${oldImagePath}`
+      );
+      fs.unlinkSync(oldImageFilePath);
+    }
+    let updateFields = {};
+
+    if (req.body.type === "profile_img") {
+      updateFields = { profile_img: imagePath };
+    } else if (req.body.type === "profile_cover") {
+      updateFields = { profile_cover: imagePath };
+    }
+    await appUsersSchema.findByIdAndUpdate(payload.id, updateFields, {
+      new: true,
+    });
+  }
+
   result.data = imagePath;
   result.code = 2030;
 
@@ -1056,6 +1085,39 @@ const deleteGalleryImage = async (req) => {
   return result;
 };
 
+const removeProfileCoverImage = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  const { type } = req.body;
+
+  try {
+    const user = await appUsersSchema.findById(payload.id);
+
+    let fileName = user[type];
+    if (fileName && fileName.trim() !== "") {
+      fileName = fileName.split("/").pop();
+
+      const absoluteFilePath = path.join(
+        __dirname,
+        `../../public/profileCoverImage/${fileName}`
+      );
+
+      await fs.promises.unlink(absoluteFilePath);
+    }
+
+    user[type] = "";
+
+    await user.save();
+
+    result.code = 203;
+  } catch (error) {
+    console.error(`Error deleting ${type} image:`, error);
+    result.code = 500;
+  }
+
+  return result;
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -1074,4 +1136,5 @@ module.exports = {
   uploadGalleryImage,
   deleteGalleryImage,
   checkUsername,
+  removeProfileCoverImage,
 };
