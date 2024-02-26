@@ -381,7 +381,7 @@ const validateProfileCoverImageReq = Joi.object({
   type: Joi.string()
     .valid("profile_cover", "profile_img")
     .trim()
-    .required()
+    .optional()
     .messages({
       "string.empty": `"type" cannot be an empty field`,
       "string.trim": `"type" must not have leading or trailing whitespace`,
