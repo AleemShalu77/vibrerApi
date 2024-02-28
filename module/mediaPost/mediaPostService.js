@@ -74,83 +74,85 @@ const addMediaPost = async (req) => {
       __dirname,
       `../../public/mediaVideo/${outputFileName}`
     );
+    if (fileExtension === ".mp4") {
+      mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
+    } else {
+      try {
+        await new Promise((resolve, reject) => {
+          const ffmpegCommand = ffmpeg()
+            .input(req.file.path)
+            .videoCodec("libx264") // Use H.264 codec for video
+            .audioCodec("aac") // Use AAC codec for audio
+            .outputOptions([
+              "-vf",
+              "scale='min(1280,iw)':min'(720,ih)':force_original_aspect_ratio=decrease",
+              "-crf",
+              "23", // Adjust CRF for quality
+              "-preset",
+              "medium", // Adjust preset for encoding speed vs quality
+            ])
+            .output(outputFilePath)
+            .on("end", async () => {
+              fs.unlink(req.file.path, () => {});
 
-    // Check if the video is already in MP4 format and just needs compression/resolution adjustment
-    const needsConversion = fileExtension !== ".mp4";
+              mediaPost.media = `${MEDIA_VIDEO_URL}${outputFileName}`;
 
-    await new Promise((resolve, reject) => {
-      const ffmpegCommand = ffmpeg()
-        .input(req.file.path)
-        .videoCodec("libx264") // Use H.264 codec for video
-        .audioCodec("aac") // Use AAC codec for audio
-        .outputOptions([
-          "-vf",
-          "scale='min(1280,iw)':min'(720,ih)':force_original_aspect_ratio=decrease",
-          "-crf",
-          "23", // Adjust CRF for quality
-          "-preset",
-          "medium", // Adjust preset for encoding speed vs quality
-        ])
-        .output(outputFilePath)
-        .on("end", async () => {
-          fs.unlink(req.file.path, () => {});
-
-          // Update the mediaPost object with the MP4 file path
-          mediaPost.media = `${MEDIA_VIDEO_URL}${outputFileName}`;
-
-          // Additional logic to update contest, send confirmation email, etc.
-          const updatedContest = await contestSchema.findOneAndUpdate(
-            { _id: contest_id },
-            { $push: { participates: mediaPost } },
-            { new: true }
-          );
-
-          if (updatedContest) {
-            const user = await appUserSchema.findById(payload.id);
-            const contestData = await contestSchema.findById({
-              _id: contest_id,
+              resolve();
+            })
+            .on("error", async (err) => {
+              console.error("Error during video processing:", err);
+              mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
+              reject(err);
             });
-            let newGenres = await Promise.all(
-              genresArray.map(async (genr) => {
-                const genreObject = await genreSchema.findById(genr);
-                return genreObject ? genreObject.name : null;
-              })
-            );
 
-            newGenres = newGenres.filter((genre) => genre !== null).join(", ");
-            const message = await helper.getContestParticipantMailappUser(
-              user,
-              mediaPost,
-              contestData,
-              newGenres
-            );
-            const messageData = await helper.getMessage(
-              message,
-              user.email,
-              process.env.EMAIL_FROM,
-              "Vibrer Participation confirmation"
-            );
-
-            // Assuming you have a function to send the verification email
-            const send = await transporter.sendMail(messageData);
-            result.data = mediaPost;
-            result.code = 201;
-          } else {
-            result.code = 204;
-          }
-
-          resolve();
-        })
-        .on("error", (err) => {
-          console.error("Error during video processing:", err);
-          reject(err);
+          ffmpegCommand.run();
         });
+      } catch (error) {
+        console.error("Error processing video:", error);
+        mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
+      }
+    }
 
-      ffmpegCommand.run();
-    });
+    const updatedContest = await contestSchema.findOneAndUpdate(
+      { _id: contest_id },
+      { $push: { participates: mediaPost } },
+      { new: true }
+    );
+
+    if (updatedContest) {
+      const user = await appUserSchema.findById(payload.id);
+      const contestData = await contestSchema.findById({ _id: contest_id });
+      let newGenres = await Promise.all(
+        genresArray.map(async (genr) => {
+          const genreObject = await genreSchema.findById(genr);
+          return genreObject ? genreObject.name : null;
+        })
+      );
+
+      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+      const message = await helper.getContestParticipantMailappUser(
+        user,
+        mediaPost,
+        contestData,
+        newGenres
+      );
+      const messageData = await helper.getMessage(
+        message,
+        user.email,
+        process.env.EMAIL_FROM,
+        "Vibrer Participation confirmation"
+      );
+
+      // Assuming you have a function to send the verification email
+      const send = await transporter.sendMail(messageData);
+      result.data = mediaPost;
+      result.code = 201;
+    } else {
+      result.code = 204;
+    }
   } else {
     fs.unlink(req.file.path, () => {});
-    result.code = 2039;
+    result.code = 2039; // Invalid file type
   }
 
   return result;
