@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const contestTypeSchema = require("../../model/contest_type");
 const contestSchema = require("../../model/contests");
 const appUserSchema = require("../../model/app_users");
@@ -348,36 +349,77 @@ const getSingleEntry = async (req) => {
     result.code = 2042;
     return result;
   }
-  const contestId = req.params.contestId;
-  const entryId = req.params.entryId;
+  const { contestId, entryId } = req.params;
 
   try {
-    const contest = await contestSchema.findOne({ _id: contestId });
-    if (!contest) {
-      result.code = 2031;
-      return result;
+    const entry = await contestSchema.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(contestId) } },
+      { $unwind: "$participates" },
+      { $match: { "participates._id": new mongoose.Types.ObjectId(entryId) } },
+      {
+        $lookup: {
+          from: "app_users",
+          localField: "participates.user_id",
+          foreignField: "_id",
+          as: "participates.user",
+        },
+      },
+      { $unwind: "$participates.user" },
+      {
+        $project: {
+          contest: {
+            _id: "$_id",
+            title: "$title",
+            description: "$description",
+            conditions: "$conditions",
+            reward: "$reward",
+            banner: "$banner",
+            time_zone: "$time_zone",
+            starts_on: "$starts_on",
+            ends_on: "$ends_on",
+          },
+          _id: "$participates._id",
+          title: "$participates.title",
+          description: "$participates.description",
+          media: "$participates.media",
+          status: "$participates.status",
+          least_quality: "$participates.least_quality",
+          votes: "$participates.votes",
+          genres: "$participates.genres",
+          user: {
+            full_name: "$participates.user.full_name",
+            username: "$participates.user.username",
+            email: "$participates.user.email",
+            profile_img: "$participates.user.profile_img",
+            profile_cover: "$participates.user.profile_cover",
+            verified: "$participates.user.verified",
+            city: "$participates.user.city",
+            country: "$participates.user.country",
+          },
+        },
+      },
+    ]);
+
+    if (!entry || entry.length === 0) {
+      return { code: 2032 };
     }
 
-    const entry = contest.participates.find(
-      (p) => p._id.toString() === entryId
-    );
-    if (!entry) {
-      result.code = 2032;
-      return result;
-    }
-    let genresInfo = await genreSchema.find({
-      _id: { $in: entry.genres },
+    const genresInfo = await genreSchema.find({
+      _id: { $in: entry[0].genres },
     });
+
     if (genresInfo) {
-      entry.genres = genresInfo;
+      entry[0].genres = genresInfo;
     }
+
     result.code = 2040;
-    result.data = entry;
-    return result;
-  } catch {
+    result.data = entry[0];
+  } catch (error) {
+    console.log(error);
     result.code = 500;
-    return result;
   }
+
+  return result;
 };
 
 const deleteContest = async (req) => {
