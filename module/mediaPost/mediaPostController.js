@@ -6,6 +6,7 @@ const {
   validateContestParticipateVoteReq,
   validateaddToFavouriteReq,
   validateupdateMediaPostStatusReq,
+  validateUpdateLeastQuality,
 } = require("./mediaPostValidation");
 
 const addMediaPost = async (req, res, next) => {
@@ -149,6 +150,27 @@ const adminDashboardCount = async (req, res, next) => {
   }
 };
 
+const updateLeastQuality = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateUpdateLeastQuality.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await mediaPostService.updateLeastQuality(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
 module.exports = {
   addMediaPost,
   contestParticipateVote,
@@ -161,4 +183,5 @@ module.exports = {
   getVotedContestParticipants,
   getUserParticipatedContests,
   adminDashboardCount,
+  updateLeastQuality,
 };

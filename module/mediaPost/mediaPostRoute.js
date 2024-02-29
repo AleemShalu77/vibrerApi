@@ -49,6 +49,11 @@ module.exports = (router) => {
     middleware.validateToken,
     mediaPostController.adminDashboardCount
   );
+  router.put(
+    "/update/least-quality",
+    middleware.validateToken,
+    mediaPostController.updateLeastQuality
+  );
   // router.get("/all/MediaPost", mediaPostController.getAllMediaPost);
   // router.get("/MediaPost/:id", mediaPostController.getMediaPost);
   // router.post("/remove/MediaPost/:id", mediaPostController.deleteMediaPost);

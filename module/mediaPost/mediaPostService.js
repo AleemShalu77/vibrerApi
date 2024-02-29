@@ -922,6 +922,57 @@ const adminDashboardCount = async (req) => {
   return result;
 };
 
+const updateLeastQuality = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  const { contest_id, participate_id, value } = req.body;
+
+  // Check if the contest exists
+  const contestExists = await contestSchema.exists({ _id: contest_id });
+  if (!contestExists) {
+    result.code = 2031;
+    return result;
+  }
+
+  const existingMediaPost = await contestSchema.findOne({
+    _id: contest_id,
+    "participates.user_id": participate_id,
+  });
+
+  if (!existingMediaPost) {
+    result.code = 2032;
+    return result;
+  }
+
+  // Update the status of the specific participant
+  const updatedContest = await contestSchema.findOneAndUpdate(
+    {
+      _id: contest_id,
+      "participates.user_id": participate_id,
+    },
+    {
+      $set: {
+        "participates.$.least_quality": value,
+      },
+    },
+    { new: true }
+  );
+
+  if (updatedContest) {
+    const updatedParticipant = updatedContest.participates.find(
+      (participant) =>
+        participant.user_id.toString() === participate_id.toString()
+    );
+
+    result.data = updatedParticipant;
+    result.code = 202;
+  } else {
+    result.code = 204;
+  }
+
+  return result;
+};
+
 module.exports = {
   addMediaPost,
   contestParticipateVote,
@@ -934,4 +985,5 @@ module.exports = {
   getVotedContestParticipants,
   getUserParticipatedContests,
   adminDashboardCount,
+  updateLeastQuality,
 };

@@ -76,6 +76,7 @@ const contestSchema = new mongoose.Schema(
           ref: "app_users",
           required: true,
         },
+        least_quality: { type: Boolean, default: false, required: false },
         title: {
           type: String,
           required: true,

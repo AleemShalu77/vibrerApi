@@ -282,6 +282,7 @@ const getContest = async (req) => {
           media: participant.media,
           genres: participant.genres,
           status: participant.status,
+          least_quality: participant.least_quality,
           votes: participant.votes,
           user: {
             _id: participant.user_id._id,

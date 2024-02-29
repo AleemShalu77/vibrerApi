@@ -94,6 +94,21 @@ const validateupdateMediaPostStatusReq = Joi.object({
     }),
 });
 
+const validateUpdateLeastQuality = Joi.object({
+  contest_id: Joi.string().trim().required().messages({
+    "string.empty": `"contest_id" cannot be an empty field`,
+    "string.trim": `"contest_id" must not have leading or trailing whitespace`,
+  }),
+  participate_id: Joi.string().trim().required().messages({
+    "string.empty": `"participate_id" cannot be an empty field`,
+    "string.trim": `"participate_id" must not have leading or trailing whitespace`,
+  }),
+  value: Joi.boolean().required().messages({
+    "any.required": `"value" is required`,
+    "boolean.base": `"value" must be a boolean`,
+  }),
+});
+
 // const validateupdateMediaPostReq = Joi.object({
 //     id: Joi.string().required()
 //         .messages({
@@ -146,4 +161,5 @@ module.exports = {
   validateContestParticipateVoteReq,
   validateaddToFavouriteReq,
   validateupdateMediaPostStatusReq,
+  validateUpdateLeastQuality,
 };
