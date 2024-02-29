@@ -25,4 +25,14 @@ module.exports = (router) => {
     middleware.validateToken,
     contestController.deleteContest
   );
+
+  router.get(
+    "/contest-single-entry/:contestId/:entryId",
+    contestController.getSingleEntry
+  );
+  router.get(
+    "/contest-single-entry/:contestId",
+    contestController.getSingleEntry
+  );
+  router.get("/contest-single-entry", contestController.getSingleEntry);
 };

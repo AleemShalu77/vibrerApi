@@ -132,7 +132,7 @@ const message = {
     status: 0,
   },
   2032: {
-    message: "Participant not found",
+    message: "Entry not found",
     httpCode: 400,
     status: 0,
   },
@@ -142,7 +142,7 @@ const message = {
     status: 1,
   },
   2034: {
-    message: "Participant removed from favourites successfully",
+    message: "Entry removed from favourites successfully",
     httpCode: 200,
     status: 1,
   },
@@ -152,7 +152,7 @@ const message = {
     status: 1,
   },
   2036: {
-    message: "Vote is removed successfully",
+    message: "Vote removed successfully",
     httpCode: 200,
     status: 1,
   },
@@ -169,6 +169,21 @@ const message = {
   2039: {
     message: "This video format is not supported",
     httpCode: 200,
+    status: 0,
+  },
+  2040: {
+    message: "Entry data retrieved successfully",
+    httpCode: 200,
+    status: 1,
+  },
+  2041: {
+    message: "Missing or invalid contest ID ",
+    httpCode: 400,
+    status: 0,
+  },
+  2042: {
+    message: "Missing or invalid entry ID",
+    httpCode: 400,
     status: 0,
   },
 };

@@ -1,6 +1,7 @@
 const contestTypeSchema = require("../../model/contest_type");
 const contestSchema = require("../../model/contests");
 const appUserSchema = require("../../model/app_users");
+const genreSchema = require("../../model/genre");
 const { format } = require("date-fns");
 const addContest = async (req) => {
   const result = { data: null };
@@ -336,6 +337,49 @@ const getContest = async (req) => {
   return result;
 };
 
+const getSingleEntry = async (req) => {
+  const result = { data: null };
+
+  if (!req.params.contestId) {
+    result.code = 2041;
+    return result;
+  }
+  if (!req.params.entryId) {
+    result.code = 2042;
+    return result;
+  }
+  const contestId = req.params.contestId;
+  const entryId = req.params.entryId;
+
+  try {
+    const contest = await contestSchema.findOne({ _id: contestId });
+    if (!contest) {
+      result.code = 2031;
+      return result;
+    }
+
+    const entry = contest.participates.find(
+      (p) => p._id.toString() === entryId
+    );
+    if (!entry) {
+      result.code = 2032;
+      return result;
+    }
+    let genresInfo = await genreSchema.find({
+      _id: { $in: entry.genres },
+    });
+    if (genresInfo) {
+      entry.genres = genresInfo;
+    }
+    result.code = 2040;
+    result.data = entry;
+    return result;
+  } catch {
+    result.code = 500;
+    return result;
+  }
+};
+
 const deleteContest = async (req) => {
   const result = { data: null };
   const id = req.params.id;
@@ -354,5 +398,6 @@ module.exports = {
   updateContest,
   getAllContest,
   getContest,
+  getSingleEntry,
   deleteContest,
 };
