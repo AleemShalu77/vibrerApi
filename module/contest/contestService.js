@@ -387,6 +387,7 @@ const getSingleEntry = async (req) => {
           votes: "$participates.votes",
           genres: "$participates.genres",
           user: {
+            _id: "$participates.user._id",
             full_name: "$participates.user.full_name",
             username: "$participates.user.username",
             email: "$participates.user.email",
