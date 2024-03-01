@@ -17,6 +17,7 @@ const verificationRoute = require("../module/verification/verificationRoute");
 const virtualGiftRoute = require("../module/virtualGifts/virtualGiftsRoute");
 const projectRoute = require("../module/project/projectRoute");
 const notifyRoute = require("../module/notify/notifyRoute");
+const reportRoute = require("../module/report/reportRoute");
 // const walletRoute = require("../module/wallet/walletRoute");
 
 module.exports = (router) => {
@@ -39,6 +40,7 @@ module.exports = (router) => {
   virtualGiftRoute(router);
   projectRoute(router);
   notifyRoute(router);
+  reportRoute(router);
   // walletRoute(router);
 
   return router;
