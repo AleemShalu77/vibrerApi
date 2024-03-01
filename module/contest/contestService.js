@@ -249,7 +249,7 @@ const getContest = async (req) => {
       let isParticipated = false;
 
       // Flatten participant details
-      const participants = contest.participates.map((participant) => {
+      let participants = contest.participates.map((participant) => {
         let isVoted = false;
         let isFavourite = false;
 
@@ -302,6 +302,10 @@ const getContest = async (req) => {
           is_favourite: isFavourite,
         };
       });
+
+      participants = participants.filter(
+        (participant) => participant.status === "Active"
+      );
 
       // Sort participants by votes in descending order
       participants.sort((a, b) => b.votes.length - a.votes.length);
