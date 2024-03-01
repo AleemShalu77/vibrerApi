@@ -280,6 +280,7 @@ const getContest = async (req) => {
 
         return {
           title: participant.title,
+          _id: participant._id,
           description: participant.description,
           media: participant.media,
           genres: participant.genres,
