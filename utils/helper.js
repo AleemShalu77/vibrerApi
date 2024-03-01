@@ -246,7 +246,7 @@ getContestApprovalMailappUser = (user, mediaPost, contestData, genres) => {
   emailTemplate = emailTemplate.replace("[status]", `${mediaPost.status}`);
   emailTemplate = emailTemplate.replace(
     "[Entry Link]",
-    `${process.env.FRONTEND_URL}app/pre-participate/${contestData._id}`
+    `${process.env.FRONTEND_URL}app/contest-entry/${contestData._id}/${mediaPost._id}`
   );
 
   return emailTemplate;
