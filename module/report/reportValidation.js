@@ -24,7 +24,7 @@ const validateSubmitReportReq = Joi.object({
   company: Joi.string().trim().allow("").messages({
     "string.trim": `"company" must not have leading or trailing whitespace`,
   }),
-  contact_email: Joi.string().trim().email().required().messages({
+  contact_email: Joi.string().trim().email().allow("").messages({
     "string.email": `"contact_email" must be a valid email address`,
     "string.trim": `"contact_email" must not have leading or trailing whitespace`,
   }),
