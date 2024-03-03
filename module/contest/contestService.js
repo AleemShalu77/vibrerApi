@@ -303,10 +303,6 @@ const getContest = async (req) => {
         };
       });
 
-      participants = participants.filter(
-        (participant) => participant.status === "Active"
-      );
-
       // Sort participants by votes in descending order
       participants.sort((a, b) => b.votes.length - a.votes.length);
 
