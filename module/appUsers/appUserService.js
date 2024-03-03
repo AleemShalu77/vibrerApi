@@ -2,6 +2,7 @@ const appUsersSchema = require("../../model/app_users");
 const adminUsersSchema = require("../../model/admin_users");
 const artistCategoriesSchema = require("../../model/artist_categories");
 const genreSchema = require("../../model/genre");
+const contestSchema = require("../../model/contests");
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcryptjs = require("bcryptjs");
@@ -805,12 +806,11 @@ const deleteappUser = async (req) => {
   const { user_id, user_type } = req.body;
 
   try {
-    // Check if the account is already deleted
     const user = await appUsersSchema.findById(user_id);
-    if (user && user.account_deleted && user.account_deleted.is_deleted) {
-      result.code = 2044;
-      return result;
-    }
+    // if (user && user.account_deleted && user.account_deleted.is_deleted) {
+    //   result.code = 2044;
+    //   return result;
+    // }
 
     let accountDeleted = null;
     if (user_type === "admin") {
@@ -886,6 +886,23 @@ const deleteappUser = async (req) => {
     );
 
     if (updatedUser) {
+      await contestSchema.updateMany(
+        { "participates.user_id": user_id },
+        {
+          $pull: {
+            participates: { user_id: user_id },
+          },
+        }
+      );
+
+      await contestSchema.updateMany(
+        { "participates.votes.user_id": user_id },
+        {
+          $pull: {
+            "participates.$[].votes": { user_id: user_id },
+          },
+        }
+      );
       result.data = updatedUser;
       result.code = 203;
     } else {
