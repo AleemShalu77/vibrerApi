@@ -807,10 +807,10 @@ const deleteappUser = async (req) => {
 
   try {
     const user = await appUsersSchema.findById(user_id);
-    // if (user && user.account_deleted && user.account_deleted.is_deleted) {
-    //   result.code = 2044;
-    //   return result;
-    // }
+    if (user && user.account_deleted && user.account_deleted.is_deleted) {
+      result.code = 2044;
+      return result;
+    }
 
     let accountDeleted = null;
     if (user_type === "admin") {
@@ -844,7 +844,6 @@ const deleteappUser = async (req) => {
       { _id: user_id },
       {
         $unset: {
-          user_type: "",
           email: "",
           password: "",
           username: "",
@@ -878,6 +877,7 @@ const deleteappUser = async (req) => {
         new: true,
         select: {
           _id: 1,
+          user_type: 1,
           full_name: 1,
           createdAt: 1,
           updatedAt: 1,
