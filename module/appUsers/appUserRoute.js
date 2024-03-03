@@ -49,7 +49,7 @@ module.exports = (router) => {
     appUserController.getappUserProfile
   );
   router.post(
-    "/remove/appUser/:id",
+    "/remove/appUser",
     middleware.validateToken,
     appUserController.deleteappUser
   );

@@ -13,6 +13,7 @@ const {
   validateCheckUsernameReq,
   validateProfileCoverImageReq,
   validateRemoveProfileCoverImageReq,
+  validatedeleteappUser,
 } = require("./appUserValidation");
 
 const artistLogin = async (req, res, next) => {
@@ -228,6 +229,15 @@ const getappUserProfile = async (req, res, next) => {
 
 const deleteappUser = async (req, res, next) => {
   try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validatedeleteappUser.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
     let result = await appUserService.deleteappUser(req);
     helper.send(res, result.code, result.data);
   } catch (error) {

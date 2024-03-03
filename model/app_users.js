@@ -158,6 +158,33 @@ const appUsersSchema = new mongoose.Schema(
         ],
       },
     ],
+    account_deleted: {
+      type: {
+        is_deleted: {
+          type: Boolean,
+          default: false,
+        },
+        deleted_by: {
+          user_type: {
+            type: String,
+            enum: ["admin", "self"],
+          },
+          admin_email: {
+            type: String,
+            required: false,
+          },
+          admin_name: {
+            type: String,
+            required: false,
+          },
+        },
+        deletedAt: {
+          type: Date,
+          default: null,
+        },
+      },
+      required: false,
+    },
 
     // blocked_user:[{
     // 	type: mongoose.Schema.Types.ObjectId,

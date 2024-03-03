@@ -186,6 +186,16 @@ const message = {
     httpCode: 400,
     status: 0,
   },
+  2043: {
+    message: "Admin details not found",
+    httpCode: 400,
+    status: 0,
+  },
+  2044: {
+    message: "Account already deleted",
+    httpCode: 200,
+    status: 0,
+  },
 };
 
 module.exports = message;

@@ -401,6 +401,11 @@ const validateRemoveProfileCoverImageReq = Joi.object({
     }),
 });
 
+const validatedeleteappUser = Joi.object({
+  user_id: Joi.string().required(),
+  user_type: Joi.string().valid("admin", "self").required(),
+});
+
 module.exports = {
   validateAddappUserReq,
   validateRegisterappUserReq,
@@ -413,4 +418,5 @@ module.exports = {
   validateCheckUsernameReq,
   validateProfileCoverImageReq,
   validateRemoveProfileCoverImageReq,
+  validatedeleteappUser,
 };

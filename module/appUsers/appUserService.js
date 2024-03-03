@@ -1,4 +1,5 @@
 const appUsersSchema = require("../../model/app_users");
+const adminUsersSchema = require("../../model/admin_users");
 const artistCategoriesSchema = require("../../model/artist_categories");
 const genreSchema = require("../../model/genre");
 const passport = require("passport");
@@ -801,14 +802,100 @@ const getappUserProfile = async (req) => {
 
 const deleteappUser = async (req) => {
   const result = { data: null };
-  const id = req.params.id;
-  const appUser = await appUsersSchema.findByIdAndRemove(id);
-  if (appUser) {
-    result.data = appUser;
-    result.code = 203;
-  } else {
-    result.code = 204;
+  const { user_id, user_type } = req.body;
+
+  try {
+    // Check if the account is already deleted
+    const user = await appUsersSchema.findById(user_id);
+    if (user && user.account_deleted && user.account_deleted.is_deleted) {
+      result.code = 2044;
+      return result;
+    }
+
+    let accountDeleted = null;
+    if (user_type === "admin") {
+      const adminData = await adminUsersSchema.findById(req.decoded.id);
+      if (!adminData) {
+        result.code = 2043;
+        return result;
+      }
+      const admin_email = adminData.email;
+      const admin_name = `${adminData.name.first_name} ${adminData.name.last_name}`;
+      accountDeleted = {
+        is_deleted: true,
+        deleted_by: {
+          user_type: "admin",
+          admin_email: admin_email,
+          admin_name: admin_name,
+        },
+        deletedAt: new Date(),
+      };
+    } else {
+      accountDeleted = {
+        is_deleted: true,
+        deleted_by: {
+          user_type: "self",
+        },
+        deletedAt: new Date(),
+      };
+    }
+
+    const updatedUser = await appUsersSchema.findOneAndUpdate(
+      { _id: user_id },
+      {
+        $unset: {
+          user_type: "",
+          email: "",
+          password: "",
+          username: "",
+          artist_categories: "",
+          name: "",
+          gender: "",
+          date_of_birth: "",
+          city: "",
+          country: "",
+          concert_artist: "",
+          visibility: "",
+          bio: "",
+          profile_img: "",
+          profile_cover: "",
+          verified: "",
+          verification: "",
+          verification_token: "",
+          forgotPasswordToken: "",
+          genres: "",
+          gallery: "",
+          link: "",
+          favourites: "",
+          status: "",
+        },
+        $set: {
+          account_deleted: accountDeleted,
+          full_name: "user_deleted",
+        },
+      },
+      {
+        new: true,
+        select: {
+          _id: 1,
+          full_name: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      }
+    );
+
+    if (updatedUser) {
+      result.data = updatedUser;
+      result.code = 203;
+    } else {
+      result.code = 204;
+    }
+  } catch (error) {
+    console.error("Error while deleting appUser:", error);
+    result.code = 500;
   }
+
   return result;
 };
 
