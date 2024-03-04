@@ -6,10 +6,13 @@ const video_dir = path.join(__dirname, "../public/mediaVideo"); // Add a directo
 
 const allowed_video_formats = [
   ".mp4",
+  ".MP4",
   ".avi",
   ".mov",
+  ".MOV",
   ".mkv",
   ".webm",
+  ".WEBM",
   ".m4v",
   ".flv",
 ]; // Add more video formats as needed
