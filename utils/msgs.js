@@ -196,6 +196,21 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  2045: {
+    message: "You can not vote, Account already deleted",
+    httpCode: 200,
+    status: 0,
+  },
+  2046: {
+    message: "email_verify_for_vote",
+    httpCode: 200,
+    status: 0,
+  },
+  2047: {
+    message: "You can not vote, Profile is not completed",
+    httpCode: 200,
+    status: 0,
+  },
 };
 
 module.exports = message;

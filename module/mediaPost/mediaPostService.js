@@ -250,6 +250,20 @@ const contestParticipateVote = async (req) => {
       return result;
     }
 
+    const appUser = await appUserSchema.findById(payload.id);
+    if (appUser.account_deleted && appUser.account_deleted.is_deleted) {
+      result.code = 2045;
+      return result;
+    }
+    if (appUser.verification === false) {
+      result.code = 2046;
+      return result;
+    }
+    if (appUser.full_name === "") {
+      result.code = 2047;
+      return result;
+    }
+
     // Find the participant that the user has previously voted for
     const previousVoteParticipant = contestData.participates.find(
       (participant) =>
@@ -306,6 +320,7 @@ const contestParticipateVote = async (req) => {
 
     result.data = contestData;
   } catch (error) {
+    console.log(error);
     result.code = 500; // Internal Server Error
     result.message = "Error processing the request";
   }
