@@ -214,12 +214,16 @@ passport.use(
 
         const hashedPassword = await bcryptjs.hashSync(password, 10);
         const verification_token = generateRandomToken(50);
+        const updatedUsername =
+          await new UniqueUsernameGenerator().generateUsernameByFullName(
+            req.body.full_name
+          );
 
         const newUser = await appUsersSchema.create({
           user_type: req.body.user_type,
           email,
           password: hashedPassword,
-          username: req.body.username,
+          username: updatedUsername,
           artist_categories: req.body.artist_categories,
           full_name: req.body.full_name,
           gender: req.body.gender,
@@ -242,7 +246,7 @@ passport.use(
             youtube: req.body.youtube,
             website: req.body.website,
           },
-          status: req.body.status,
+          status: "Active",
         });
         if (newUser) {
           return done(null, newUser);

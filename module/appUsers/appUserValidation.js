@@ -17,14 +17,14 @@ const validateAddappUserReq = Joi.object({
     "string.empty": `"password" cannot be an empty field`,
     "string.min": `"password" should have a minimum length of {#limit}`,
   }),
-  username: Joi.string().trim().required().messages({
+  username: Joi.string().trim().optional().messages({
     "string.empty": `"username" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
   artist_categories: Joi.array()
     .items(Joi.string().trim()) // Allow any object in the array
     .min(1)
-    .required()
+    .optional()
     .messages({
       "string.base": `{{#label}} should be a type of string`,
       "string.empty": `{{#label}} cannot be an empty field`,
@@ -74,7 +74,7 @@ const validateAddappUserReq = Joi.object({
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
     "any.only": "Invalid gender value",
   }),
-  visibility: Joi.string().required().valid("Private", "Public").messages({
+  visibility: Joi.string().optional().valid("Private", "Public").messages({
     "string.empty": `"visibility" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
     "any.only": "Invalid visibility value",
@@ -94,8 +94,8 @@ const validateAddappUserReq = Joi.object({
     "string.empty": `"country" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  concert_artist: Joi.boolean().required(),
-  bio: Joi.string().trim().required().messages({
+  concert_artist: Joi.boolean().optional(),
+  bio: Joi.string().trim().optional().messages({
     "string.empty": `"bio" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
@@ -105,7 +105,7 @@ const validateAddappUserReq = Joi.object({
   genres: Joi.array()
     .items(Joi.string().trim()) // Allow any object in the array
     .min(1)
-    .required()
+    .optional()
     .messages({
       "string.base": `{{#label}} should be a type of string`,
       "string.empty": `{{#label}} cannot be an empty field`,
@@ -114,11 +114,11 @@ const validateAddappUserReq = Joi.object({
       "array.min": `{{#label}} should contain at least 1 item`,
       "object.base": `{{#label}} should be of type object`,
     }),
-  facebook: Joi.string().regex(RegExp(urlRegex)).required().messages({
+  facebook: Joi.string().regex(RegExp(urlRegex)).optional().messages({
     "string.pattern.base": `"facebook" should be a type of 'URL'`,
     "string.empty": `"facebook" cannot be an empty field`,
   }),
-  twitter: Joi.string().regex(RegExp(urlRegex)).required().messages({
+  twitter: Joi.string().regex(RegExp(urlRegex)).optional().messages({
     "string.pattern.base": `"twitter" should be a type of 'URL'`,
     "string.empty": `"twitter" cannot be an empty field`,
   }),
@@ -128,19 +128,19 @@ const validateAddappUserReq = Joi.object({
   //         'string.pattern.base': `"sportify" should be a type of 'URL'`,
   //         'string.empty': `"sportify" cannot be an empty field`,
   //     }),
-  instagram: Joi.string().regex(RegExp(urlRegex)).required().messages({
+  instagram: Joi.string().regex(RegExp(urlRegex)).optional().messages({
     "string.pattern.base": `"instagram" should be a type of 'URL'`,
     "string.empty": `"instagram" cannot be an empty field`,
   }),
-  youtube: Joi.string().regex(RegExp(urlRegex)).required().messages({
+  youtube: Joi.string().regex(RegExp(urlRegex)).optional().messages({
     "string.pattern.base": `"youtube" should be a type of 'URL'`,
     "string.empty": `"youtube" cannot be an empty field`,
   }),
-  website: Joi.string().regex(RegExp(urlRegex)).required().messages({
+  website: Joi.string().regex(RegExp(urlRegex)).optional().messages({
     "string.pattern.base": `"website" should be a type of 'URL'`,
     "string.empty": `"website" cannot be an empty field`,
   }),
-  status: Joi.string().required().valid("Deactive", "Active").messages({
+  status: Joi.string().optional().valid("Deactive", "Active").messages({
     "string.empty": `"status" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
