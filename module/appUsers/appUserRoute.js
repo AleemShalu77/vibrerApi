@@ -22,7 +22,7 @@ module.exports = (router) => {
     middleware.validateToken,
     appUserController.addappUser
   );
-  router.post("/register/appUser", appUserController.addNewAppUser);
+  router.post("/register/admin/appUser", appUserController.addNewAppUser);
 
   router.post("/registerUser", appUserController.registerappUser);
   router.post(
