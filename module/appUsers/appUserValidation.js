@@ -95,7 +95,7 @@ const validateAddappUserReq = Joi.object({
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
   concert_artist: Joi.boolean().optional(),
-  bio: Joi.string().trim().optional().messages({
+  bio: Joi.string().trim().optional().allow("").messages({
     "string.empty": `"bio" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),

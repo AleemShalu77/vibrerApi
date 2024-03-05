@@ -91,6 +91,7 @@ const appUsersSchema = new mongoose.Schema(
       type: String,
       enum: ["Private", "Public"],
       required: false,
+      default: "Public",
     },
     // chat:{
     //     type:String,
