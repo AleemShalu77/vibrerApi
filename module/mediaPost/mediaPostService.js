@@ -315,13 +315,49 @@ const contestParticipateVote = async (req) => {
       // Save the updated contest data
       await contestData.save();
 
+      const user = await appUserSchema.findById(currentParticipant.user_id);
+      const contestDetailsData = await contestSchema.findById({
+        _id: contest_id,
+      });
+
+      const genresArray = [
+        ...new Set(
+          currentParticipant.genres.flatMap((genreObject) => {
+            const genreString = genreObject.toHexString();
+            return genreString.split(",").map((genre) => genre.trim());
+          })
+        ),
+      ];
+      let newGenres = await Promise.all(
+        genresArray.map(async (genr) => {
+          const genreObject = await genreSchema.findById(genr);
+          return genreObject ? genreObject.name : null;
+        })
+      );
+
+      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+      const message = await helper.getContestVoteMailappUser(
+        user,
+        currentParticipant,
+        contestDetailsData,
+        newGenres
+      );
+      const messageData = await helper.getMessage(
+        message,
+        user.email,
+        process.env.EMAIL_FROM,
+        "You have got 1 new vote"
+      );
+
+      const send = await transporter.sendMail(messageData);
+
       result.code = 2035; // Vote added successfully
     }
 
     result.data = contestData;
   } catch (error) {
     console.log(error);
-    result.code = 500; // Internal Server Error
+    result.code = 500;
     result.message = "Error processing the request";
   }
 

@@ -510,6 +510,7 @@ const updateappUserSpecificColumn = async (req) => {
 
   return result;
 };
+
 const addappUser = async (req) => {
   return new Promise((resolve, reject) => {
     const result = { data: null };
@@ -767,6 +768,7 @@ const checkUsername = async (req) => {
 
   return result;
 };
+
 const getappUserProfile = async (req) => {
   const result = { data: null };
   const payload = req.decoded;

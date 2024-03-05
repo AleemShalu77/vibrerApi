@@ -252,6 +252,31 @@ getContestApprovalMailappUser = (user, mediaPost, contestData, genres) => {
   return emailTemplate;
 };
 
+getContestVoteMailappUser = (user, mediaPost, contestData, genres) => {
+  const emailTemplatePath = path.join(
+    __dirname,
+    "..",
+    "emails",
+    "contest1VoteReceived.html"
+  );
+  let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
+  emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
+  emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
+  emailTemplate = emailTemplate.replace(
+    "[Description]",
+    `${mediaPost.description}`
+  );
+  emailTemplate = emailTemplate.replace("[Link]", `${mediaPost.media}`);
+  emailTemplate = emailTemplate.replace("[status]", `${mediaPost.status}`);
+  emailTemplate = emailTemplate.replace(
+    "[Entry Link]",
+    `${process.env.FRONTEND_URL}app/contest-entry/${contestData._id}/${mediaPost._id}`
+  );
+
+  return emailTemplate;
+};
+
 getMessage = (body, to, from, subject) => {
   return {
     to: to,
@@ -276,4 +301,5 @@ module.exports = {
   getForgotPasswordappUser,
   getContestParticipantMailappUser,
   getContestApprovalMailappUser,
+  getContestVoteMailappUser,
 };
