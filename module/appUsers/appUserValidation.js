@@ -99,8 +99,8 @@ const validateAddappUserReq = Joi.object({
     "string.empty": `"bio" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
-  profile_img: Joi.string().required(),
-  profile_cover: Joi.string().required(),
+  profile_img: Joi.string().optional().allow(""),
+  profile_cover: Joi.string().optional().allow(""),
   verified: Joi.boolean().optional(),
   genres: Joi.array()
     .items(Joi.string().trim()) // Allow any object in the array
