@@ -231,7 +231,7 @@ passport.use(
           city: req.body.city,
           country: req.body.country,
           concert_artist: req.body.concert_artist,
-          visibility: req.body.visibility,
+          visibility: "Public",
           bio: req.body.bio,
           profile_img: req.body.profile_img,
           profile_cover: req.body.profile_cover,
