@@ -158,6 +158,27 @@ const addappUser = async (req, res, next) => {
   }
 };
 
+const addNewAppUser = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateAddappUserReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.addNewAppUser(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
 const registerappUser = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -337,4 +358,5 @@ module.exports = {
   deleteGalleryImage,
   checkUsername,
   removeProfileCoverImage,
+  addNewAppUser,
 };

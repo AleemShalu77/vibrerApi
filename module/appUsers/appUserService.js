@@ -197,6 +197,66 @@ passport.use(
 );
 
 passport.use(
+  "local-signup-register-user",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
+    },
+    async (req, email, password, done) => {
+      try {
+        const existingUser = await appUsersSchema.findOne({ email });
+
+        if (existingUser) {
+          return done(null, false, { message: "Email is already taken." });
+        }
+
+        const hashedPassword = await bcryptjs.hashSync(password, 10);
+        const verification_token = generateRandomToken(50);
+
+        const newUser = await appUsersSchema.create({
+          user_type: req.body.user_type,
+          email,
+          password: hashedPassword,
+          username: req.body.username,
+          artist_categories: req.body.artist_categories,
+          full_name: req.body.full_name,
+          gender: req.body.gender,
+          date_of_birth: req.body.date_of_birth,
+          city: req.body.city,
+          country: req.body.country,
+          concert_artist: req.body.concert_artist,
+          visibility: req.body.visibility,
+          bio: req.body.bio,
+          profile_img: req.body.profile_img,
+          profile_cover: req.body.profile_cover,
+          verified: req.body.verified,
+          verification: true,
+          verification_token: verification_token,
+          genres: req.body.genres,
+          link: {
+            facebook: req.body.facebook,
+            twitter: req.body.twitter,
+            instagram: req.body.instagram,
+            youtube: req.body.youtube,
+            website: req.body.website,
+          },
+          status: req.body.status,
+        });
+        if (newUser) {
+          return done(null, newUser);
+        } else {
+          return done(null, false, { message: "User registration failed." });
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
   "local-registerappUser",
   new LocalStrategy(
     {
@@ -528,6 +588,29 @@ const addappUser = async (req) => {
         resolve(result);
       }
     })(req);
+  });
+};
+
+const addNewAppUser = async (req) => {
+  return new Promise((resolve, reject) => {
+    const result = { data: null };
+    passport.authenticate(
+      "local-signup-register-user",
+      async (err, user, info) => {
+        if (err) {
+          throw err;
+        }
+        if (!user) {
+          result.code = 205; // Email is already taken
+          resolve(result);
+        } else {
+          // Registration successful
+          result.data = user;
+          result.code = 201;
+          resolve(result);
+        }
+      }
+    )(req);
   });
 };
 
@@ -1243,4 +1326,5 @@ module.exports = {
   deleteGalleryImage,
   checkUsername,
   removeProfileCoverImage,
+  addNewAppUser,
 };
