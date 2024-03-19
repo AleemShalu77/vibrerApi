@@ -224,7 +224,8 @@ const updateappUser = async (req, res, next) => {
 const getAllappUser = async (req, res, next) => {
   try {
     let result = await appUserService.getAllappUser(req);
-    helper.send(res, result.code, result.data);
+    // helper.send(res, result.code, result.data);
+    return res.status(result.code).send(result.data);
   } catch (error) {
     next(error);
   }

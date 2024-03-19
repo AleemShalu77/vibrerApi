@@ -21,6 +21,8 @@ const {
   getMessage,
   getForgotPassword,
   generateRandomToken,
+  uploadFileToR2,
+  getFileFromR2,
 } = require("../../utils/helper");
 const sendGridMail = require("@sendgrid/mail");
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -32,51 +34,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD, // generated ethereal password
   },
 });
-
-// R2 Starts
-
-// Cloudflare R2 credentials
-const accessKeyId = "386b04b4d5afce845c78f20643b717ec";
-const secretAccessKey =
-  "c198ec502aec658099e4c19f18b9f7d889b718525c61121f156f602d716ae791";
-const endpoint =
-  "https://c53c5a5e9a01f9d11e27a9f74c803061.eu.r2.cloudflarestorage.com";
-// const endpoint_dev = "https://pub-80a12f42f2b044358ba1d4396cf13bfb.r2.dev";
-const bucketName = "vibrer-app-media"; // Replace with your actual bucket name
-
-// Configure the AWS SDK to use your Cloudflare R2 credentials and endpoint
-const s3 = new AWS.S3({
-  endpoint: endpoint,
-  accessKeyId: accessKeyId,
-  secretAccessKey: secretAccessKey,
-  signatureVersion: "v4",
-  region: "auto", // Cloudflare R2 does not require a specific region
-  s3ForcePathStyle: true, // This forces the request to use path-style addressing
-});
-
-// Example function to upload a file to Cloudflare R2
-function uploadFileToR2(fileBuffer, fileName, mimeType) {
-  const params = {
-    Bucket: bucketName,
-    Key: fileName,
-    Body: fileBuffer,
-    ContentType: mimeType,
-  };
-
-  return s3.upload(params).promise();
-}
-
-// Example function to download a file from Cloudflare R2
-function getFileFromR2(fileName) {
-  const params = {
-    Bucket: bucketName,
-    Key: fileName,
-  };
-
-  return s3.getObject(params).promise();
-}
-
-// R2 Ends
 
 const generateUniqueFileName = () => {
   const timestamp = Date.now();
@@ -752,6 +709,9 @@ const updateappUser = async (req) => {
     const updatedUser = await appUsersSchema.updateOne(filter, update);
 
     if (updatedUser) {
+      // if(req.)
+      // const uploadProfileImage = uploadProfileCoverImage();
+      // const uploadProfileImage = uploadProfileCoverImage();
       result.data = updatedUser;
       result.code = 202;
     } else {
@@ -767,32 +727,67 @@ const updateappUser = async (req) => {
 
 const getAllappUser = async (req) => {
   const result = { data: null };
-  const appUser = await appUsersSchema.find();
-  if (appUser) {
-    let allappUser = appUser.map((appUserData, key) => {
-      return new Promise(async (resolve, reject) => {
-        let artistCategoriesInfo = await artistCategoriesSchema.find({
-          _id: { $in: appUserData.artist_categories },
-        });
-        if (artistCategoriesInfo) {
-          appUser[key].artist_categories = artistCategoriesInfo;
-        }
-        let genresInfo = await genreSchema.find({
-          _id: { $in: appUserData.genres },
-        });
-        if (genresInfo) {
-          appUser[key].genres = genresInfo;
-        }
-        return resolve();
-      });
-    });
-    await Promise.all(allappUser);
+  let { page, limit, search, draw } = req.query;
 
-    result.data = appUser;
-    result.code = 200;
-  } else {
-    result.code = 204;
+  // Set default values if page or limit is not provided
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+
+  // Construct your query based on search parameters
+  const query = {
+    $and: [
+      {
+        $or: [
+          { "account_deleted.is_deleted": { $ne: true } },
+          { account_deleted: { $exists: false } },
+        ],
+      },
+    ],
+  };
+
+  if (search) {
+    const searchRegex = new RegExp(search, "i"); // Case-insensitive search regex
+    query.$and.push({
+      $or: [
+        { full_name: searchRegex },
+        { email: searchRegex },
+        { user_type: searchRegex },
+        { country: searchRegex },
+        // Add more fields for search as needed
+      ],
+    });
   }
+
+  const totalDocuments = await appUsersSchema.countDocuments(query);
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  // Ensure page is within valid range
+  page = Math.min(page, totalPages);
+  page = Math.max(page, 1); // Ensure page is at least 1
+
+  // Fetch appUsers based on query, skipping appropriate number of documents based on pagination
+  const skipValue = (page - 1) * limit; // Calculate skip value
+  const appUser = await appUsersSchema
+    .find(query)
+    .sort({ createdAt: -1 })
+    .skip(skipValue >= 0 ? skipValue : 0) // Ensure skip value is non-negative
+    .limit(limit);
+
+  if (appUser) {
+    // Prepare the response data
+    result.code = 200;
+    result.data = {
+      draw,
+      data: appUser,
+      page,
+      limit,
+      recordsFiltered: totalDocuments,
+      recordsTotal: totalDocuments, // totalRecords is the same as recordsTotal in DataTables
+    };
+  } else {
+    result.code = 204; // No Content
+  }
+
   return result;
 };
 
@@ -1083,6 +1078,82 @@ const profileCoverImage = async (req) => {
   return result;
 };
 
+const uploadProfileCoverImage = async (file, type, user_id) => {
+  const result = { data: null };
+
+  if (file) {
+    result.code = 2029;
+    return result;
+  }
+
+  const newFileName = generateUniqueFileName();
+
+  const tempPath = file.path;
+  const targetPath = path.join(
+    __dirname,
+    `../../public/profileCoverImage/${newFileName}.webp`
+  );
+  const extension = path.extname(file.originalname).toLowerCase();
+
+  if (extension === ".heic") {
+    const inputBuffer = fs.readFileSync(tempPath);
+    const outputBuffer = await heicConvert({
+      buffer: inputBuffer,
+      format: "JPEG",
+      quality: 1,
+    });
+    fs.writeFileSync(tempPath, outputBuffer);
+  }
+
+  try {
+    await sharp(tempPath)
+      .resize(800, null)
+      .webp({ quality: 100 })
+      .toFile(targetPath);
+  } catch (error) {
+    console.error("Failed to convert image:", error);
+    result.code = 2031;
+    return result;
+  }
+
+  fs.unlink(tempPath, () => {});
+  const imagePath = `${PROFILE_COVER_URL}${newFileName}.webp`;
+
+  if (req.body.type) {
+    const user = await appUsersSchema.findById(user_id);
+    let oldImagePath = "";
+    if (type === "profile_img") {
+      oldImagePath = user.profile_img;
+    } else if (type === "profile_cover") {
+      oldImagePath = user.profile_cover;
+    }
+
+    if (oldImagePath && oldImagePath.trim() !== "") {
+      oldImagePath = oldImagePath.split("/").pop();
+      const oldImageFilePath = path.join(
+        __dirname,
+        `../../public/profileCoverImage/${oldImagePath}`
+      );
+      fs.unlinkSync(oldImageFilePath);
+    }
+    let updateFields = {};
+
+    if (req.body.type === "profile_img") {
+      updateFields = { profile_img: imagePath };
+    } else if (req.body.type === "profile_cover") {
+      updateFields = { profile_cover: imagePath };
+    }
+    await appUsersSchema.findByIdAndUpdate(user_id, updateFields, {
+      new: true,
+    });
+  }
+
+  result.data = imagePath;
+  result.code = 2030;
+
+  return result;
+};
+
 const uploadGalleryImage = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
@@ -1331,4 +1402,5 @@ module.exports = {
   checkUsername,
   removeProfileCoverImage,
   addNewAppUser,
+  uploadProfileCoverImage,
 };
