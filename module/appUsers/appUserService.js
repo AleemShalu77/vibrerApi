@@ -16,6 +16,7 @@ const path = require("path");
 const fs = require("fs");
 const https = require("https");
 const AWS = require("aws-sdk");
+const exceljs = require("exceljs");
 require("dotenv").config();
 const {
   getMessage,
@@ -23,6 +24,7 @@ const {
   generateRandomToken,
   uploadFileToR2,
   getFileFromR2,
+  isValidEmail,
 } = require("../../utils/helper");
 const sendGridMail = require("@sendgrid/mail");
 sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -1382,6 +1384,81 @@ const removeProfileCoverImage = async (req) => {
   return result;
 };
 
+const bulkUserUpload = async (req) => {
+  const result = { data: { inserted: [], duplicates: [], errors: [] } };
+  const payload = req.decoded;
+
+  if (!req.file) {
+    result.code = 2029;
+    return result;
+  }
+
+  const password = "ABCD123456"; // Default password for all users (change this)
+  const hashedPassword = await bcryptjs.hashSync(password, 10); // Hash the password
+  const verification_token = generateRandomToken(50);
+
+  const workbook = new exceljs.Workbook();
+  await workbook.xlsx.readFile(req.file.path);
+  const worksheet = workbook.getWorksheet(1);
+
+  for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
+    const row = worksheet.getRow(rowNumber);
+    const email = row.getCell(3).value;
+
+    // Validate email format
+    if (!isValidEmail(email)) {
+      result.data.errors.push({ email, error: "Invalid email format" });
+      continue;
+    }
+
+    // Check if the email already exists in the database
+    const existingUser = await appUsersSchema.findOne({ email });
+    if (existingUser) {
+      // If the email already exists, add it to the duplicates array
+      result.data.duplicates.push({ email });
+      continue;
+    }
+
+    let updatedUsername =
+      await new UniqueUsernameGenerator().generateUsernameByFullName(
+        row.getCell(1).value
+      );
+
+    // If the email does not exist and is valid, prepare the user data for insertion
+    const userData = {
+      user_type: "Fan",
+      username: updatedUsername,
+      full_name: row.getCell(1).value,
+      date_of_birth: row.getCell(2).value,
+      email,
+      verification: true,
+      verification_token: verification_token,
+      city: row.getCell(4).value,
+      country: row.getCell(5).value,
+      gender: row.getCell(6).value,
+      password: hashedPassword,
+      bio: "",
+      status: "Active",
+      link: {
+        facebook: "",
+        instagram: "",
+        youtube: "",
+        twitter: "",
+        website: "",
+      },
+    };
+
+    try {
+      const newUser = await appUsersSchema.create(userData);
+      result.data.inserted.push(newUser);
+    } catch (error) {
+      result.data.errors.push({ email, error: error.message });
+    }
+  }
+  result.code = 201;
+  return result;
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -1403,4 +1480,5 @@ module.exports = {
   removeProfileCoverImage,
   addNewAppUser,
   uploadProfileCoverImage,
+  bulkUserUpload,
 };

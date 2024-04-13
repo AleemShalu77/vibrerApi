@@ -32,4 +32,9 @@ module.exports = {
   PROFILE_COVER_URL: process.env.profile_cover_image,
   MEDIA_VIDEO_URL: process.env.media_video_url,
   GALLERY_IMAGE_URL: process.env.gallery_image_url,
+
+  ACCESS_KEY_ID: process.env.ACCESS_KEY_ID,
+  SECRET_ACCESS_KEY: process.env.SECRET_ACCESS_KEY,
+  END_POINT: process.env.END_POINT,
+  MEDIA_BUCKET_NAME: process.env.MEDIA_BUCKET_NAME,
 };

@@ -1,6 +1,7 @@
 const appUserController = require("./appUserController");
 const middleware = require("../../middleware");
 const { uploader } = require("../../utils/fileUploader");
+const { excelUploader } = require("../../utils/excelUploader");
 
 module.exports = (router) => {
   router.post(
@@ -82,5 +83,11 @@ module.exports = (router) => {
     "/check/username",
     middleware.validateToken,
     appUserController.checkUsername
+  );
+  router.post(
+    "/upload/bulkUserUpload",
+    middleware.validateToken,
+    excelUploader.single("excelFile"),
+    appUserController.bulkUserUpload
   );
 };

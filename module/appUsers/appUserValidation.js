@@ -61,7 +61,9 @@ const validateAddappUserReq = Joi.object({
     .min(3)
     .max(20)
     .trim()
-    .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
+    .regex(
+      /^[A-Za-z\u00C0-\u017F\s\-']{1,}[\.]{0,1}[A-Za-z\u00C0-\u017F\s\-']{0,}$/
+    )
     .required()
     .messages({
       "string.pattern.base": `"full_name" should be a type of 'text'`,
@@ -69,6 +71,7 @@ const validateAddappUserReq = Joi.object({
       "string.min": `"full_name" should have a minimum length of {#limit}`,
       "string.trim": "{{#label}} must not have leading or trailing whitespace",
     }),
+
   gender: Joi.string().required().valid("Male", "Female", "Other").messages({
     "string.empty": `"gender" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
@@ -220,7 +223,9 @@ const validateUpdateappUserReq = Joi.object({
     .min(3)
     .max(20)
     .trim()
-    .regex(/^[A-Za-z\s]{1,}[\.]{0,1}[A-Za-z\s]{0,}$/)
+    .regex(
+      /^[A-Za-z\u00C0-\u017F\s\-']{1,}[\.]{0,1}[A-Za-z\u00C0-\u017F\s\-']{0,}$/
+    )
     .required()
     .messages({
       "string.pattern.base": `"full_name" should be a type of 'text'`,
@@ -228,6 +233,7 @@ const validateUpdateappUserReq = Joi.object({
       "string.min": `"full_name" should have a minimum length of {#limit}`,
       "string.trim": "{{#label}} must not have leading or trailing whitespace",
     }),
+
   gender: Joi.string().required().valid("Male", "Female", "Other").messages({
     "string.empty": `"gender" cannot be an empty field`,
     "string.trim": "{{#label}} must not have leading or trailing whitespace",

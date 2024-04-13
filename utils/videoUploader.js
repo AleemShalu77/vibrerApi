@@ -7,14 +7,10 @@ const video_dir = path.join(__dirname, "../public/mediaVideo"); // Add a directo
 const allowed_video_formats = [
   ".mp4",
   ".MP4",
-  ".avi",
   ".mov",
   ".MOV",
-  ".mkv",
   ".webm",
   ".WEBM",
-  ".m4v",
-  ".flv",
 ]; // Add more video formats as needed
 
 const storage = multer.diskStorage({
@@ -42,6 +38,8 @@ const fileFilter = (req, file, cb) => {
   let allowed_formats = [];
   if (req.path === "/add/MediaPost") {
     allowed_formats = allowed_video_formats;
+  } else if (req.path === "/upload/MediaVideo") {
+    allowed_formats = allowed_video_formats;
   }
 
   if (allowed_formats.includes(path.extname(file.originalname))) {
@@ -56,7 +54,8 @@ const fileFilter = (req, file, cb) => {
 };
 
 const videoUploader = multer({
-  storage: storage,
+  // storage: storage,
+  storage: multer.memoryStorage(),
   fileFilter: fileFilter,
   limits: {
     fileSize: 2048 * 1024 * 1024,

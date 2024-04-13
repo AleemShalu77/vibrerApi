@@ -13,6 +13,15 @@ const validateaddMediaPostReq = Joi.object({
     "string.pattern.base": `"description" should be a type of 'text'`,
     "string.empty": `"description" cannot be an empty field`,
   }),
+
+  media_video: Joi.string()
+    .regex(/^(.*\.(mp4|avi|mov|mkv|webm|m4v|flv|MP4|MOV|WEBM))$/)
+    .required()
+    .messages({
+      "string.pattern.base": `"media_video" should be a valid video file name with extensions: mp4, avi, mov, mkv, webm, m4v, flv`,
+      "any.required": `"media_video" is required`,
+      "string.empty": `"media_video" cannot be an empty field`,
+    }),
   //   type: Joi.string().required().messages({
   //     "string.pattern.base": `"type" should be a type of 'text'`,
   //     "string.empty": `"type" cannot be an empty field`,

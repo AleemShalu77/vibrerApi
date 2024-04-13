@@ -18,6 +18,8 @@ const virtualGiftRoute = require("../module/virtualGifts/virtualGiftsRoute");
 const projectRoute = require("../module/project/projectRoute");
 const notifyRoute = require("../module/notify/notifyRoute");
 const reportRoute = require("../module/report/reportRoute");
+const r2DirectRoute = require("../module/mediaPost/r2Direct");
+const r2bulkVideosRoute = require("../module/mediaPost/r2bulkVideos");
 // const walletRoute = require("../module/wallet/walletRoute");
 
 module.exports = (router) => {
@@ -41,6 +43,8 @@ module.exports = (router) => {
   projectRoute(router);
   notifyRoute(router);
   reportRoute(router);
+  r2DirectRoute(router);
+  r2bulkVideosRoute(router);
   // walletRoute(router);
 
   return router;

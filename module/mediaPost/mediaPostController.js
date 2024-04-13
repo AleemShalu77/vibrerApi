@@ -30,6 +30,18 @@ const addMediaPost = async (req, res, next) => {
   }
 };
 
+const uploadMediaVideo = async (req, res, next) => {
+  try {
+    let result = await mediaPostService.uploadMediaVideo(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+
 const updateMediaPostStatus = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -184,4 +196,5 @@ module.exports = {
   getUserParticipatedContests,
   adminDashboardCount,
   updateLeastQuality,
+  uploadMediaVideo,
 };

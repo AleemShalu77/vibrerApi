@@ -6,8 +6,13 @@ module.exports = (router) => {
   router.post(
     "/add/MediaPost",
     middleware.validateToken,
-    videoUploader.single("media_video"),
     mediaPostController.addMediaPost
+  );
+  router.post(
+    "/upload/MediaVideo",
+    middleware.validateToken,
+    videoUploader.single("media_video"),
+    mediaPostController.uploadMediaVideo
   );
   router.post(
     "/add/contestParticipateVote",

@@ -1,4 +1,5 @@
 const fs = require("fs").promises;
+const fsS = require("fs");
 const path = require("path");
 const url = require("url");
 require("dotenv").config();
@@ -28,7 +29,7 @@ const transporter = nodemailer.createTransport({
 const addMediaPost = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
-  const { contest_id, title, description, genres } = req.body;
+  const { contest_id, title, description, genres, media_video } = req.body;
 
   // Check if the contest exists
   const contestExists = await contestSchema.exists({ _id: contest_id });
@@ -62,96 +63,132 @@ const addMediaPost = async (req) => {
     description: description,
     genres: genresArray,
     status: "Under Review",
+    media: media_video,
   };
+
+  const updatedContest = await contestSchema.findOneAndUpdate(
+    { _id: contest_id },
+    { $push: { participates: mediaPost } },
+    { new: true }
+  );
+
+  if (updatedContest) {
+    const user = await appUserSchema.findById(payload.id);
+    const contestData = await contestSchema.findById({ _id: contest_id });
+    let newGenres = await Promise.all(
+      genresArray.map(async (genr) => {
+        const genreObject = await genreSchema.findById(genr);
+        return genreObject ? genreObject.name : null;
+      })
+    );
+
+    newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+    const message = await helper.getContestParticipantMailappUser(
+      user,
+      mediaPost,
+      contestData,
+      newGenres
+    );
+    const messageData = await helper.getMessage(
+      message,
+      user.email,
+      process.env.EMAIL_FROM,
+      "Vibrer Participation confirmation"
+    );
+
+    // Assuming you have a function to send the verification email
+    const send = transporter.sendMail(messageData);
+    result.data = mediaPost;
+    result.code = 201;
+  } else {
+    result.code = 204;
+  }
+
+  return result;
+};
+
+const uploadMediaVideo = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+  let mediaPost = {};
 
   // Convert video to mp4 format and compress if it's a video file
   if (req.file && req.file.mimetype.startsWith("video/")) {
-    const fileExtension = path.extname(req.file.originalname).toLowerCase();
-    const baseFileName = path.basename(req.file.filename, fileExtension);
+    // const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    // const baseFileName = path.basename(req.file.filename, fileExtension);
+    const fileExtension = req.file.originalname
+      .slice(((req.file.originalname.lastIndexOf(".") - 1) >>> 0) + 1)
+      .toLowerCase();
+    const baseFileName = req.file.originalname;
     const uniqueSuffix = Date.now().toString();
-    const outputFileName = `${baseFileName}-${uniqueSuffix}.mp4`;
+    const outputFileName = `${uniqueSuffix}-${baseFileName}`;
+
     const outputFilePath = path.join(
       __dirname,
       `../../public/mediaVideo/${outputFileName}`
     );
-    if (fileExtension === ".mp4") {
-      mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
+    if (
+      fileExtension === ".mp4" ||
+      fileExtension === ".webm" ||
+      fileExtension === ".mov"
+    ) {
+      // mediaPost.media = `${req.file.filename}`;
+      mediaPost.media = `${outputFileName}`;
     } else {
-      try {
-        await new Promise((resolve, reject) => {
-          const ffmpegCommand = ffmpeg()
-            .input(req.file.path)
-            .videoCodec("libx264") // Use H.264 codec for video
-            .audioCodec("aac") // Use AAC codec for audio
-            .outputOptions([
-              "-vf",
-              "scale='min(1280,iw)':min'(720,ih)':force_original_aspect_ratio=decrease",
-              "-crf",
-              "23", // Adjust CRF for quality
-              "-preset",
-              "medium", // Adjust preset for encoding speed vs quality
-            ])
-            .output(outputFilePath)
-            .on("end", async () => {
-              fs.unlink(req.file.path, () => {});
+      mediaPost.media = `${outputFileName}`;
+      // try {
+      //   await new Promise((resolve, reject) => {
+      //     const ffmpegCommand = ffmpeg()
+      //       .input(req.file.path)
+      //       .videoCodec("libx264") // Use H.264 codec for video
+      //       .audioCodec("aac") // Use AAC codec for audio
+      //       .outputOptions([
+      //         "-vf",
+      //         "scale='min(1280,iw)':min'(720,ih)':force_original_aspect_ratio=decrease",
+      //         "-crf",
+      //         "23", // Adjust CRF for quality
+      //         "-preset",
+      //         "medium", // Adjust preset for encoding speed vs quality
+      //       ])
+      //       .output(outputFilePath)
+      //       .on("end", async () => {
+      //         fs.unlink(req.file.path, () => {});
 
-              mediaPost.media = `${MEDIA_VIDEO_URL}${outputFileName}`;
+      //         mediaPost.media = `${outputFileName}`;
 
-              resolve();
-            })
-            .on("error", async (err) => {
-              console.error("Error during video processing:", err);
-              mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
-              reject(err);
-            });
+      //         resolve();
+      //       })
+      //       .on("error", async (err) => {
+      //         console.error("Error during video processing:", err);
+      //         mediaPost.media = `${req.file.filename}`;
+      //         reject(err);
+      //       });
 
-          ffmpegCommand.run();
-        });
-      } catch (error) {
-        console.error("Error processing video:", error);
-        mediaPost.media = `${MEDIA_VIDEO_URL}${req.file.filename}`;
-      }
+      //     ffmpegCommand.run();
+      //   });
+      // } catch (error) {
+      //   console.error("Error processing video:", error);
+      //   mediaPost.media = `${req.file.filename}`;
+      // }
     }
-
-    const updatedContest = await contestSchema.findOneAndUpdate(
-      { _id: contest_id },
-      { $push: { participates: mediaPost } },
-      { new: true }
+    const mediaFilePath = path.join(
+      __dirname,
+      `../../public/mediaVideo/${mediaPost.media}`
     );
 
-    if (updatedContest) {
-      const user = await appUserSchema.findById(payload.id);
-      const contestData = await contestSchema.findById({ _id: contest_id });
-      let newGenres = await Promise.all(
-        genresArray.map(async (genr) => {
-          const genreObject = await genreSchema.findById(genr);
-          return genreObject ? genreObject.name : null;
-        })
-      );
+    await helper.uploadFileToR2(
+      // fsS.readFileSync(mediaFilePath),
+      req.file.buffer,
+      mediaPost.media,
+      "video/mp4"
+    );
 
-      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
-      const message = await helper.getContestParticipantMailappUser(
-        user,
-        mediaPost,
-        contestData,
-        newGenres
-      );
-      const messageData = await helper.getMessage(
-        message,
-        user.email,
-        process.env.EMAIL_FROM,
-        "Vibrer Participation confirmation"
-      );
+    // fs.unlink(mediaFilePath, () => {});
 
-      // Assuming you have a function to send the verification email
-      const send = await transporter.sendMail(messageData);
-      result.data = mediaPost;
-      result.code = 201;
-    } else {
-      result.code = 204;
-    }
+    result.data = mediaPost;
+    result.code = 201;
   } else {
-    fs.unlink(req.file.path, () => {});
+    // fs.unlink(req.file.path, () => {});
     result.code = 2039; // Invalid file type
   }
 
@@ -349,7 +386,11 @@ const contestParticipateVote = async (req) => {
         "You have got 1 new vote"
       );
 
-      const send = await transporter.sendMail(messageData);
+      try {
+        await transporter.sendMail(messageData);
+      } catch (emailError) {
+        console.error("Error occurred while sending email:", emailError);
+      }
 
       result.code = 2035; // Vote added successfully
     }
@@ -810,18 +851,25 @@ const deleteMediaPost = async (req) => {
         (participant) => String(participant.user_id) === String(payload.id)
       ).media;
 
-      // Parse the URL to get the file name
-      const fileName = mediaFileUrl.split("/").pop();
+      if (
+        !mediaFileUrl.startsWith("http://") ||
+        !mediaFileUrl.startsWith("https://")
+      ) {
+        const deleteObj = await deleteFileFromR2(mediaFileUrl);
+        if (deleteObj.code === 0) {
+          result.code = 206;
+          return result;
+        }
+      } else {
+        const fileName = mediaFileUrl.split("/").pop();
 
-      // Construct the absolute path to the media file on your server
-      const absoluteFilePath = path.join(
-        __dirname,
-        "../../public/mediaVideo",
-        fileName
-      );
-
-      // Delete the media file
-      await fs.unlink(absoluteFilePath);
+        const absoluteFilePath = path.join(
+          __dirname,
+          "../../public/mediaVideo",
+          fileName
+        );
+        await fs.unlink(absoluteFilePath);
+      }
 
       const updateResult = await contestSchema.updateOne(
         {
@@ -1037,4 +1085,5 @@ module.exports = {
   getUserParticipatedContests,
   adminDashboardCount,
   updateLeastQuality,
+  uploadMediaVideo,
 };

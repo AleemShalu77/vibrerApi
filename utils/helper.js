@@ -1,6 +1,28 @@
 const fs = require("fs");
 const path = require("path");
+const AWS = require("aws-sdk");
+const stream = require("stream");
+const {
+  PROFILE_COVER_URL,
+  GALLERY_IMAGE_URL,
+  MEDIA_VIDEO_URL,
+  ACCESS_KEY_ID,
+  SECRET_ACCESS_KEY,
+  END_POINT,
+  MEDIA_BUCKET_NAME,
+} = require("../config/index");
 require("dotenv").config();
+
+// Configure the AWS SDK to use your Cloudflare R2 credentials and endpoint
+const s3 = new AWS.S3({
+  endpoint: END_POINT,
+  accessKeyId: ACCESS_KEY_ID,
+  secretAccessKey: SECRET_ACCESS_KEY,
+  signatureVersion: "v4",
+  region: "auto", // Cloudflare R2 does not require a specific region
+  s3ForcePathStyle: true, // This forces the request to use path-style addressing
+});
+
 send = (res, code, data, msg = "", customMsg = "", totalRecords) => {
   let result = {};
   const m = require("./msgs")[code];
@@ -291,6 +313,53 @@ render = (res, data) => {
   res.render("scan", { src: data });
 };
 
+uploadFileToR2 = (fileBuffer, fileName, mimeType) => {
+  const readStream = new stream.PassThrough();
+  readStream.end(fileBuffer);
+  const params = {
+    Bucket: MEDIA_BUCKET_NAME,
+    Key: fileName,
+    Body: readStream,
+    ContentType: mimeType,
+  };
+  return s3.upload(params).promise();
+};
+
+getFileFromR2 = (fileName) => {
+  const params = {
+    Bucket: MEDIA_BUCKET_NAME,
+    Key: fileName,
+  };
+
+  return s3.getObject(params).promise();
+};
+
+deleteFileFromR2 = (fileName) => {
+  let result = { code: null, message: null };
+  s3.deleteObject(
+    {
+      Bucket: MEDIA_BUCKET_NAME,
+      Key: fileName,
+    },
+    (err, data) => {
+      if (err) {
+        result.code = 0;
+        result.message = `Error deleting object:, ${err}`;
+      } else {
+        result.code = 1;
+        result.message = `Object deleted successfully:, ${data}`;
+      }
+    }
+  );
+  return result;
+};
+
+isValidEmail = (email) => {
+  // Simple email format validation using regular expression
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 module.exports = {
   send,
   render,
@@ -302,4 +371,8 @@ module.exports = {
   getContestParticipantMailappUser,
   getContestApprovalMailappUser,
   getContestVoteMailappUser,
+  uploadFileToR2,
+  getFileFromR2,
+  deleteFileFromR2,
+  isValidEmail,
 };

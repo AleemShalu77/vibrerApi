@@ -4,6 +4,36 @@ const contestSchema = require("../../model/contests");
 const appUserSchema = require("../../model/app_users");
 const genreSchema = require("../../model/genre");
 const { format } = require("date-fns");
+const redis = require("redis");
+
+(async () => {
+  try {
+    // Create the Redis client
+    redisClient = redis.createClient({
+      url: "redis://localhost:6379", // This is a common way to specify Redis connection details
+    });
+
+    // Connect to Redis
+    await redisClient.connect();
+
+    console.log("Connected to Redis");
+
+    // Properly handle connection errors
+    redisClient.on("error", (error) => {
+      // console.error("Redis Client Error", error);
+      redisClient = null;
+    });
+
+    // Optionally handle the connection end event
+    redisClient.on("end", () => {
+      // console.log("Redis connection closed");
+      redisClient = null;
+    });
+  } catch (error) {
+    // console.error("Failed to connect to Redis:", error);
+    redisClient = null;
+  }
+})();
 const addContest = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
@@ -126,6 +156,14 @@ const getAllContest = async (req) => {
   const result = { data: null };
 
   if (req.body.type) {
+    if (redisClient) {
+      const cachedDataKey = `allContests:${req.body.type}`;
+      let cachedData = await redisClient.get(cachedDataKey);
+      if (cachedData) {
+        console.log("Data found in cache");
+        return JSON.parse(cachedData);
+      }
+    }
     let contestQuery = {};
 
     if (req.body.type === "Active") {
@@ -195,10 +233,24 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
+      if (redisClient) {
+        await redisClient.set(
+          `allContests:${req.body.type}`,
+          JSON.stringify(result)
+        );
+      }
     } else {
       result.code = 204;
     }
   } else {
+    if (redisClient) {
+      const cachedDataKey = `allContests`;
+      let cachedData = await redisClient.get(cachedDataKey);
+      if (cachedData) {
+        console.log("Data found in cache");
+        return JSON.parse(cachedData);
+      }
+    }
     const contests = await contestSchema.find().populate({
       path: "participates.user_id",
       model: "app_users",
@@ -220,6 +272,9 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
+      if (redisClient) {
+        await redisClient.set(`allContests`, JSON.stringify(result));
+      }
     } else {
       result.code = 204;
     }

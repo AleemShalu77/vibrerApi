@@ -7,10 +7,11 @@ const mongoose = require("mongoose");
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const passport = require("passport");
-const url = process.env.MONGODB_PROD;
+const url = process.env.MONGODB_DEV;
 const swaggerDefinition = require("./config").SWAGGER_DEFINATION;
 var cors = require("cors");
 var app = express();
+router.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(
   cors({

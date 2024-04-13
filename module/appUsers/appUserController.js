@@ -339,6 +339,14 @@ const checkUsername = async (req, res, next) => {
     next(error);
   }
 };
+const bulkUserUpload = async (req, res, next) => {
+  try {
+    let result = await appUserService.bulkUserUpload(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   artistLogin,
@@ -360,4 +368,5 @@ module.exports = {
   checkUsername,
   removeProfileCoverImage,
   addNewAppUser,
+  bulkUserUpload,
 };
