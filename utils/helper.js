@@ -325,13 +325,15 @@ uploadFileToR2 = (fileBuffer, fileName, mimeType) => {
   return s3.upload(params).promise();
 };
 
-getFileFromR2 = (fileName) => {
+getFileFromR2 = async (fileName) => {
   const params = {
     Bucket: MEDIA_BUCKET_NAME,
     Key: fileName,
+    Expires: 3600,
   };
 
-  return s3.getObject(params).promise();
+  let url = await s3.getSignedUrlPromise("getObject", params);
+  return url;
 };
 
 deleteFileFromR2 = (fileName) => {

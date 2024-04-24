@@ -5,6 +5,7 @@ const appUserSchema = require("../../model/app_users");
 const genreSchema = require("../../model/genre");
 const { format } = require("date-fns");
 const redis = require("redis");
+const { getFileFromR2 } = require("../../utils/helper");
 
 (async () => {
   try {
@@ -284,65 +285,65 @@ const getAllContest = async (req) => {
 };
 
 const getContest = async (req) => {
-  const result = { data: null };
-  const id = req.params.id;
+  const result = { data: null, code: 204 }; // Initialize code to default 204
 
   try {
-    const contest = await contestSchema.findOne({ _id: id }).populate({
-      path: "participates.user_id",
-      model: "app_users",
-      select:
-        "full_name username email profile_img profile_cover verified city country",
-    });
+    const id = req.params.id;
+
+    // Use findOneAndUpdate to get and update the contest in one query
+    const contest = await contestSchema
+      .findOneAndUpdate(
+        { _id: id },
+        { $inc: { views: 1 } }, // Increment views counter
+        { new: true } // Return the updated document
+      )
+      .populate({
+        path: "participates.user_id",
+        model: "app_users",
+        select:
+          "full_name username email profile_img profile_cover verified city country",
+      });
 
     if (contest) {
       const appUserId = req.decoded ? req.decoded.id : null;
+
+      // Use $in operator to find appUser in one query
       const appUser = appUserId
         ? await appUserSchema.findById(appUserId)
         : null;
 
       let isParticipated = false;
 
-      // Flatten participant details
-      let participants = contest.participates.map((participant) => {
-        let isVoted = false;
-        let isFavourite = false;
+      // Use async/await with map instead of forEach for better control flow
+      const participants = await Promise.all(
+        contest.participates.map(async (participant) => {
+          let isVoted = false;
+          let isFavourite = false;
 
-        // Check if payload.id exists in votes
-        if (appUserId) {
-          isVoted = participant.votes.some(
-            (vote) => String(vote.user_id) === String(appUserId)
-          );
-        }
+          if (appUserId) {
+            isVoted = participant.votes.some(
+              (vote) => String(vote.user_id) === String(appUserId)
+            );
+          }
 
-        // Check if the user has participated
-        if (
-          appUserId &&
-          String(participant.user_id._id) === String(appUserId)
-        ) {
-          isParticipated = true;
-        }
+          if (appUser) {
+            isFavourite = appUser.favourites.some((favorite) =>
+              favorite.participant_ids.includes(participant.user_id._id)
+            );
+          }
 
-        // Check if the participant exists in the user's favourite list
-        if (
-          appUser &&
-          appUser.favourites.some((favorite) =>
-            favorite.participant_ids.includes(participant.user_id._id)
-          )
-        ) {
-          isFavourite = true;
-        }
+          let {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+          } = participant;
 
-        return {
-          title: participant.title,
-          _id: participant._id,
-          description: participant.description,
-          media: participant.media,
-          genres: participant.genres,
-          status: participant.status,
-          least_quality: participant.least_quality,
-          votes: participant.votes,
-          user: {
+          const user = {
             _id: participant.user_id._id,
             username: participant.user_id.username,
             full_name: participant.user_id.full_name,
@@ -352,11 +353,26 @@ const getContest = async (req) => {
             verified: participant.user_id.verified,
             city: participant.user_id.city,
             country: participant.user_id.country,
-          },
-          is_voted: isVoted,
-          is_favourite: isFavourite,
-        };
-      });
+          };
+          if (!media.startsWith("http://") && !media.startsWith("https://")) {
+            media = await getFileFromR2(media);
+          }
+
+          return {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+            user,
+            is_voted: isVoted,
+            is_favourite: isFavourite,
+          };
+        })
+      );
 
       // Sort participants by votes in descending order
       participants.sort((a, b) => b.votes.length - a.votes.length);
@@ -376,7 +392,7 @@ const getContest = async (req) => {
 
       // Return flattened contest object
       const contestWithEndDays = {
-        ...contest._doc,
+        ...contest.toObject(), // Use toObject() to convert Mongoose document to plain JavaScript object
         participates: participants,
         endDays: endDays,
         isParticipated: isParticipated,
@@ -384,11 +400,9 @@ const getContest = async (req) => {
 
       result.data = contestWithEndDays;
       result.code = 200;
-    } else {
-      result.code = 204;
     }
   } catch (error) {
-    result.code = 204;
+    console.error("Error in getContest:", error); // Log the error for debugging
   }
 
   return result;
