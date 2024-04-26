@@ -79,6 +79,30 @@ const addContest = async (req) => {
       publish: publish,
     });
     if (contest) {
+      // if (redisClient) {
+      //   let activeCachedDataKey = `allContests:Active`;
+      //   let activeCachedData = await redisClient.get(activeCachedDataKey);
+      //   if (activeCachedData) {
+      //     await redisClient.del(activeCachedDataKey);
+      //   }
+      //   let archivedCachedDataKey = `allContests:Archived`;
+      //   let archivedCachedData = await redisClient.get(archivedCachedDataKey);
+      //   if (archivedCachedData) {
+      //     await redisClient.del(archivedCachedDataKey);
+      //   }
+
+      //   let draftCachedDataKey = `allContests:Draft`;
+      //   let draftCachedData = await redisClient.get(draftCachedDataKey);
+      //   if (draftCachedData) {
+      //     await redisClient.del(draftCachedDataKey);
+      //   }
+
+      //   let ongoingCachedDataKey = `allContests:ongoing`;
+      //   let ongoingCachedData = await redisClient.get(ongoingCachedDataKey);
+      //   if (ongoingCachedData) {
+      //     await redisClient.del(ongoingCachedDataKey);
+      //   }
+      // }
       result.data = contest;
       result.code = 201;
     } else {
@@ -157,14 +181,14 @@ const getAllContest = async (req) => {
   const result = { data: null };
 
   if (req.body.type) {
-    if (redisClient) {
-      const cachedDataKey = `allContests:${req.body.type}`;
-      let cachedData = await redisClient.get(cachedDataKey);
-      if (cachedData) {
-        console.log("Data found in cache");
-        return JSON.parse(cachedData);
-      }
-    }
+    // if (redisClient) {
+    //   const cachedDataKey = `allContests:${req.body.type}`;
+    //   let cachedData = await redisClient.get(cachedDataKey);
+    //   if (cachedData) {
+    //     console.log("Data found in cache");
+    //     return JSON.parse(cachedData);
+    //   }
+    // }
     let contestQuery = {};
 
     if (req.body.type === "Active") {
@@ -234,24 +258,24 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
-      if (redisClient) {
-        await redisClient.set(
-          `allContests:${req.body.type}`,
-          JSON.stringify(result)
-        );
-      }
+      // if (redisClient) {
+      //   await redisClient.set(
+      //     `allContests:${req.body.type}`,
+      //     JSON.stringify(result)
+      //   );
+      // }
     } else {
       result.code = 204;
     }
   } else {
-    if (redisClient) {
-      const cachedDataKey = `allContests`;
-      let cachedData = await redisClient.get(cachedDataKey);
-      if (cachedData) {
-        console.log("Data found in cache");
-        return JSON.parse(cachedData);
-      }
-    }
+    // if (redisClient) {
+    //   const cachedDataKey = `allContests`;
+    //   let cachedData = await redisClient.get(cachedDataKey);
+    //   if (cachedData) {
+    //     console.log("Data found in cache");
+    //     return JSON.parse(cachedData);
+    //   }
+    // }
     const contests = await contestSchema.find().populate({
       path: "participates.user_id",
       model: "app_users",
@@ -273,9 +297,9 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
-      if (redisClient) {
-        await redisClient.set(`allContests`, JSON.stringify(result));
-      }
+      // if (redisClient) {
+      //   await redisClient.set(`allContests`, JSON.stringify(result));
+      // }
     } else {
       result.code = 204;
     }
@@ -316,62 +340,66 @@ const getContest = async (req) => {
 
       // Use async/await with map instead of forEach for better control flow
       const participants = await Promise.all(
-        contest.participates.map(async (participant) => {
-          let isVoted = false;
-          let isFavourite = false;
+        contest.participates
+          .filter((participant) => participant.status === "Active") // Filter by status
+          .map(async (participant) => {
+            let isVoted = false;
+            let isFavourite = false;
 
-          if (appUserId) {
-            isVoted = participant.votes.some(
-              (vote) => String(vote.user_id) === String(appUserId)
-            );
-          }
+            if (appUserId) {
+              isVoted = participant.votes.some(
+                (vote) => String(vote.user_id) === String(appUserId)
+              );
+            }
 
-          if (appUser) {
-            isFavourite = appUser.favourites.some((favorite) =>
-              favorite.participant_ids.includes(participant.user_id._id)
-            );
-          }
+            if (appUser) {
+              isFavourite = appUser.favourites.some((favorite) =>
+                favorite.participant_ids.includes(participant.user_id._id)
+              );
+            }
 
-          let {
-            title,
-            _id,
-            description,
-            media,
-            genres,
-            status,
-            least_quality,
-            votes,
-          } = participant;
+            let {
+              title,
+              _id,
+              description,
+              media,
+              genres,
+              status,
+              least_quality,
+              votes,
+            } = participant;
 
-          const user = {
-            _id: participant.user_id._id,
-            username: participant.user_id.username,
-            full_name: participant.user_id.full_name,
-            email: participant.user_id.email,
-            profile_img: participant.user_id.profile_img,
-            profile_cover: participant.user_id.profile_cover,
-            verified: participant.user_id.verified,
-            city: participant.user_id.city,
-            country: participant.user_id.country,
-          };
-          if (!media.startsWith("http://") && !media.startsWith("https://")) {
-            media = await getFileFromR2(media);
-          }
+            const user = {
+              _id: participant.user_id._id,
+              username: participant.user_id.username,
+              full_name: participant.user_id.full_name,
+              email: participant.user_id.email,
+              profile_img: participant.user_id.profile_img,
+              profile_cover: participant.user_id.profile_cover,
+              verified: participant.user_id.verified,
+              city: participant.user_id.city,
+              country: participant.user_id.country,
+            };
 
-          return {
-            title,
-            _id,
-            description,
-            media,
-            genres,
-            status,
-            least_quality,
-            votes,
-            user,
-            is_voted: isVoted,
-            is_favourite: isFavourite,
-          };
-        })
+            // Check if media is a local file (not a URL), then fetch from R2
+            if (!media.startsWith("http://") && !media.startsWith("https://")) {
+              media = await getFileFromR2(media);
+            }
+
+            return {
+              title,
+              _id,
+              description,
+              media,
+              genres,
+              status,
+              least_quality,
+              votes,
+              user,
+              is_voted: isVoted,
+              is_favourite: isFavourite,
+            };
+          })
       );
 
       // Sort participants by votes in descending order
