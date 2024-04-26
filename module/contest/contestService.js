@@ -436,6 +436,132 @@ const getContest = async (req) => {
   return result;
 };
 
+const getContestAllParticipants = async (req) => {
+  const result = { data: null, code: 204 }; // Initialize code to default 204
+
+  try {
+    const id = req.params.id;
+
+    // Use findOneAndUpdate to get and update the contest in one query
+    const contest = await contestSchema
+      .findOneAndUpdate(
+        { _id: id },
+        { $inc: { views: 1 } }, // Increment views counter
+        { new: true } // Return the updated document
+      )
+      .populate({
+        path: "participates.user_id",
+        model: "app_users",
+        select:
+          "full_name username email profile_img profile_cover verified city country",
+      });
+
+    if (contest) {
+      const appUserId = req.decoded ? req.decoded.id : null;
+
+      // Use $in operator to find appUser in one query
+      const appUser = appUserId
+        ? await appUserSchema.findById(appUserId)
+        : null;
+
+      let isParticipated = false;
+
+      // Use async/await with map instead of forEach for better control flow
+      const participants = await Promise.all(
+        contest.participates.map(async (participant) => {
+          let isVoted = false;
+          let isFavourite = false;
+
+          if (appUserId) {
+            isVoted = participant.votes.some(
+              (vote) => String(vote.user_id) === String(appUserId)
+            );
+          }
+
+          if (appUser) {
+            isFavourite = appUser.favourites.some((favorite) =>
+              favorite.participant_ids.includes(participant.user_id._id)
+            );
+          }
+
+          let {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+          } = participant;
+
+          const user = {
+            _id: participant.user_id._id,
+            username: participant.user_id.username,
+            full_name: participant.user_id.full_name,
+            email: participant.user_id.email,
+            profile_img: participant.user_id.profile_img,
+            profile_cover: participant.user_id.profile_cover,
+            verified: participant.user_id.verified,
+            city: participant.user_id.city,
+            country: participant.user_id.country,
+          };
+
+          // Check if media is a local file (not a URL), then fetch from R2
+          if (!media.startsWith("http://") && !media.startsWith("https://")) {
+            media = await getFileFromR2(media);
+          }
+
+          return {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+            user,
+            is_voted: isVoted,
+            is_favourite: isFavourite,
+          };
+        })
+      );
+
+      // Sort participants by votes in descending order
+      participants.sort((a, b) => b.votes.length - a.votes.length);
+
+      // Assign ranks based on the sorted order
+      participants.forEach((participant, index) => {
+        participant.rank = index + 1;
+      });
+
+      // Calculate end days
+      const currentDate = new Date();
+      const endDateTime = new Date(
+        contest.ends_on.end_date + " " + contest.ends_on.end_time
+      );
+      const timeDifference = endDateTime.getTime() - currentDate.getTime();
+      const endDays = Math.ceil(timeDifference / (1000 * 3600 * 24));
+
+      // Return flattened contest object
+      const contestWithEndDays = {
+        ...contest.toObject(), // Use toObject() to convert Mongoose document to plain JavaScript object
+        participates: participants,
+        endDays: endDays,
+        isParticipated: isParticipated,
+      };
+
+      result.data = contestWithEndDays;
+      result.code = 200;
+    }
+  } catch (error) {
+    console.error("Error in getContest:", error); // Log the error for debugging
+  }
+
+  return result;
+};
+
 const getSingleEntry = async (req) => {
   const result = { data: null };
 
@@ -541,4 +667,5 @@ module.exports = {
   getContest,
   getSingleEntry,
   deleteContest,
+  getContestAllParticipants,
 };

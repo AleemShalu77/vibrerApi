@@ -20,6 +20,11 @@ module.exports = (router) => {
     middleware.validateToken,
     contestController.getContest
   );
+  router.get(
+    "/contest-details-all-participants/:id",
+    middleware.validateToken,
+    contestController.getContestAllParticipants
+  );
   router.post(
     "/remove/contest/:id",
     middleware.validateToken,
