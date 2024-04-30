@@ -637,6 +637,12 @@ const getSingleEntry = async (req) => {
       entry[0].genres = genresInfo;
     }
 
+    let media = entry[0].media;
+    if (!media.startsWith("http://") && !media.startsWith("https://")) {
+      media = await getFileFromR2(media);
+    }
+    entry[0].media = media;
+
     result.code = 2040;
     result.data = entry[0];
   } catch (error) {
