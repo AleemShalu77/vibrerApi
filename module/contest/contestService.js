@@ -309,12 +309,12 @@ const getAllContest = async (req) => {
 };
 
 const getContest = async (req) => {
-  const result = { data: null, code: 204 }; // Initialize code to default 204
+  const result = { data: null, code: 204 };
 
   try {
     const id = req.params.id;
+    const { country, genre } = req.body;
 
-    // Use findOneAndUpdate to get and update the contest in one query
     const contest = await contestSchema
       .findOneAndUpdate(
         { _id: id },
@@ -328,6 +328,16 @@ const getContest = async (req) => {
           "full_name username email profile_img profile_cover verified city country",
       });
 
+    const filteredParticipants = contest.participates.filter((participant) => {
+      if (country && participant.user_id.country !== country) {
+        return false;
+      }
+      if (genre && !participant.genres.includes(genre)) {
+        return false;
+      }
+      return true;
+    });
+
     if (contest) {
       const appUserId = req.decoded ? req.decoded.id : null;
 
@@ -340,7 +350,7 @@ const getContest = async (req) => {
 
       // Use async/await with map instead of forEach for better control flow
       const participants = await Promise.all(
-        contest.participates
+        filteredParticipants
           .filter((participant) => participant.status === "Active") // Filter by status
           .map(async (participant) => {
             let isVoted = false;

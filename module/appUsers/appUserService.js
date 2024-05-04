@@ -90,6 +90,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
+        email = email.toLowerCase();
         const existingUser = await appUsersSchema.findOne({ email });
 
         if (existingUser) {
@@ -165,6 +166,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
+        email = email.toLowerCase();
         const existingUser = await appUsersSchema.findOne({ email });
 
         if (existingUser) {
@@ -229,6 +231,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
+        email = email.toLowerCase();
         const { confirmPassword } = req.body;
 
         // Validate password and confirmPassword
@@ -286,6 +289,7 @@ passport.use(
     { usernameField: "email", passwordField: "password" },
     async (email, password, done) => {
       try {
+        email = email.toLowerCase();
         const user = await appUsersSchema.findOne({ email });
 
         if (!user) {
@@ -1403,7 +1407,7 @@ const bulkUserUpload = async (req) => {
 
   for (let rowNumber = 2; rowNumber <= worksheet.rowCount; rowNumber++) {
     const row = worksheet.getRow(rowNumber);
-    const email = row.getCell(3).value;
+    const email = row.getCell(3).value.toLowerCase();
 
     // Validate email format
     if (!isValidEmail(email)) {
