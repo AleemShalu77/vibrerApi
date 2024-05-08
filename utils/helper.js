@@ -329,7 +329,7 @@ getFileFromR2 = async (fileName) => {
   const params = {
     Bucket: MEDIA_BUCKET_NAME,
     Key: fileName,
-    Expires: 3600,
+    Expires: 86400,
   };
 
   let url = await s3.getSignedUrlPromise("getObject", params);
