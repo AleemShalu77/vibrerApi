@@ -352,45 +352,45 @@ const contestParticipateVote = async (req) => {
       // Save the updated contest data
       await contestData.save();
 
-      const user = await appUserSchema.findById(currentParticipant.user_id);
-      const contestDetailsData = await contestSchema.findById({
-        _id: contest_id,
-      });
+      // const user = await appUserSchema.findById(currentParticipant.user_id);
+      // const contestDetailsData = await contestSchema.findById({
+      //   _id: contest_id,
+      // });
 
-      const genresArray = [
-        ...new Set(
-          currentParticipant.genres.flatMap((genreObject) => {
-            const genreString = genreObject.toHexString();
-            return genreString.split(",").map((genre) => genre.trim());
-          })
-        ),
-      ];
-      let newGenres = await Promise.all(
-        genresArray.map(async (genr) => {
-          const genreObject = await genreSchema.findById(genr);
-          return genreObject ? genreObject.name : null;
-        })
-      );
+      // const genresArray = [
+      //   ...new Set(
+      //     currentParticipant.genres.flatMap((genreObject) => {
+      //       const genreString = genreObject.toHexString();
+      //       return genreString.split(",").map((genre) => genre.trim());
+      //     })
+      //   ),
+      // ];
+      // let newGenres = await Promise.all(
+      //   genresArray.map(async (genr) => {
+      //     const genreObject = await genreSchema.findById(genr);
+      //     return genreObject ? genreObject.name : null;
+      //   })
+      // );
 
-      newGenres = newGenres.filter((genre) => genre !== null).join(", ");
-      const message = await helper.getContestVoteMailappUser(
-        user,
-        currentParticipant,
-        contestDetailsData,
-        newGenres
-      );
-      const messageData = await helper.getMessage(
-        message,
-        user.email,
-        process.env.EMAIL_FROM,
-        "You have got 1 new vote"
-      );
+      // newGenres = newGenres.filter((genre) => genre !== null).join(", ");
+      // const message = await helper.getContestVoteMailappUser(
+      //   user,
+      //   currentParticipant,
+      //   contestDetailsData,
+      //   newGenres
+      // );
+      // const messageData = await helper.getMessage(
+      //   message,
+      //   user.email,
+      //   process.env.EMAIL_FROM,
+      //   "You have got 1 new vote"
+      // );
 
-      try {
-        await transporter.sendMail(messageData);
-      } catch (emailError) {
-        console.error("Error occurred while sending email:", emailError);
-      }
+      // try {
+      //   await transporter.sendMail(messageData);
+      // } catch (emailError) {
+      //   console.error("Error occurred while sending email:", emailError);
+      // }
 
       result.code = 2035; // Vote added successfully
     }
