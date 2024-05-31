@@ -39,5 +39,12 @@ module.exports = (router) => {
     "/contest-single-entry/:contestId",
     contestController.getSingleEntry
   );
+
+  router.get(
+    "/get-user-entry/:contestId",
+    middleware.validateToken,
+    contestController.getUserEntry
+  );
+
   router.get("/contest-single-entry", contestController.getSingleEntry);
 };

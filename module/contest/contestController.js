@@ -93,6 +93,15 @@ const getSingleEntry = async (req, res, next) => {
   }
 };
 
+const getUserEntry = async (req, res, next) => {
+  try {
+    let result = await contestService.getUserEntry(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addContest,
   updateContest,
@@ -101,4 +110,5 @@ module.exports = {
   deleteContest,
   getSingleEntry,
   getContestAllParticipants,
+  getUserEntry,
 };
