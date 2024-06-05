@@ -66,6 +66,15 @@ const getContest = async (req, res, next) => {
   }
 };
 
+const getContestEntries = async (req, res, next) => {
+  try {
+    let result = await contestService.getContestEntries(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getContestAllParticipants = async (req, res, next) => {
   try {
     let result = await contestService.getContestAllParticipants(req);
@@ -111,4 +120,5 @@ module.exports = {
   getSingleEntry,
   getContestAllParticipants,
   getUserEntry,
+  getContestEntries,
 };

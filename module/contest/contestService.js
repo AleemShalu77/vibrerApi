@@ -446,6 +446,246 @@ const getContest = async (req) => {
   return result;
 };
 
+const getContestEntries = async (req) => {
+  const result = { data: null, code: 204 };
+  const appUserId = req.decoded ? req.decoded.id : null;
+
+  try {
+    const id = req.params.id;
+    const {
+      country,
+      genre,
+      limit = 10,
+      offset = 0,
+      is_top_three_participants = false,
+      is_least_quality_participants = false,
+    } = req.body;
+
+    const validOffset =
+      Number.isInteger(offset) && offset >= 0 ? limit * offset : 0;
+
+    const appUser = appUserId ? await appUserSchema.findById(appUserId) : null;
+
+    // Step 1: Update views count
+    await contestSchema.findByIdAndUpdate(id, { $inc: { views: 1 } });
+
+    const processParticipants = async (participants, startRank) => {
+      return Promise.all(
+        participants.map(async (participant, index) => {
+          const isVoted = appUserId
+            ? participant.votes.some(
+                (vote) => String(vote.user_id) === String(appUserId)
+              )
+            : false;
+
+          const isFavourite = appUser
+            ? appUser.favourites.some((favorite) =>
+                favorite.participant_ids.includes(participant.user._id)
+              )
+            : false;
+
+          let {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+          } = participant;
+
+          if (!media.startsWith("http://") && !media.startsWith("https://")) {
+            media = await getFileFromR2(media);
+          }
+
+          const user = {
+            _id: participant.user._id,
+            username: participant.user.username,
+            full_name: participant.user.full_name,
+            email: participant.user.email,
+            profile_img: participant.user.profile_img,
+            profile_cover: participant.user.profile_cover,
+            verified: participant.user.verified,
+            city: participant.user.city,
+            country: participant.user.country,
+          };
+
+          return {
+            title,
+            _id,
+            description,
+            media,
+            genres,
+            status,
+            least_quality,
+            votes,
+            votesCount: votes.length, // Adding vote count
+            user,
+            is_voted: isVoted,
+            is_favourite: isFavourite,
+            rank: startRank + index, // Adjust rank based on start rank
+          };
+        })
+      );
+    };
+
+    // Step 2: Fetch Contest Details
+    const contestDetailsPipeline = [
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      {
+        $project: {
+          _id: 1,
+          title: 1,
+          description: 1,
+          ends_on: 1,
+        },
+      },
+    ];
+    const contestAggregation = await contestSchema
+      .aggregate(contestDetailsPipeline)
+      .exec();
+    const contest = contestAggregation[0];
+    if (!contest) {
+      return result;
+    }
+
+    // Step 3: Fetch Top 3 Participants
+    let top3Participants = [];
+    if (is_top_three_participants) {
+      const top3Pipeline = [
+        { $match: { _id: new mongoose.Types.ObjectId(id) } },
+        { $unwind: "$participates" },
+        {
+          $lookup: {
+            from: "app_users",
+            localField: "participates.user_id",
+            foreignField: "_id",
+            as: "participates.user",
+          },
+        },
+        { $unwind: "$participates.user" },
+        {
+          $match: {
+            "participates.status": "Active",
+            ...(country && { "participates.user.country": country }),
+            ...(genre && { "participates.genres": genre }),
+          },
+        },
+        {
+          $addFields: {
+            votesCount: { $size: "$participates.votes" },
+          },
+        },
+        { $sort: { votesCount: -1 } },
+        { $limit: 3 },
+      ];
+      const top3ParticipantsAggregation = await contestSchema
+        .aggregate(top3Pipeline)
+        .exec();
+      top3Participants = await processParticipants(
+        top3ParticipantsAggregation.map((a) => a.participates),
+        1 // Starting rank for top 3 participants
+      );
+    }
+
+    // Step 4: Fetch Least Quality Participants
+    let leastQualityParticipants = [];
+    if (is_least_quality_participants) {
+      const leastQualityPipeline = [
+        { $match: { _id: new mongoose.Types.ObjectId(id) } },
+        { $unwind: "$participates" },
+        {
+          $lookup: {
+            from: "app_users",
+            localField: "participates.user_id",
+            foreignField: "_id",
+            as: "participates.user",
+          },
+        },
+        { $unwind: "$participates.user" },
+        {
+          $match: {
+            "participates.status": "Active",
+            "participates.least_quality": true,
+            ...(country && { "participates.user.country": country }),
+            ...(genre && { "participates.genres": genre }),
+          },
+        },
+      ];
+      const leastQualityParticipantsAggregation = await contestSchema
+        .aggregate(leastQualityPipeline)
+        .exec();
+      leastQualityParticipants = await processParticipants(
+        leastQualityParticipantsAggregation.map((a) => a.participates),
+        is_top_three_participants ? 4 : 1 // Adjust rank for least quality participants
+      );
+    }
+
+    // Step 5: Fetch Remaining Participants
+    const remainingPipeline = [
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      { $unwind: "$participates" },
+      {
+        $lookup: {
+          from: "app_users",
+          localField: "participates.user_id",
+          foreignField: "_id",
+          as: "participates.user",
+        },
+      },
+      { $unwind: "$participates.user" },
+      {
+        $match: {
+          "participates.status": "Active",
+          // "participates.least_quality": { $ne: true },
+          ...(country && { "participates.user.country": country }),
+          ...(genre && { "participates.genres": genre }),
+        },
+      },
+      {
+        $addFields: {
+          votesCount: { $size: "$participates.votes" },
+        },
+      },
+      { $sort: { votesCount: -1 } },
+      { $skip: validOffset },
+      { $limit: limit },
+    ];
+    const remainingParticipantsAggregation = await contestSchema
+      .aggregate(remainingPipeline)
+      .exec();
+
+    const remainingParticipants = await processParticipants(
+      remainingParticipantsAggregation.map((a) => a.participates),
+      validOffset + (is_top_three_participants ? 4 : 1) // Adjust rank for remaining participants
+    );
+
+    const currentDate = new Date();
+    const endDateTime = new Date(
+      contest.ends_on.end_date + " " + contest.ends_on.end_time
+    );
+    const timeDifference = endDateTime.getTime() - currentDate.getTime();
+    const endDays = Math.ceil(timeDifference / (1000 * 3600 * 24));
+
+    const contestWithEndDays = {
+      ...contest,
+      ...(is_top_three_participants && { top3Participants }),
+      ...(is_least_quality_participants && { leastQualityParticipants }),
+      participates: remainingParticipants,
+      endDays,
+      isParticipated: appUserId ? true : false,
+    };
+
+    result.data = contestWithEndDays;
+    result.code = 200;
+  } catch (error) {
+    console.error("Error in getContest:", error); // Log the error for debugging
+  }
+
+  return result;
+};
+
 const getContestAllParticipants = async (req) => {
   const result = { data: null, code: 204 }; // Initialize code to default 204
 
@@ -779,4 +1019,5 @@ module.exports = {
   deleteContest,
   getContestAllParticipants,
   getUserEntry,
+  getContestEntries,
 };

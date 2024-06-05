@@ -20,6 +20,14 @@ module.exports = (router) => {
     middleware.validateToken,
     contestController.getContest
   );
+
+  router.get("/contest-entries/:id", contestController.getContestEntries);
+  router.get(
+    "/auth/contest-entries/:id",
+    middleware.validateToken,
+    contestController.getContestEntries
+  );
+
   router.get(
     "/contest-details-all-participants/:id",
     middleware.validateToken,
