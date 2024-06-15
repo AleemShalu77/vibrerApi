@@ -346,8 +346,6 @@ const getContest = async (req) => {
         ? await appUserSchema.findById(appUserId)
         : null;
 
-      let isParticipated = false;
-
       // Use async/await with map instead of forEach for better control flow
       const participants = await Promise.all(
         filteredParticipants
@@ -410,6 +408,10 @@ const getContest = async (req) => {
               is_favourite: isFavourite,
             };
           })
+      );
+
+      const isParticipated = contest.participates.some(
+        (participant) => String(participant.user_id._id) === String(appUserId)
       );
 
       // Sort participants by votes in descending order
@@ -851,6 +853,7 @@ const getSingleEntry = async (req) => {
             time_zone: "$time_zone",
             starts_on: "$starts_on",
             ends_on: "$ends_on",
+            status: "$status",
           },
           _id: "$participates._id",
           title: "$participates.title",
@@ -892,6 +895,17 @@ const getSingleEntry = async (req) => {
       media = await getFileFromR2(media);
     }
     entry[0].media = media;
+
+    // Calculate end days
+    const currentDate = new Date();
+    const contestEndDate = entry[0].contest.ends_on;
+    const endDateTime = new Date(
+      `${contestEndDate.end_date} ${contestEndDate.end_time}`
+    );
+    const timeDifference = endDateTime.getTime() - currentDate.getTime();
+    const endDays = Math.ceil(timeDifference / (1000 * 3600 * 24));
+
+    entry[0].contest.endDays = endDays; // Add endDays to contest
 
     result.code = 2040;
     result.data = entry[0];
