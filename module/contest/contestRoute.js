@@ -21,8 +21,8 @@ module.exports = (router) => {
     contestController.getContest
   );
 
-  router.get("/contest-entries/:id", contestController.getContestEntries);
-  router.get(
+  router.post("/contest-entries/:id", contestController.getContestEntries);
+  router.post(
     "/auth/contest-entries/:id",
     middleware.validateToken,
     contestController.getContestEntries
