@@ -187,10 +187,12 @@ const appUsersSchema = new mongoose.Schema(
       required: false,
     },
 
-    // blocked_user:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
+    blocked_users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "app_users",
+      },
+    ],
     // followers:[{
     // 	type: mongoose.Schema.Types.ObjectId,
     // 	ref: 'user'
@@ -212,10 +214,12 @@ const appUsersSchema = new mongoose.Schema(
     // 	ref: 'contests'
     // }],
     // playlist:[{_id:String}],
-    // blocked:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
+    blocked: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "app_users",
+      },
+    ],
     // wallet_id:{
     //     type:String,
     //     required:true

@@ -14,6 +14,7 @@ const {
   validateProfileCoverImageReq,
   validateRemoveProfileCoverImageReq,
   validatedeleteappUser,
+  validateAddRemoveBlockUserReq,
 } = require("./appUserValidation");
 
 const artistLogin = async (req, res, next) => {
@@ -339,6 +340,36 @@ const checkUsername = async (req, res, next) => {
     next(error);
   }
 };
+
+const addRemoveBlockUser = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateAddRemoveBlockUserReq.validateAsync(req.body);
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.addRemoveBlockUser(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+const getBlockedUsers = async (req, res, next) => {
+  try {
+    let result = await appUserService.getBlockedUsers(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const bulkUserUpload = async (req, res, next) => {
   try {
     let result = await appUserService.bulkUserUpload(req);
@@ -369,4 +400,6 @@ module.exports = {
   removeProfileCoverImage,
   addNewAppUser,
   bulkUserUpload,
+  addRemoveBlockUser,
+  getBlockedUsers,
 };

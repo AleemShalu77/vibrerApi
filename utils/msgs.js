@@ -211,6 +211,21 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  2048: {
+    message: "User has been removed from blocked list successfully",
+    httpCode: 200,
+    status: 0,
+  },
+  2049: {
+    message: "You can not block this user, You already blocked by this user",
+    httpCode: 200,
+    status: 0,
+  },
+  2050: {
+    message: "User has been added to blocked list successfully",
+    httpCode: 200,
+    status: 0,
+  },
 };
 
 module.exports = message;

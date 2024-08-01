@@ -90,4 +90,16 @@ module.exports = (router) => {
     excelUploader.single("excelFile"),
     appUserController.bulkUserUpload
   );
+  // Block users APIs
+
+  router.post(
+    "/add-remove-block-user",
+    middleware.validateToken,
+    appUserController.addRemoveBlockUser
+  );
+  router.get(
+    "/get-blocked-users",
+    middleware.validateToken,
+    appUserController.getBlockedUsers
+  );
 };

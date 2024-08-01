@@ -1463,6 +1463,120 @@ const bulkUserUpload = async (req) => {
   return result;
 };
 
+const addRemoveBlockUser = async (req) => {
+  const result = { data: null };
+  const { user_id } = req.body;
+  const payload = req.decoded; // assuming this contains the authenticated user's ID
+
+  try {
+    const appUserData = await appUsersSchema.findById(user_id);
+
+    if (!appUserData) {
+      result.code = 2017;
+      return result;
+    }
+
+    const user = await appUsersSchema.findById(payload.id);
+
+    if (!user) {
+      result.code = 2017;
+      return result;
+    }
+
+    const isUserIDBlockedExists = appUserData.blocked_users.some(
+      (blocked) => String(blocked) === String(payload.id)
+    );
+
+    if (isUserIDBlockedExists) {
+      result.code = 2049;
+      return result;
+    }
+
+    const isUserBlocked = user.blocked_users.some(
+      (blocked_user) => String(blocked_user) === String(user_id)
+    );
+
+    if (isUserBlocked) {
+      user.blocked_users = user.blocked_users.filter(
+        (blocked_user) => String(blocked_user) !== String(user_id)
+      );
+      appUserData.blocked = user.blocked.filter(
+        (blocked) => String(blocked) !== String(payload.id)
+      );
+      result.code = 2048;
+    } else {
+      user.blocked_users.push(user_id);
+      appUserData.blocked.push(payload.id);
+      result.code = 2050;
+    }
+
+    const updatedUserData = await user.save();
+    await appUserData.save();
+
+    result.data = updatedUserData;
+  } catch (error) {
+    console.error("Error:", error);
+    result.code = 500; // Internal Server Error
+    result.message = "Error processing the request";
+  }
+
+  return result;
+};
+
+const getBlockedUsers = async (req) => {
+  const result = { data: null };
+  const payload = req.decoded;
+
+  try {
+    // Find the user by their ID
+    const user = await appUsersSchema.findById(payload.id);
+
+    if (!user) {
+      result.code = 2017; // User not found
+      return result;
+    }
+
+    // Extract blocked users data
+    const blockedUsers = user.blocked_users;
+
+    // Fetch detailed information for each blocked user
+    const detailedBlockedUsers = [];
+    for (const blockedUserId of blockedUsers) {
+      const userData = await appUsersSchema.findById(blockedUserId);
+
+      if (userData) {
+        detailedBlockedUsers.push({
+          _id: userData._id,
+          email: userData.email,
+          full_name: userData.full_name,
+          name: userData.name,
+          profile_img: userData.profile_img,
+          profile_cover: userData.profile_cover,
+          username: userData.username,
+          city: userData.city,
+          country: userData.country,
+          date_of_birth: userData.date_of_birth,
+          gender: userData.gender,
+          verified: userData.verified,
+        });
+      }
+    }
+
+    if (detailedBlockedUsers.length > 0) {
+      result.data = detailedBlockedUsers;
+      result.code = 200; // Success
+    } else {
+      result.code = 204; // No content
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    result.code = 500; // Internal Server Error
+    result.message = "Error processing the request";
+  }
+
+  return result;
+};
+
 module.exports = {
   artistLogin,
   // forgotPasswordArtist,
@@ -1485,4 +1599,6 @@ module.exports = {
   addNewAppUser,
   uploadProfileCoverImage,
   bulkUserUpload,
+  addRemoveBlockUser,
+  getBlockedUsers,
 };
