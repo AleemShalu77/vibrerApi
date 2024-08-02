@@ -226,6 +226,16 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  2051: {
+    message: "User has been added to following list successfully",
+    httpCode: 200,
+    status: 0,
+  },
+  2052: {
+    message: "User has been removed from following list successfully",
+    httpCode: 200,
+    status: 0,
+  },
 };
 
 module.exports = message;

@@ -416,6 +416,10 @@ const validateAddRemoveBlockUserReq = Joi.object({
   user_id: Joi.string().required(),
 });
 
+const validateAddRemoveFollowUserUserReq = Joi.object({
+  user_id: Joi.string().required(),
+});
+
 module.exports = {
   validateAddappUserReq,
   validateRegisterappUserReq,
@@ -430,4 +434,5 @@ module.exports = {
   validateRemoveProfileCoverImageReq,
   validatedeleteappUser,
   validateAddRemoveBlockUserReq,
+  validateAddRemoveFollowUserUserReq,
 };

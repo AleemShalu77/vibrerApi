@@ -193,14 +193,18 @@ const appUsersSchema = new mongoose.Schema(
         ref: "app_users",
       },
     ],
-    // followers:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
-    // following:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
+    followers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "app_users",
+      },
+    ],
+    following: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "app_users",
+      },
+    ],
     // likes:[{
     // 	type: mongoose.Schema.Types.ObjectId,
     // 	ref: 'user'

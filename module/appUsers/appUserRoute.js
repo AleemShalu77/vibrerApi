@@ -102,4 +102,22 @@ module.exports = (router) => {
     middleware.validateToken,
     appUserController.getBlockedUsers
   );
+
+  //  Follower/Following APIs
+
+  router.post(
+    "/add-remove-follow-user",
+    middleware.validateToken,
+    appUserController.addRemoveFollowUser
+  );
+  router.get(
+    "/get-following-users",
+    middleware.validateToken,
+    appUserController.getFollowingUsers
+  );
+  router.get(
+    "/get-follower-users",
+    middleware.validateToken,
+    appUserController.getFollowerUsers
+  );
 };

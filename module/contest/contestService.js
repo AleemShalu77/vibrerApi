@@ -552,7 +552,27 @@ const getContestEntries = async (req) => {
       return result;
     }
 
-    // Step 3: Fetch Top 3 Participants
+    // Step 3: Fetch total number of entries
+    const totalEntriesPipeline = [
+      { $match: { _id: new mongoose.Types.ObjectId(id) } },
+      { $unwind: "$participates" },
+      {
+        $match: {
+          "participates.status": "Active",
+          ...(country && { "participates.user.country": country }),
+          ...(genre && { "participates.genres": genre }),
+        },
+      },
+      {
+        $count: "totalEntries", // Count the total entries
+      },
+    ];
+    const totalEntriesAggregation = await contestSchema
+      .aggregate(totalEntriesPipeline)
+      .exec();
+    const totalEntries = totalEntriesAggregation[0]?.totalEntries || 0;
+
+    // Step 4: Fetch Top 3 Participants
     let top3Participants = [];
     if (is_top_three_participants) {
       const top3Pipeline = [
@@ -591,7 +611,7 @@ const getContestEntries = async (req) => {
       );
     }
 
-    // Step 4: Fetch Least Quality Participants
+    // Step 5: Fetch Least Quality Participants
     let leastQualityParticipants = [];
     if (is_least_quality_participants) {
       const leastQualityPipeline = [
@@ -624,7 +644,7 @@ const getContestEntries = async (req) => {
       );
     }
 
-    // Step 5: Fetch Remaining Participants
+    // Step 6: Fetch Remaining Participants
     const remainingPipeline = [
       { $match: { _id: new mongoose.Types.ObjectId(id) } },
       { $unwind: "$participates" },
@@ -677,6 +697,7 @@ const getContestEntries = async (req) => {
       participates: remainingParticipants,
       endDays,
       isParticipated: appUserId ? true : false,
+      totalEntries, // Add totalEntries to the result
     };
 
     result.data = contestWithEndDays;

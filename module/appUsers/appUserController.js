@@ -15,6 +15,7 @@ const {
   validateRemoveProfileCoverImageReq,
   validatedeleteappUser,
   validateAddRemoveBlockUserReq,
+  validateAddRemoveFollowUserUserReq,
 } = require("./appUserValidation");
 
 const artistLogin = async (req, res, next) => {
@@ -369,7 +370,44 @@ const getBlockedUsers = async (req, res, next) => {
     next(error);
   }
 };
-
+const addRemoveFollowUser = async (req, res, next) => {
+  try {
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return next(
+        createHttpError(400, { message: "Please pass body parameters" })
+      );
+    }
+    let isValid = await validateAddRemoveFollowUserUserReq.validateAsync(
+      req.body
+    );
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.addRemoveFollowUser(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    if (error.isJoi) {
+      return next(createHttpError(400, { message: error.message }));
+    }
+    next(error);
+  }
+};
+const getFollowingUsers = async (req, res, next) => {
+  try {
+    let result = await appUserService.getFollowingUsers(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+const getFollowerUsers = async (req, res, next) => {
+  try {
+    let result = await appUserService.getFollowerUsers(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
 const bulkUserUpload = async (req, res, next) => {
   try {
     let result = await appUserService.bulkUserUpload(req);
@@ -402,4 +440,7 @@ module.exports = {
   bulkUserUpload,
   addRemoveBlockUser,
   getBlockedUsers,
+  addRemoveFollowUser,
+  getFollowingUsers,
+  getFollowerUsers,
 };
