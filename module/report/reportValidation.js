@@ -11,6 +11,11 @@ const validateSubmitReportReq = Joi.object({
     "string.trim": `"entry_id" must not have leading or trailing whitespace`,
     "any.required": `"entry_id" is a required field`,
   }),
+  reported_user_id: Joi.string().trim().required().messages({
+    "string.empty": `"reported_user_id" cannot be an empty field`,
+    "string.trim": `"reported_user_id" must not have leading or trailing whitespace`,
+    "any.required": `"reported_user_id" is a required field`,
+  }),
   content_type: Joi.string().trim().required().messages({
     "string.empty": `"content_type" cannot be an empty field`,
     "string.trim": `"content_type" must not have leading or trailing whitespace`,
@@ -40,6 +45,32 @@ const validateSubmitReportReq = Joi.object({
   }),
 });
 
+const validateGetReports = Joi.object({
+  status: Joi.string()
+    .valid("Open", "Pending", "Under process", "Closed", "Active")
+    .trim()
+    .optional()
+    .messages({
+      "string.empty": `"status" cannot be an empty field`,
+      "string.trim": `"status" must not have leading or trailing whitespace`,
+      "any.only": `"status" must be one of 'Open', 'Pending', 'Under process', 'Closed', 'Active'`,
+    }),
+});
+
+const validateEntryReported = Joi.object({
+  status: Joi.string()
+    .valid("Open", "Pending", "Under process", "Closed", "Active")
+    .trim()
+    .optional()
+    .messages({
+      "string.empty": `"status" cannot be an empty field`,
+      "string.trim": `"status" must not have leading or trailing whitespace`,
+      "any.only": `"status" must be one of 'Open', 'Pending', 'Under process', 'Closed', 'Active'`,
+    }),
+});
+
 module.exports = {
   validateSubmitReportReq,
+  validateGetReports,
+  validateEntryReported,
 };

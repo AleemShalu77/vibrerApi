@@ -20,6 +20,7 @@ const notifyRoute = require("../module/notify/notifyRoute");
 const reportRoute = require("../module/report/reportRoute");
 const r2DirectRoute = require("../module/mediaPost/r2Direct");
 const r2bulkVideosRoute = require("../module/mediaPost/r2bulkVideos");
+const inquiryRoute = require("../module/inquiry/inquiryRoute");
 // const walletRoute = require("../module/wallet/walletRoute");
 
 module.exports = (router) => {
@@ -45,6 +46,7 @@ module.exports = (router) => {
   reportRoute(router);
   r2DirectRoute(router);
   r2bulkVideosRoute(router);
+  inquiryRoute(router);
   // walletRoute(router);
 
   return router;
