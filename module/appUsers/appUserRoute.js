@@ -42,6 +42,11 @@ module.exports = (router) => {
     appUserController.getAllappUser
   );
   router.get(
+    "/all/appArtists",
+    middleware.validateToken,
+    appUserController.getAllappArtists
+  );
+  router.get(
     "/appUser/:id",
     middleware.validateToken,
     appUserController.getappUser

@@ -233,6 +233,15 @@ const getAllappUser = async (req, res, next) => {
   }
 };
 
+const getAllappArtists = async (req, res, next) => {
+  try {
+    let result = await appUserService.getAllappArtists(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getappUser = async (req, res, next) => {
   try {
     let result = await appUserService.getappUser(req);
@@ -443,4 +452,5 @@ module.exports = {
   addRemoveFollowUser,
   getFollowingUsers,
   getFollowerUsers,
+  getAllappArtists,
 };

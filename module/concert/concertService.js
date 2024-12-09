@@ -121,63 +121,92 @@ const updateConcert = async (req) => {
 
 const getAllConcert = async (req) => {
   const result = { data: null };
-  if (req.body.type) {
-    if (req.body.type == "Archived") {
-      var concert = await concertSchema.find({
-        status: "Archived",
-      });
-    } else if (req.body.type == "Draft") {
-      var concert = await concertSchema.find({
-        publish: "Draft",
-      });
-    } else if (req.body.type == "ongoing") {
-      const currentDate = new Date(); // Get the current date and time
+  let concert = [];
+
+  try {
+    if (req.body.type) {
+      const currentDate = new Date();
       const currentDateString = currentDate.toISOString().split("T")[0];
       const currentTimeString = currentDate.toLocaleTimeString("en-US", {
         hour12: false,
       });
 
-      var concert = await concertSchema.find({
-        concert_date: { $lte: currentDateString },
-        $or: [
-          {
-            concert_date: currentDateString,
-            concert_time: { $lte: currentTimeString },
-          },
-          { concert_date: { $lt: currentDateString } },
-        ],
-        status: "Active", // assuming active means the concert is ongoing
-        publish: "Publish", // assuming published means the concert is available to the public
-      });
-    } else if (req.body.type == "upcoming") {
-      const currentDate = new Date(); // Get the current date and time
-      const currentDateString = currentDate.toISOString().split("T")[0];
-      const currentTimeString = currentDate.toLocaleTimeString("en-US", {
-        hour12: false,
-      });
-
-      var concert = await concertSchema.find({
-        concert_date: { $gte: currentDateString },
-        $or: [
-          {
-            concert_date: currentDateString,
-            concert_time: { $gte: currentTimeString },
-          },
-          { concert_date: { $gt: currentDateString } },
-        ],
-        status: "Active", // assuming active means the concert is ongoing
-        publish: "Publish", // assuming published means the concert is available to the public
-      });
+      if (req.body.type === "Archived") {
+        concert = await concertSchema
+          .find({ status: "Archived" })
+          .populate("concert_type", "name")
+          .populate(
+            "artist",
+            "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+          );
+      } else if (req.body.type === "Draft") {
+        concert = await concertSchema
+          .find({ publish: "Draft" })
+          .populate("concert_type", "name")
+          .populate(
+            "artist",
+            "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+          );
+      } else if (req.body.type === "ongoing") {
+        concert = await concertSchema
+          .find({
+            concert_date: { $lte: currentDateString },
+            $or: [
+              {
+                concert_date: currentDateString,
+                concert_time: { $lte: currentTimeString },
+              },
+              { concert_date: { $lt: currentDateString } },
+            ],
+            status: "Active",
+            publish: "Publish",
+          })
+          .populate("concert_type", "name")
+          .populate(
+            "artist",
+            "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+          );
+      } else if (req.body.type === "upcoming") {
+        concert = await concertSchema
+          .find({
+            concert_date: { $gte: currentDateString },
+            $or: [
+              {
+                concert_date: currentDateString,
+                concert_time: { $gte: currentTimeString },
+              },
+              { concert_date: { $gt: currentDateString } },
+            ],
+            status: "Active",
+            publish: "Publish",
+          })
+          .populate("concert_type", "name")
+          .populate(
+            "artist",
+            "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+          );
+      }
+    } else {
+      concert = await concertSchema
+        .find()
+        .populate("concert_type", "name")
+        .populate(
+          "artist",
+          "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+        );
     }
-  } else {
-    var concert = await concertSchema.find();
+
+    if (concert.length > 0) {
+      result.data = concert;
+      result.code = 200;
+    } else {
+      result.code = 204;
+    }
+  } catch (error) {
+    result.code = 500;
+    result.error = error.message;
   }
-  if (concert) {
-    result.data = concert;
-    result.code = 200;
-  } else {
-    result.code = 204;
-  }
+
   return result;
 };
 

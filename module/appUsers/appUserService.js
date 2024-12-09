@@ -830,6 +830,93 @@ const getappUser = async (req) => {
   return result;
 };
 
+const getAllappArtists = async (req) => {
+  const result = { data: null };
+
+  try {
+    // Fetch all app users
+    const appUsers = await appUsersSchema.find(
+      {
+        $and: [
+          { concert_artist: true }, // Must be a concert artist
+          {
+            $or: [
+              { "account_deleted.is_deleted": { $ne: true } }, // Not deleted
+              { account_deleted: { $exists: false } }, // `account_deleted` field does not exist
+            ],
+          },
+        ],
+      },
+      {
+        link: 1,
+        _id: 1,
+        email: 1,
+        artist_categories: 1,
+        visibility: 1,
+        verification: 1,
+        genres: 1,
+        status: 1,
+        profile_img: 1,
+        profile_cover: 1,
+        bio: 1,
+        city: 1,
+        country: 1,
+        date_of_birth: 1,
+        full_name: 1,
+        gender: 1,
+        username: 1,
+        concert_artist: 1,
+      }
+    );
+
+    if (!appUsers || appUsers.length === 0) {
+      result.code = 204; // No content
+      return result;
+    }
+
+    // Collect all unique category and genre IDs
+    const artistCategoryIds = [
+      ...new Set(appUsers.flatMap((user) => user.artist_categories || [])),
+    ];
+    const genreIds = [
+      ...new Set(appUsers.flatMap((user) => user.genres || [])),
+    ];
+
+    // Fetch artist categories and genres in bulk
+    const artistCategoriesInfo = await artistCategoriesSchema.find({
+      _id: { $in: artistCategoryIds },
+    });
+    const genresInfo = await genreSchema.find({
+      _id: { $in: genreIds },
+    });
+
+    // Map categories and genres by their IDs for faster lookup
+    const artistCategoriesMap = Object.fromEntries(
+      artistCategoriesInfo.map((cat) => [cat._id.toString(), cat])
+    );
+    const genresMap = Object.fromEntries(
+      genresInfo.map((genre) => [genre._id.toString(), genre])
+    );
+
+    // Populate each user's categories and genres
+    const populatedUsers = appUsers.map((user) => ({
+      ...user.toObject(), // Convert Mongoose document to plain object
+      artist_categories: (user.artist_categories || []).map(
+        (id) => artistCategoriesMap[id.toString()]
+      ),
+      genres: (user.genres || []).map((id) => genresMap[id.toString()]),
+    }));
+
+    result.data = populatedUsers;
+    result.code = 200; // Success
+  } catch (error) {
+    result.code = 500; // Internal server error
+    result.error = error.message || "An error occurred";
+  }
+
+  return result;
+};
+
 const checkUsername = async (req) => {
   const result = { data: null };
   const { username } = req.body;
@@ -1763,4 +1850,5 @@ module.exports = {
   addRemoveFollowUser,
   getFollowingUsers,
   getFollowerUsers,
+  getAllappArtists,
 };
