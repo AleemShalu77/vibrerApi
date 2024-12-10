@@ -236,6 +236,11 @@ const message = {
     httpCode: 200,
     status: 0,
   },
+  2053: {
+    message: "Invalid concert _id and/or password",
+    httpCode: 400,
+    status: 0,
+  },
 };
 
 module.exports = message;

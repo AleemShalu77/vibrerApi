@@ -1,6 +1,47 @@
 const concertSchema = require("../../model/concerts");
 const bcryptjs = require("bcryptjs");
 const { format } = require("date-fns");
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../../config");
+
+passport.use(
+  "local-login",
+  new LocalStrategy(
+    {
+      usernameField: "_id",
+      passwordField: "password",
+    },
+    async (_id, password, done) => {
+      try {
+        const user = await concertSchema
+          .findOne({
+            _id: _id,
+          })
+          .populate("concert_type", "name")
+          .populate(
+            "artist",
+            "link _id email password artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+          );
+
+        if (!user) {
+          return done(null, false, { message: "Invalid concert _id " });
+        }
+
+        const match = await bcryptjs.compareSync(password, user.password);
+
+        if (match) {
+          return done(null, user);
+        } else {
+          return done(null, false, { message: "Incorrect password" });
+        }
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
 
 const addConcert = async (req) => {
   const result = { data: null };
@@ -236,10 +277,44 @@ const deleteConcert = async (req) => {
   return result;
 };
 
+const login = async (req) => {
+  return new Promise((resolve, reject) => {
+    passport.authenticate("local-login", (err, user, info) => {
+      let result = { data: null };
+
+      if (err) {
+        reject(err);
+      } else if (!user) {
+        result.code = 2053;
+        resolve(result);
+      } else {
+        let payload = {
+          _id: user._id,
+          role: "concert",
+        };
+
+        let options = { expiresIn: "72h" };
+        let token = jwt.sign(payload, JWT_SECRET, options);
+
+        let resObj = {
+          role: "concert",
+          token,
+          data: user,
+        };
+
+        result.data = resObj;
+        result.code = 2021;
+        resolve(result);
+      }
+    })(req);
+  });
+};
+
 module.exports = {
   addConcert,
   updateConcert,
   getAllConcert,
   getConcert,
   deleteConcert,
+  login,
 };

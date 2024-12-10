@@ -77,8 +77,21 @@ const validateUpdateConcertReq = Joi.object({
     "string.trim": "{{#label}} must not have leading or trailing whitespace",
   }),
 });
+const validateLoginReq = Joi.object({
+  _id: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "{{#label}} must be a valid MongoDB ObjectID",
+      "string.empty": `"id" cannot be an empty field`,
+    }),
+  password: Joi.string().required().messages({
+    "string.empty": `"password" cannot be an empty field`,
+  }),
+});
 
 module.exports = {
   validateAddConcertReq,
   validateUpdateConcertReq,
+  validateLoginReq,
 };

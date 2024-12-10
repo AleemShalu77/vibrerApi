@@ -27,4 +27,5 @@ module.exports = (router) => {
     middleware.validateToken,
     concertController.deleteConcert
   );
+  router.post("/concert/login", concertController.login);
 };
