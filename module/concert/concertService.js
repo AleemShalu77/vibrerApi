@@ -255,7 +255,13 @@ const getAllConcert = async (req) => {
 const getConcert = async (req) => {
   const result = { data: null };
   const id = req.params.id;
-  const concertType = await concertSchema.findById(id);
+  const concertType = await concertSchema
+    .findById(id)
+    .populate("concert_type", "name")
+    .populate(
+      "artist",
+      "link _id email artist_categories visibility verification genres status profile_img profile_cover bio city country date_of_birth full_name gender username concert_artist"
+    );
   if (concertType) {
     result.data = concertType;
     result.code = 200;
