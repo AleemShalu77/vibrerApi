@@ -97,6 +97,15 @@ const login = async (req, res, next) => {
   }
 };
 
+const getArtistConcerts = async (req, res, next) => {
+  try {
+    let result = await concertService.getArtistConcerts(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addConcert,
   updateConcert,
@@ -104,4 +113,5 @@ module.exports = {
   getConcert,
   deleteConcert,
   login,
+  getArtistConcerts,
 };

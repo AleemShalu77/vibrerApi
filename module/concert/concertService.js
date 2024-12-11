@@ -5,6 +5,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
+const appUsersSchema = require("../../model/app_users");
 
 passport.use(
   "local-login",
@@ -310,6 +311,108 @@ const login = async (req) => {
   });
 };
 
+const getArtistConcerts = async (req) => {
+  const result = { data: null };
+
+  try {
+    // Retrieve all concert artists with the specified fields
+    const artists = await appUsersSchema.find(
+      {
+        $and: [
+          { concert_artist: true }, // Must be a concert artist
+          {
+            $or: [
+              { "account_deleted.is_deleted": { $ne: true } }, // Not deleted
+              { account_deleted: { $exists: false } }, // `account_deleted` field does not exist
+            ],
+          },
+        ],
+      },
+      {
+        link: 1,
+        _id: 1,
+        email: 1,
+        artist_categories: 1,
+        verification: 1,
+        genres: 1,
+        status: 1,
+        profile_img: 1,
+        profile_cover: 1,
+        bio: 1,
+        city: 1,
+        country: 1,
+        date_of_birth: 1,
+        full_name: 1,
+        gender: 1,
+        username: 1,
+        concert_artist: 1,
+      }
+    );
+
+    // If no artists are found, return a 204 code
+    if (artists.length === 0) {
+      result.code = 204;
+      return result;
+    }
+
+    // Prepare an array to hold the artist-wise data
+    const artistConcertsArray = [];
+
+    // Loop through each artist to find their concerts
+    for (const artist of artists) {
+      const artistConcerts = await concertSchema
+        .find({ artist: artist._id })
+        .populate("concert_type", "name");
+
+      if (artistConcerts.length > 0) {
+        // Create the artist entry with grouped concerts
+        const concertsGroupedByStatus = {
+          Active: [],
+          Archived: [],
+          Draft: [],
+        };
+
+        // Group concerts by status for this artist
+        for (const concert of artistConcerts) {
+          if (concert.status in concertsGroupedByStatus) {
+            concertsGroupedByStatus[concert.status].push(concert);
+          }
+        }
+
+        // Filter out empty status groups
+        const nonEmptyConcerts = Object.entries(concertsGroupedByStatus).reduce(
+          (acc, [status, concerts]) => {
+            if (concerts.length > 0) {
+              acc[status] = concerts;
+            }
+            return acc;
+          },
+          {}
+        );
+
+        if (Object.keys(nonEmptyConcerts).length > 0) {
+          artistConcertsArray.push({
+            artistDetails: artist,
+            concertsGroupedByStatus: nonEmptyConcerts,
+          });
+        }
+      }
+    }
+
+    if (artistConcertsArray.length > 0) {
+      result.data = artistConcertsArray;
+      result.code = 200;
+    } else {
+      result.code = 204;
+    }
+  } catch (error) {
+    result.code = 500;
+    result.error = error.message;
+  }
+
+  return result;
+};
+
 module.exports = {
   addConcert,
   updateConcert,
@@ -317,4 +420,5 @@ module.exports = {
   getConcert,
   deleteConcert,
   login,
+  getArtistConcerts,
 };

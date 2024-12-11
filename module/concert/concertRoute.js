@@ -17,15 +17,16 @@ module.exports = (router) => {
     middleware.validateToken,
     concertController.getAllConcert
   );
-  router.get(
-    "/concert/:id",
-    middleware.validateToken,
-    concertController.getConcert
-  );
+  router.get("/concert/:id", concertController.getConcert);
   router.post(
     "/remove/concert/:id",
     middleware.validateToken,
     concertController.deleteConcert
   );
   router.post("/concert/login", concertController.login);
+  router.get(
+    "/getArtistConcerts",
+    middleware.validateToken,
+    concertController.getArtistConcerts
+  );
 };
