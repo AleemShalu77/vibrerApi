@@ -85,7 +85,7 @@ passport.use(
 );
 
 passport.use(
-  "local-login",
+  "local-login-admin",
   new LocalStrategy(
     {
       usernameField: "email",
@@ -135,7 +135,7 @@ passport.deserializeUser(async (id, done) => {
 
 const login = async (req) => {
   return new Promise((resolve, reject) => {
-    passport.authenticate("local-login", (err, user, info) => {
+    passport.authenticate("local-login-admin", (err, user, info) => {
       let result = { data: null };
 
       if (err) {
