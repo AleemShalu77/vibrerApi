@@ -321,15 +321,21 @@ const getArtistConcerts = async (req) => {
   const result = { data: null };
 
   try {
+    const currentDate = new Date();
+    const currentDateString = currentDate.toISOString().split("T")[0];
+    const currentTimeString = currentDate.toLocaleTimeString("en-US", {
+      hour12: false,
+    });
+
     // Retrieve all concert artists with the specified fields
     const artists = await appUsersSchema.find(
       {
         $and: [
-          { concert_artist: true }, // Must be a concert artist
+          { concert_artist: true },
           {
             $or: [
-              { "account_deleted.is_deleted": { $ne: true } }, // Not deleted
-              { account_deleted: { $exists: false } }, // `account_deleted` field does not exist
+              { "account_deleted.is_deleted": { $ne: true } },
+              { account_deleted: { $exists: false } },
             ],
           },
         ],
@@ -337,6 +343,8 @@ const getArtistConcerts = async (req) => {
       {
         link: 1,
         _id: 1,
+        user_type: 1,
+        verified: 1,
         email: 1,
         artist_categories: 1,
         verification: 1,
@@ -376,12 +384,37 @@ const getArtistConcerts = async (req) => {
           Active: [],
           Archived: [],
           Draft: [],
+          ongoing: [],
+          upcoming: [],
         };
 
-        // Group concerts by status for this artist
+        // Group concerts by status and type for this artist
         for (const concert of artistConcerts) {
-          if (concert.status in concertsGroupedByStatus) {
-            concertsGroupedByStatus[concert.status].push(concert);
+          if (concert.status === "Archived") {
+            concertsGroupedByStatus.Archived.push(concert);
+          } else if (concert.publish === "Draft") {
+            concertsGroupedByStatus.Draft.push(concert);
+          } else if (
+            concert.status === "Active" &&
+            concert.publish === "Publish"
+          ) {
+            const isOngoing =
+              concert.concert_date <= currentDateString &&
+              (concert.concert_date < currentDateString ||
+                concert.concert_time <= currentTimeString);
+
+            const isUpcoming =
+              concert.concert_date >= currentDateString &&
+              (concert.concert_date > currentDateString ||
+                concert.concert_time >= currentTimeString);
+
+            if (isOngoing) {
+              concertsGroupedByStatus.ongoing.push(concert);
+            } else if (isUpcoming) {
+              concertsGroupedByStatus.upcoming.push(concert);
+            } else {
+              concertsGroupedByStatus.Active.push(concert);
+            }
           }
         }
 
