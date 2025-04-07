@@ -29,4 +29,5 @@ module.exports = (router) => {
     middleware.validateToken,
     concertController.getArtistConcerts
   );
+  router.get("/generate-agora-token", concertController.generateAgoraToken);
 };

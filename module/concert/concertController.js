@@ -106,6 +106,15 @@ const getArtistConcerts = async (req, res, next) => {
   }
 };
 
+const generateAgoraToken = async (req, res, next) => {
+  try {
+    let result = await concertService.generateAgoraToken(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   addConcert,
   updateConcert,
@@ -114,4 +123,5 @@ module.exports = {
   deleteConcert,
   login,
   getArtistConcerts,
+  generateAgoraToken,
 };

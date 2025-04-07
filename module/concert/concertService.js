@@ -6,6 +6,9 @@ const LocalStrategy = require("passport-local").Strategy;
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../../config");
 const appUsersSchema = require("../../model/app_users");
+const { RtcTokenBuilder, RtcRole } = require("agora-access-token");
+const APP_ID = "45d2c66aa29344709bf6168486e63c32";
+const APP_CERTIFICATE = "54fb7f3960f5491b9f8f8a960475ae52";
 
 passport.use(
   "local-login",
@@ -452,6 +455,32 @@ const getArtistConcerts = async (req) => {
   return result;
 };
 
+const generateAgoraToken = async (req) => {
+  const result = { data: null };
+  const role = RtcRole.PUBLISHER;
+  const channelName = "testChannel";
+  const uid = 0;
+  const currentTime = Math.floor(Date.now() / 1000);
+  const expireTime = 3600;
+
+  const privilegeExpireTime = currentTime + expireTime;
+  const token = await RtcTokenBuilder.buildTokenWithUid(
+    APP_ID,
+    APP_CERTIFICATE,
+    channelName,
+    uid,
+    role,
+    privilegeExpireTime
+  );
+  if (token) {
+    result.data = token;
+    result.code = 203;
+  } else {
+    result.code = 204;
+  }
+  return result;
+};
+
 module.exports = {
   addConcert,
   updateConcert,
@@ -460,4 +489,5 @@ module.exports = {
   deleteConcert,
   login,
   getArtistConcerts,
+  generateAgoraToken,
 };
