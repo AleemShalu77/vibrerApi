@@ -60,7 +60,7 @@ const addProjectApplicant = async (req) => {
     });
 
     await transporter.sendMail({
-      from: '"Vibrer" <subscriptions@vibrer.com>',
+      from: '"Vibrer" <subscription@vibrer.cloud>',
       to: req.body.email,
       subject: "Application Received",
       html: emailTemplate,
