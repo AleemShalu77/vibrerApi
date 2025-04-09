@@ -45,7 +45,7 @@ const addProjectApplicant = async (req) => {
     );
     emailTemplate = emailTemplate.replace(
       "[projectLink]",
-      `https://vibrer.app/project-view/${projectId}`
+      `https://vibrer.com/project-view/${projectId}`
     );
 
     // Set up transporter and send email
@@ -60,7 +60,7 @@ const addProjectApplicant = async (req) => {
     });
 
     await transporter.sendMail({
-      from: '"Vibrer" <subscriptions@vibrer.app>',
+      from: '"Vibrer" <subscriptions@vibrer.com>',
       to: req.body.email,
       subject: "Application Received",
       html: emailTemplate,

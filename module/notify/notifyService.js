@@ -64,7 +64,7 @@ const addToNotifyList = async (req, res) => {
 
     // Send the email
     await transporter.sendMail({
-      from: '"Vibrer" <subscriptions@vibrer.app>',
+      from: '"Vibrer" <subscriptions@vibrer.cloud>',
       to: req.body.email,
       subject: "Welcome to Our Mailing List",
       html: emailTemplate,
