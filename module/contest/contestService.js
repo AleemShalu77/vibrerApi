@@ -11,7 +11,7 @@ const { getFileFromR2 } = require("../../utils/helper");
   try {
     // Create the Redis client
     redisClient = redis.createClient({
-      url: "redis://localhost:6379", // This is a common way to specify Redis connection details
+      url: "redis://127.0.0.1:6379", // This is a common way to specify Redis connection details
     });
 
     // Connect to Redis
