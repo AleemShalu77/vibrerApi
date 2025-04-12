@@ -539,6 +539,7 @@ const getContestEntries = async (req) => {
         $project: {
           _id: 1,
           title: 1,
+          status: 1,
           description: 1,
           ends_on: 1,
         },
