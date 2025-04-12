@@ -79,30 +79,30 @@ const addContest = async (req) => {
       publish: publish,
     });
     if (contest) {
-      // if (redisClient) {
-      //   let activeCachedDataKey = `allContests:Active`;
-      //   let activeCachedData = await redisClient.get(activeCachedDataKey);
-      //   if (activeCachedData) {
-      //     await redisClient.del(activeCachedDataKey);
-      //   }
-      //   let archivedCachedDataKey = `allContests:Archived`;
-      //   let archivedCachedData = await redisClient.get(archivedCachedDataKey);
-      //   if (archivedCachedData) {
-      //     await redisClient.del(archivedCachedDataKey);
-      //   }
+      if (redisClient) {
+        let activeCachedDataKey = `allContests:Active`;
+        let activeCachedData = await redisClient.get(activeCachedDataKey);
+        if (activeCachedData) {
+          await redisClient.del(activeCachedDataKey);
+        }
+        let archivedCachedDataKey = `allContests:Archived`;
+        let archivedCachedData = await redisClient.get(archivedCachedDataKey);
+        if (archivedCachedData) {
+          await redisClient.del(archivedCachedDataKey);
+        }
 
-      //   let draftCachedDataKey = `allContests:Draft`;
-      //   let draftCachedData = await redisClient.get(draftCachedDataKey);
-      //   if (draftCachedData) {
-      //     await redisClient.del(draftCachedDataKey);
-      //   }
+        let draftCachedDataKey = `allContests:Draft`;
+        let draftCachedData = await redisClient.get(draftCachedDataKey);
+        if (draftCachedData) {
+          await redisClient.del(draftCachedDataKey);
+        }
 
-      //   let ongoingCachedDataKey = `allContests:ongoing`;
-      //   let ongoingCachedData = await redisClient.get(ongoingCachedDataKey);
-      //   if (ongoingCachedData) {
-      //     await redisClient.del(ongoingCachedDataKey);
-      //   }
-      // }
+        let ongoingCachedDataKey = `allContests:ongoing`;
+        let ongoingCachedData = await redisClient.get(ongoingCachedDataKey);
+        if (ongoingCachedData) {
+          await redisClient.del(ongoingCachedDataKey);
+        }
+      }
       result.data = contest;
       result.code = 201;
     } else {
@@ -181,14 +181,14 @@ const getAllContest = async (req) => {
   const result = { data: null };
 
   if (req.body.type) {
-    // if (redisClient) {
-    //   const cachedDataKey = `allContests:${req.body.type}`;
-    //   let cachedData = await redisClient.get(cachedDataKey);
-    //   if (cachedData) {
-    //     console.log("Data found in cache");
-    //     return JSON.parse(cachedData);
-    //   }
-    // }
+    if (redisClient) {
+      const cachedDataKey = `allContests:${req.body.type}`;
+      let cachedData = await redisClient.get(cachedDataKey);
+      if (cachedData) {
+        console.log("Data found in cache");
+        return JSON.parse(cachedData);
+      }
+    }
     let contestQuery = {};
 
     if (req.body.type === "Active") {
@@ -258,24 +258,24 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
-      // if (redisClient) {
-      //   await redisClient.set(
-      //     `allContests:${req.body.type}`,
-      //     JSON.stringify(result)
-      //   );
-      // }
+      if (redisClient) {
+        await redisClient.set(
+          `allContests:${req.body.type}`,
+          JSON.stringify(result)
+        );
+      }
     } else {
       result.code = 204;
     }
   } else {
-    // if (redisClient) {
-    //   const cachedDataKey = `allContests`;
-    //   let cachedData = await redisClient.get(cachedDataKey);
-    //   if (cachedData) {
-    //     console.log("Data found in cache");
-    //     return JSON.parse(cachedData);
-    //   }
-    // }
+    if (redisClient) {
+      const cachedDataKey = `allContests`;
+      let cachedData = await redisClient.get(cachedDataKey);
+      if (cachedData) {
+        console.log("Data found in cache");
+        return JSON.parse(cachedData);
+      }
+    }
     const contests = await contestSchema.find().populate({
       path: "participates.user_id",
       model: "app_users",
@@ -297,9 +297,9 @@ const getAllContest = async (req) => {
     if (contestsWithEndDays && contestsWithEndDays.length > 0) {
       result.data = contestsWithEndDays;
       result.code = 200;
-      // if (redisClient) {
-      //   await redisClient.set(`allContests`, JSON.stringify(result));
-      // }
+      if (redisClient) {
+        await redisClient.set(`allContests`, JSON.stringify(result));
+      }
     } else {
       result.code = 204;
     }
