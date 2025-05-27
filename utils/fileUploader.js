@@ -9,7 +9,6 @@ const artist_category_icon_dir = path.join(
 );
 const badge_icon_dir = path.join(__dirname, "../public/badgeIcon");
 const coin_price_icon_dir = path.join(__dirname, "../public/coinPriceIcon");
-const concert_icon_dir = path.join(__dirname, "../public/concertTypeIcon");
 const profile_cover_dir = path.join(__dirname, "../public/profileCoverImage");
 
 const allowed_formats = [".jpg", ".jpeg", ".png"];
@@ -34,9 +33,6 @@ const storage = multer.diskStorage({
     }
     if (req.path === "/add/coinPrice") {
       dirname = coin_price_icon_dir;
-    }
-    if (req.path === "/add/concertType") {
-      dirname = concert_icon_dir;
     }
     cb(null, dirname);
   },
