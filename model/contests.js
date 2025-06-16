@@ -4,7 +4,7 @@ const contestSchema = new mongoose.Schema(
   {
     contest_type: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "type",
+      ref: "contest_types",
       required: true,
     },
     title: {

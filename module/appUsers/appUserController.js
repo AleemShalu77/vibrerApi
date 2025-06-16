@@ -2,23 +2,19 @@ const appUserService = require("./appUserService");
 const helper = require("../../utils/helper");
 const createHttpError = require("http-errors");
 const {
-  validateAddappUserReq,
   validateRegisterappUserReq,
   validateUpdateappUserReq,
   validateLoginReq,
   validateForgotPasswordReq,
   validateResetPasswordReq,
   validateVerificationCodeReq,
-  validateappUserSpecificColumn,
   validateCheckUsernameReq,
   validateProfileCoverImageReq,
   validateRemoveProfileCoverImageReq,
   validatedeleteappUser,
-  validateAddRemoveBlockUserReq,
-  validateAddRemoveFollowUserUserReq,
 } = require("./appUserValidation");
 
-const artistLogin = async (req, res, next) => {
+const login = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
@@ -29,7 +25,7 @@ const artistLogin = async (req, res, next) => {
     if (isValid instanceof Error) {
       return next(isValid);
     }
-    let result = await appUserService.artistLogin(req);
+    let result = await appUserService.login(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -38,26 +34,7 @@ const artistLogin = async (req, res, next) => {
     next(error);
   }
 };
-const updateappUserSpecificColumn = async (req, res, next) => {
-  try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateappUserSpecificColumn.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.updateappUserSpecificColumn(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
-  }
-};
+
 const forgotPassword = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -98,7 +75,7 @@ const resetPassword = async (req, res, next) => {
     next(error);
   }
 };
-const verificationCode = async (req, res, next) => {
+const verifyEmail = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
@@ -109,48 +86,7 @@ const verificationCode = async (req, res, next) => {
     if (isValid instanceof Error) {
       return next(isValid);
     }
-    let result = await appUserService.verificationCode(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
-  }
-};
-// const forgotPasswordArtist = async (req, res, next) => {
-//   try {
-//     if (!req.body || Object.keys(req.body).length === 0) {
-//       return next(
-//         createHttpError(400, { message: "Please pass body parameters" })
-//       );
-//     }
-//     let isValid = await validateResetPasswordReq.validateAsync(req.body);
-//     if (isValid instanceof Error) {
-//       return next(isValid);
-//     }
-//     let result = await appUserService.forgotPasswordArtist(req);
-//     helper.send(res, result.code, result.data);
-//   } catch (error) {
-//     if (error.isJoi) {
-//       return next(createHttpError(400, { message: error.message }));
-//     }
-//     next(error);
-//   }
-// };
-
-const addappUser = async (req, res, next) => {
-  try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateAddappUserReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.addappUser(req);
+    let result = await appUserService.verifyEmail(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -160,28 +96,7 @@ const addappUser = async (req, res, next) => {
   }
 };
 
-const addNewAppUser = async (req, res, next) => {
-  try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateAddappUserReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.addNewAppUser(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
-  }
-};
-
-const registerappUser = async (req, res, next) => {
+const registerAppUser = async (req, res, next) => {
   try {
     if (!req.body || Object.keys(req.body).length === 0) {
       return next(
@@ -192,7 +107,7 @@ const registerappUser = async (req, res, next) => {
     if (isValid instanceof Error) {
       return next(isValid);
     }
-    let result = await appUserService.registerappUser(req);
+    let result = await appUserService.registerAppUser(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     if (error.isJoi) {
@@ -219,34 +134,6 @@ const updateappUser = async (req, res, next) => {
     if (error.isJoi) {
       return next(createHttpError(400, { message: error.message }));
     }
-    next(error);
-  }
-};
-
-const getAllappUser = async (req, res, next) => {
-  try {
-    let result = await appUserService.getAllappUser(req);
-    // helper.send(res, result.code, result.data);
-    return res.status(result.code).send(result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getAllappArtists = async (req, res, next) => {
-  try {
-    let result = await appUserService.getAllappArtists(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getappUser = async (req, res, next) => {
-  try {
-    let result = await appUserService.getappUser(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
     next(error);
   }
 };
@@ -294,6 +181,21 @@ const profileCoverImage = async (req, res, next) => {
   }
 };
 
+const removeProfileCoverImage = async (req, res, next) => {
+  try {
+    let isValid = await validateRemoveProfileCoverImageReq.validateAsync(
+      req.body
+    );
+    if (isValid instanceof Error) {
+      return next(isValid);
+    }
+    let result = await appUserService.removeProfileCoverImage(req);
+    helper.send(res, result.code, result.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const uploadGalleryImage = async (req, res, next) => {
   try {
     let result = await appUserService.uploadGalleryImage(req);
@@ -309,21 +211,6 @@ const uploadGalleryImage = async (req, res, next) => {
 const deleteGalleryImage = async (req, res, next) => {
   try {
     let result = await appUserService.deleteGalleryImage(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const removeProfileCoverImage = async (req, res, next) => {
-  try {
-    let isValid = await validateRemoveProfileCoverImageReq.validateAsync(
-      req.body
-    );
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.removeProfileCoverImage(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
@@ -351,106 +238,18 @@ const checkUsername = async (req, res, next) => {
   }
 };
 
-const addRemoveBlockUser = async (req, res, next) => {
-  try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateAddRemoveBlockUserReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.addRemoveBlockUser(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
-  }
-};
-const getBlockedUsers = async (req, res, next) => {
-  try {
-    let result = await appUserService.getBlockedUsers(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-const addRemoveFollowUser = async (req, res, next) => {
-  try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateAddRemoveFollowUserUserReq.validateAsync(
-      req.body
-    );
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await appUserService.addRemoveFollowUser(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
-  }
-};
-const getFollowingUsers = async (req, res, next) => {
-  try {
-    let result = await appUserService.getFollowingUsers(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-const getFollowerUsers = async (req, res, next) => {
-  try {
-    let result = await appUserService.getFollowerUsers(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-const bulkUserUpload = async (req, res, next) => {
-  try {
-    let result = await appUserService.bulkUserUpload(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
-  artistLogin,
-  // forgotPasswordArtist,
-  addappUser,
-  registerappUser,
+  login,
+  registerAppUser,
   updateappUser,
-  updateappUserSpecificColumn,
-  getAllappUser,
-  getappUser,
   deleteappUser,
   resetPassword,
   forgotPassword,
-  verificationCode,
+  verifyEmail,
   profileCoverImage,
   getappUserProfile,
   uploadGalleryImage,
   deleteGalleryImage,
   checkUsername,
   removeProfileCoverImage,
-  addNewAppUser,
-  bulkUserUpload,
-  addRemoveBlockUser,
-  getBlockedUsers,
-  addRemoveFollowUser,
-  getFollowingUsers,
-  getFollowerUsers,
-  getAllappArtists,
 };

@@ -24,7 +24,7 @@ const transporter = nodemailer.createTransport({
 });
 
 passport.use(
-  "local-signup",
+  "local-signup-admin",
   new LocalStrategy(
     {
       usernameField: "email",
@@ -33,50 +33,49 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
-        const adminCheck = await adminUsersSchema.findOne({ email: email });
-
+        // Check if email already exists
+        const adminCheck = await adminUsersSchema.findOne({ email });
         if (adminCheck) {
           return done(null, false, { message: "Email is already taken." });
-        } else {
-          const hashedPassword = await bcryptjs.hash(password, 10);
-          const verification_token = generateRandomToken(50);
-
-          const user = await adminUsersSchema.create({
-            name: {
-              first_name: req.body.first_name,
-              last_name: req.body.last_name,
-            },
-            role: req.body.role,
-            email: email,
-            password: hashedPassword,
-            verification: false,
-            verification_token: verification_token,
-            profile_img: `${ADMIN_IMAGE_URL}${req.file.filename}`,
-            createdBy: req.body.createdBy,
-            updatedBy: req.body.updatedBy,
-            status: req.body.status,
-          });
-
-          if (user) {
-            const message = await getEmailVerification(
-              email,
-              verification_token
-            );
-            const messageData = await getMessage(
-              message,
-              email,
-              process.env.EMAIL_FROM,
-              "Vibrer Email Verification"
-            );
-
-            // Assuming you have a function to send the verification email
-            const send = await transporter.sendMail(messageData);
-
-            return done(null, user);
-          } else {
-            return done(null, false, { message: "User registration failed." });
-          }
         }
+
+        // Check if file is uploaded
+        if (!req.file || !req.file.filename) {
+          return done(null, false, { message: "Profile image is required." });
+        }
+
+        // Hash the password
+        const hashedPassword = await bcryptjs.hash(password, 10);
+        const verificationToken = generateRandomToken(50);
+
+        // Create new user
+        const user = await adminUsersSchema.create({
+          name: {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+          },
+          role: req.body.role,
+          email,
+          password: hashedPassword,
+          isVerified: false,
+          verificationToken,
+          profileImage: `${ADMIN_IMAGE_URL}${req.file.filename}`,
+          createdBy: req.body.createdBy,
+          updatedBy: req.body.updatedBy,
+          status: req.body.status,
+        });
+
+        // Send verification email
+        const message = await getEmailVerification(email, verificationToken);
+        const messageData = await getMessage(
+          message,
+          email,
+          process.env.EMAIL_FROM,
+          "Vibrer Email Verification"
+        );
+        await transporter.sendMail(messageData);
+
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
@@ -95,13 +94,10 @@ passport.use(
       try {
         const user = await adminUsersSchema.findOne({
           email: email,
-          verification: true,
+          isVerified: true,
         });
 
         if (!user) {
-          return done(null, false, { message: "Invalid email or password" });
-        }
-        if (!user.verification) {
           return done(null, false, { message: "Invalid email or password" });
         }
 
@@ -146,7 +142,7 @@ const login = async (req) => {
       } else {
         let payload = {
           id: user.id,
-          mobile: user.email,
+          email: user.email,
           role: user.role,
         };
 
@@ -171,14 +167,6 @@ const login = async (req) => {
 const forgotPassword = async (req) => {
   let result = { data: null };
   const { email } = req.body;
-  const verification_token = generateRandomToken(50);
-  const message = await getForgotPassword(email, verification_token);
-  const messageData = await getMessage(
-    message,
-    email,
-    process.env.EMAIL_FROM,
-    "Forgot Password"
-  );
 
   try {
     const admin = await adminUsersSchema.findOne({ email: email });
@@ -186,6 +174,14 @@ const forgotPassword = async (req) => {
     if (admin) {
       try {
         // await sendGridMail.send(messageData);
+        const verification_token = generateRandomToken(50);
+        const message = await getForgotPassword(admin.name, verification_token);
+        const messageData = await getMessage(
+          message,
+          email,
+          process.env.EMAIL_FROM,
+          "Forgot Password"
+        );
         const send = await transporter.sendMail(messageData);
         if (send) {
           const expiryDate = new Date(Date.now() + 3600000); // Set the expiry to one hour from now
@@ -264,13 +260,13 @@ const verificationCode = async (req) => {
 
   try {
     const adminUser = await adminUsersSchema.findOne({
-      verification_token: token,
-      verification: false,
+      verificationToken: token,
+      isVerified: false,
     });
     if (adminUser) {
       const updateToken = await adminUsersSchema.updateOne(
         { _id: adminUser._id },
-        { $set: { verification: true } }
+        { $set: { isVerified: true } }
       );
 
       if (updateToken) {
@@ -289,55 +285,64 @@ const verificationCode = async (req) => {
   return result;
 };
 
-const addUser = (req, res, next) => {
-  passport.authenticate("local-signup", (err, user, info) => {
-    if (err) {
-      return next(err);
-    }
-    if (!user) {
-      return res.status(400).json({ code: 204, message: info.message });
-    }
-    req.logIn(user, (err) => {
-      if (err) {
-        return next(err);
-      }
-      return res.status(201).json({ code: 201, data: user });
-    });
-  })(req, res, next);
-};
+// const addUser = (req, res, next) => {
+//   passport.authenticate("local-signup-admin", (err, user, info) => {
+//     if (err) {
+//       return next(err);
+//     }
+//     if (!user) {
+//       return res.status(400).json({ code: 204, message: info.message });
+//     }
+//     req.logIn(user, (err) => {
+//       if (err) {
+//         return next(err);
+//       }
+//       return res.status(201).json({ code: 201, data: user });
+//     });
+//   })(req, res, next);
+// };
 
 const updateUser = async (req) => {
   const result = { data: null };
-  const {
-    id,
-    first_name,
-    last_name,
-    role,
-    email,
-    verification,
-    createdBy,
-    updatedBy,
-    status,
-  } = req.body;
-  // const profile_img = `${ADMIN_IMAGE_URL}`+`${req.file}`
+  const { id, firstName, lastName, role, email, password, isVerified, status } =
+    req.body;
+
   const filter = { _id: id };
 
-  const user = await adminUsersSchema.updateOne(filter, {
+  // Check if email already exists for another user
+  const existingUser = await adminUsersSchema.findOne({
+    email: email,
+    _id: { $ne: id },
+  });
+  if (existingUser) {
+    result.code = 205;
+    return result;
+  }
+
+  const hashedPassword = await bcryptjs.hash(password, 10);
+
+  const updateData = {
     name: {
-      first_name: first_name,
-      last_name: last_name,
+      firstName: firstName,
+      lastName: lastName,
     },
     role: role,
     email: email,
-    verification: verification,
-    // profile_img:profile_img,
-    // createdBy:createdBy,
-    updatedBy: updatedBy,
+    isVerified: isVerified,
+    password: hashedPassword,
     status: status,
-  });
-  if (user) {
+  };
+
+  // Conditionally include profileImg only if file is uploaded
+  if (req.file && req.file.filename) {
+    updateData.profileImage = `${ADMIN_IMAGE_URL}${req.file.filename}`;
+  }
+
+  const user = await adminUsersSchema.updateOne(filter, updateData);
+
+  if (user.modifiedCount > 0) {
     result.data = user;
-    result.code = 201;
+    result.code = 202;
   } else {
     result.code = 204;
   }
@@ -387,7 +392,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   verificationCode,
-  addUser,
+  // addUser,
   updateUser,
   getAllUser,
   getUser,

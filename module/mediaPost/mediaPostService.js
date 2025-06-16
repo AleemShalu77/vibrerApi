@@ -288,7 +288,7 @@ const contestParticipateVote = async (req) => {
     }
 
     const appUser = await appUserSchema.findById(payload.id);
-    if (appUser.account_deleted && appUser.account_deleted.is_deleted) {
+    if (appUser.accountDeleted && appUser.accountDeleted.isDeleted) {
       result.code = 2045;
       return result;
     }
@@ -296,7 +296,7 @@ const contestParticipateVote = async (req) => {
       result.code = 2046;
       return result;
     }
-    if (appUser.full_name === "") {
+    if (appUser.fullName === "") {
       result.code = 2047;
       return result;
     }
@@ -329,6 +329,10 @@ const contestParticipateVote = async (req) => {
     const currentParticipant = contestData.participates.find(
       (participant) => String(participant.user_id) === String(participate_id)
     );
+    if (!currentParticipant) {
+      result.code = 2054;
+      return result;
+    }
 
     // Check if the user has already voted for the current participant
     const existingVoteIndex = currentParticipant.votes.findIndex(
@@ -435,26 +439,26 @@ const addToFavourite = async (req) => {
 
     // Find the existing favorite, if any
     const existingFavoriteIndex = user.favourites.findIndex(
-      (favorite) => String(favorite.contest_id) === String(contest_id)
+      (favorite) => String(favorite.contestId) === String(contest_id)
     );
 
     if (existingFavoriteIndex !== -1) {
       // If the contest already exists in favorites
       const existingFavorite = user.favourites[existingFavoriteIndex];
 
-      if (!existingFavorite.participant_ids.includes(participate_id)) {
+      if (!existingFavorite.participantIds.includes(participate_id)) {
         // If the participant doesn't exist in participant_ids, add it
-        existingFavorite.participant_ids.push(participate_id);
+        existingFavorite.participantIds.push(participate_id);
         result.code = 2033; // Participant added to favorites
       } else {
         // If the participant already exists, remove it from participant_ids
         const participantIndex =
-          existingFavorite.participant_ids.indexOf(participate_id);
+          existingFavorite.participantIds.indexOf(participate_id);
         if (participantIndex !== -1) {
-          existingFavorite.participant_ids.splice(participantIndex, 1);
+          existingFavorite.participantIds.splice(participantIndex, 1);
 
           // If participant_ids becomes empty, remove the entire favorite entry
-          if (existingFavorite.participant_ids.length === 0) {
+          if (existingFavorite.participantIds.length === 0) {
             user.favourites.splice(existingFavoriteIndex, 1);
             result.code = 2034; // Entire entry removed from favorites
           } else {
@@ -465,8 +469,8 @@ const addToFavourite = async (req) => {
     } else {
       // If the contest doesn't exist in favorites, create a new favorite
       user.favourites.push({
-        contest_id: contest_id,
-        participant_ids: [participate_id],
+        contestId: contest_id,
+        participantIds: [participate_id],
       });
       result.code = 2033; // New favorite created
     }
@@ -499,8 +503,8 @@ const getAllFavouriteContestParticipants = async (req) => {
 
     // Extract favorites data
     const favorites = user.favourites.map((favorite) => ({
-      contest_id: favorite.contest_id,
-      participant_ids: favorite.participant_ids,
+      contest_id: favorite.contestId,
+      participant_ids: favorite.participantIds,
     }));
 
     // Fetch detailed information for each favorite contest and participants
@@ -638,7 +642,7 @@ const getVotedContestParticipants = async (req) => {
 
           // Check if the participant is in the user's favorites
           const isFavourite = user.favourites.some((favorite) =>
-            favorite.participant_ids.includes(participant.user_id._id)
+            favorite.participantIds.includes(participant.user_id._id)
           );
 
           return {
@@ -751,7 +755,7 @@ const getUserParticipatedContests = async (req) => {
           .map((participant) => {
             // Check if the participant is in the user's favorites
             const isFavourite = user.favourites.some((favorite) =>
-              favorite.participant_ids.includes(participant.user_id._id)
+              favorite.participantIds.includes(participant.user_id._id)
             );
 
             return {
@@ -821,19 +825,6 @@ const getUserParticipatedContests = async (req) => {
   return result;
 };
 
-// const getMediaPost = async (req) => {
-//   const result = { data: null };
-//   const id = req.params.id;
-//   const mediaPost = await mediaPostSchema.findOne({ _id: id });
-//   if (mediaPost) {
-//     result.data = mediaPost;
-//     result.code = 200;
-//   } else {
-//     result.code = 204;
-//   }
-//   return result;
-// };
-
 const deleteMediaPost = async (req) => {
   const result = { data: null };
   const id = req.params.id;
@@ -901,126 +892,6 @@ const deleteMediaPost = async (req) => {
   return result;
 };
 
-const adminDashboardCount = async (req) => {
-  const result = { data: null };
-  const payload = req.decoded;
-  const customObj = {};
-
-  try {
-    const today = new Date();
-    const sixMonthsAgo = new Date(today);
-    sixMonthsAgo.setMonth(today.getMonth() - 6);
-
-    const allappUser = await appUserSchema.count();
-    const activeappUser = await appUserSchema.count({ status: "Active" });
-    const inactiveappUserCount = await appUserSchema.count({
-      status: { $ne: "Active" },
-    });
-    const artistappUserCount = await appUserSchema.count({
-      user_type: "Artist",
-    });
-    const fanappUserCount = await appUserSchema.count({ user_type: "Fan" });
-    const verifiedAritstsCount = await appUserSchema.count({
-      user_type: "Artist",
-      verified: true,
-    });
-    const emailNotVerifiedCount = await appUserSchema.count({
-      verification: false,
-    });
-    const activeContestsCount = await contestSchema.count({ status: "Active" });
-
-    const usersLastTenDays = [];
-    const usersLastSixMonths = [];
-
-    // Get data for the last 10 days
-    for (let i = 0; i < 15; i++) {
-      const startOfDay = new Date(today);
-      startOfDay.setDate(today.getDate() - i);
-      const endOfDay = new Date(startOfDay);
-      endOfDay.setDate(startOfDay.getDate() + 1);
-
-      const count = await appUserSchema.count({
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-
-      const dateOnly = startOfDay.toISOString().slice(0, 10);
-      usersLastTenDays.push({ date: dateOnly, count });
-    }
-
-    // Get data for the last 6 months
-    for (let i = 0; i < 7; i++) {
-      // Changed the loop condition to include current month
-      const startOfMonth = new Date(sixMonthsAgo);
-      startOfMonth.setMonth(sixMonthsAgo.getMonth() + i);
-
-      const endOfMonth = new Date(startOfMonth);
-      endOfMonth.setMonth(startOfMonth.getMonth() + 1);
-
-      let count;
-      if (i === 6) {
-        // Check if it's the current month
-        const startOfCurrentMonth = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          1
-        );
-        const endOfCurrentMonth = new Date(
-          today.getFullYear(),
-          today.getMonth() + 1,
-          0
-        );
-        count = await appUserSchema.count({
-          createdAt: { $gte: startOfCurrentMonth, $lte: endOfCurrentMonth },
-        });
-      } else {
-        count = await appUserSchema.count({
-          $expr: {
-            $and: [
-              { $eq: [{ $year: "$createdAt" }, { $year: startOfMonth }] },
-              { $eq: [{ $month: "$createdAt" }, { $month: startOfMonth }] },
-            ],
-          },
-        });
-      }
-
-      const monthYear =
-        startOfMonth.toLocaleString("default", { month: "long" }) +
-        " " +
-        startOfMonth.getFullYear();
-      usersLastSixMonths.push({ monthYear, count });
-    }
-
-    const countryCounts = await appUserSchema.aggregate([
-      {
-        $group: {
-          _id: "$country",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
-    customObj.allappUser = allappUser;
-    customObj.activeappUser = activeappUser;
-    customObj.inactiveappUser = inactiveappUserCount;
-    customObj.artistappUser = artistappUserCount;
-    customObj.fanappUser = fanappUserCount;
-    customObj.verifiedAritsts = verifiedAritstsCount;
-    customObj.emailNotVerified = emailNotVerifiedCount;
-    customObj.activeContests = activeContestsCount;
-    customObj.usersLastTenDays = usersLastTenDays;
-    customObj.usersLastSixMonths = usersLastSixMonths;
-    customObj.usersCountryWiseCount = countryCounts;
-
-    result.data = customObj;
-    result.code = 200;
-  } catch (error) {
-    console.error("Error getting admin counts:", error);
-    result.code = 500;
-  }
-
-  return result;
-};
-
 const updateLeastQuality = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
@@ -1076,14 +947,11 @@ module.exports = {
   addMediaPost,
   contestParticipateVote,
   updateMediaPostStatus,
-  // getAllMediaPost,
-  // getMediaPost,
   deleteMediaPost,
   addToFavourite,
   getAllFavouriteContestParticipants,
   getVotedContestParticipants,
   getUserParticipatedContests,
-  adminDashboardCount,
   updateLeastQuality,
   uploadMediaVideo,
 };

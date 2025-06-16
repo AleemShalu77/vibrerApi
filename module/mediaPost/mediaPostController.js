@@ -135,27 +135,9 @@ const getUserParticipatedContests = async (req, res, next) => {
   }
 };
 
-// const getMediaPost = async (req, res, next) => {
-//     try {
-//         let result = await concertService.getMediaPost(req);
-//         helper.send(res, result.code, result.data);
-//     } catch (error) {
-//         next(error)
-//     }
-// }
-
 const deleteMediaPost = async (req, res, next) => {
   try {
     let result = await mediaPostService.deleteMediaPost(req);
-    helper.send(res, result.code, result.data);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const adminDashboardCount = async (req, res, next) => {
-  try {
-    let result = await mediaPostService.adminDashboardCount(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
@@ -187,14 +169,11 @@ module.exports = {
   addMediaPost,
   contestParticipateVote,
   updateMediaPostStatus,
-  // getAllMediaPost,
-  // getMediaPost,
   deleteMediaPost,
   addToFavourite,
   getAllFavouriteContestParticipants,
   getVotedContestParticipants,
   getUserParticipatedContests,
-  adminDashboardCount,
   updateLeastQuality,
   uploadMediaVideo,
 };

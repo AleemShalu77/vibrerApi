@@ -3,24 +3,24 @@ const tokenValidator = require("../../middleware/index");
 
 module.exports = (router) => {
   router.post(
-    "/entry/submitReport",
+    "/report/entry/submit",
     tokenValidator.validateToken,
     reportController.submitReport
   );
 
   router.get(
-    "/entry/getReports",
+    "/report/entry",
     tokenValidator.validateToken,
     reportController.getReports
   );
 
   router.get(
-    "/entry/reported",
+    "/report/entry/reported",
     tokenValidator.validateToken,
     reportController.entryReported
   );
   router.get(
-    "/entry/report-view/:report_id",
+    "/report/entry/view/:report_id",
     tokenValidator.validateToken,
     reportController.reportView
   );

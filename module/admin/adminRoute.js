@@ -2,21 +2,26 @@ const adminController = require("./adminController");
 const { uploader } = require("../../utils/fileUploader");
 
 module.exports = (router) => {
+  // Auth routes
   router.post("/login", adminController.login);
   router.post("/forgot-password", adminController.forgotPassword);
   router.post("/reset-password", adminController.resetPassword);
-  router.post("/verification-code", adminController.verificationCode);
+  router.post("/verify-code", adminController.verificationCode);
+
+  // Admin management
   router.post(
-    "/add/admin",
-    uploader.single("profile_img"),
+    "/admin/add",
+    uploader.single("profileImage"),
     adminController.addUser
   );
+
   router.post(
-    "/update/admin",
-    uploader.single("profile_img"),
+    "/admin/update",
+    uploader.single("profileImage"),
     adminController.updateUser
   );
-  router.get("/all/user", adminController.getAllUser);
-  router.get("/user/:id", adminController.getUser);
-  router.post("/remove/user/:id", adminController.deleteUser);
+
+  router.get("/admin/all", adminController.getAllUser);
+  router.get("/admin/:id", adminController.getUser);
+  router.post("/admin/remove/:id", adminController.deleteUser);
 };

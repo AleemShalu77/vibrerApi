@@ -4,55 +4,43 @@ const middleware = require("../../middleware");
 module.exports = (router) => {
   //contest
   router.post(
-    "/add/contest",
+    "/contest/add",
     middleware.validateToken,
     contestController.addContest
   );
   router.put(
-    "/update/contest",
+    "/contest/update",
     middleware.validateToken,
     contestController.updateContest
   );
-  router.post("/all/contest", contestController.getAllContest);
+  router.post("/contest/all", contestController.getAllContest);
   router.get("/contest/:id", contestController.getContest);
   router.get(
-    "/contest-details/:id",
+    "/contest/details/:id",
     middleware.validateToken,
     contestController.getContest
   );
-
-  router.post("/contest-entries/:id", contestController.getContestEntries);
   router.post(
-    "/auth/contest-entries/:id",
+    "/contest/remove/:id",
+    middleware.validateToken,
+    contestController.deleteContest
+  );
+
+  router.post("/contest/entries/:id", contestController.getContestEntries);
+  router.post(
+    "/contest/entries/auth/:id",
     middleware.validateToken,
     contestController.getContestEntries
   );
 
   router.get(
-    "/contest-details-all-participants/:id",
-    middleware.validateToken,
-    contestController.getContestAllParticipants
-  );
-  router.post(
-    "/remove/contest/:id",
-    middleware.validateToken,
-    contestController.deleteContest
-  );
-
-  router.get(
-    "/contest-single-entry/:contestId/:entryId",
-    contestController.getSingleEntry
-  );
-  router.get(
-    "/contest-single-entry/:contestId",
+    "/contest/entry/:contestId/:entryId",
     contestController.getSingleEntry
   );
 
   router.get(
-    "/get-user-entry/:contestId",
+    "/contest/user-entry/:contestId",
     middleware.validateToken,
     contestController.getUserEntry
   );
-
-  router.get("/contest-single-entry", contestController.getSingleEntry);
 };

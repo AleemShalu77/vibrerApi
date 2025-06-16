@@ -38,7 +38,7 @@ const fileFilter = (req, file, cb) => {
   let allowed_formats = [];
   if (req.path === "/add/MediaPost") {
     allowed_formats = allowed_video_formats;
-  } else if (req.path === "/upload/MediaVideo") {
+  } else if (req.path === "/contest/entry/media/upload") {
     allowed_formats = allowed_video_formats;
   }
 

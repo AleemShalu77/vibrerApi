@@ -202,7 +202,7 @@ const message = {
     status: 0,
   },
   2046: {
-    message: "email_verify_for_vote",
+    message: "Email verification is required before you can proceed.",
     httpCode: 200,
     status: 0,
   },
@@ -238,6 +238,16 @@ const message = {
   },
   2053: {
     message: "Invalid concert _id and/or password",
+    httpCode: 400,
+    status: 0,
+  },
+  2054: {
+    message: "The specified ID does not match any existing entry.",
+    httpCode: 400,
+    status: 0,
+  },
+  2055: {
+    message: "Reported user id not found",
     httpCode: 400,
     status: 0,
   },

@@ -10,6 +10,7 @@ const {
   SECRET_ACCESS_KEY,
   END_POINT,
   MEDIA_BUCKET_NAME,
+  EMAIL_LOGO,
 } = require("../config/index");
 require("dotenv").config();
 
@@ -135,70 +136,65 @@ getEmailVerificationappUser = (email, verification_token) => {
   return emailTemplate;
 };
 
-getForgotPassword = (email, verification_token) => {
-  let data =
-    `<!DOCTYPE html>
-  <html lang="en" style="margin: 0; padding: 0; overflow-x: hidden; box-sizing: border-box;">
-  
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Forgot Password</title>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Raleway:500,700&display=swap" rel="stylesheet">
-  </head>
-  
-  <body style="margin: 0; padding: 0; overflow-x: hidden; box-sizing: border-box; background-color: #444;">
-    <section class="container" style="display: grid; justify-content: center;">
-      <div class="template-wrapper" style="background-color: #fff; width: 100%;">
-        <!--div class="row" style="width: 100%; display: flex;">
-          <div class="text-center col logo" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; background: #f4f4f4; border: solid 1px #e4e4e4; padding: 30px 10px;">
-            <img src="https://vibrer.cloud/public/images/viberer-logo-light.svg" alt="Hello Worker Logo" style="width: 200px;">
-          </div>
-        </div-->
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col text-center resPW" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; background-color: #ff5d5d; padding: 30px 10px;">
-            <h1 style="font-family: sans-serif; color: #ffffff; font-weight: 700; font-size: 1rem; margin: 0; text-transform: uppercase;">
-            Reset Password
-            </h1>
-          </div>
-        </div>
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col content" style="width: 100%; padding-left: 30px; padding-right: 30px; padding-top: 30px; padding-bottom: 15px;">
-            <h3 style="margin: 0; font-family: sans-serif; font-size: 1.1rem; color: #3f3d56; margin-bottom: 8px;">
-            Dear ` +
-    email +
-    `</h3>
-            <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #ff5d5d; font-size: 1.3rem;">
-            Here is your reset password link
-            </p>
-          </div>
-        </div>
-        
-  
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col content" style="width: 100%; padding-left: 30px; padding-right: 30px; padding-top: 15px; padding-bottom: 30px;">
-  
-            <p style="margin: 0; font-size: 15px; color: #3f3d56; font-family: sans-serif; line-height: 2;">
-            To reset password <a style="color: #0369ee;" href="https://vibrer.cloud/reset-password?token=` +
-    verification_token +
-    `">Click
-            Here</a><br>
-            Thank you for using the Vibrer.
-            </p>
-          </div>
-        </div>
-        <div class="row" style="width: 100%; display: flex;">
-          <div class="col footer text-center" style="text-align: center; width: 100%; padding-left: 30px; padding-right: 30px; padding: 30px 10px; background-color: #3f3d56; margin-top: 15px;">
-            <p style="margin: 0; font-family: sans-serif; line-height: 1.5; color: #e9e8e8; font-size: 14px;">©
-            © 2024 All rights reserved | Vibrer Internet Content Provider L.L.C, UAE</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  </body>
-  
-  </html>`;
+getForgotPassword = (name, verification_token) => {
+  let data = `<!DOCTYPE html>
+<html lang="en" style="margin: 0; padding: 0; box-sizing: border-box;">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600|Raleway:700&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Open Sans', sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding: 30px; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+              <img src="${EMAIL_LOGO}" alt="Vibrer Logo" style="max-width: 180px;">
+            </td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 20px; background-color: #ef4444;">
+              <h1 style="color: #ffffff; font-size: 20px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Reset Your Password</h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 30px; color: #374151; font-size: 16px;">
+              <p style="margin-top: 0;">Dear <strong>${name.firstName} ${name.lastName}</strong>,</p>
+              <p>We received a request to reset your password. Click the button below to proceed:</p>
+
+              <!-- CTA Button -->
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="https://vibrer.cloud/reset-password?token=${verification_token}" style="background-color: #3b82f6; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+                  Reset Password
+                </a>
+              </p>
+
+              <p>If you didn’t request a password reset, you can safely ignore this email. Your account will remain secure.</p>
+              <p>Thanks,<br>The Vibrer Team</p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px; background-color: #1f2937; color: #d1d5db; font-size: 13px;">
+              © 2024 All rights reserved | Vibrer Internet Content Provider L.L.C, UAE
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
 
   return data;
 };
@@ -228,7 +224,7 @@ getContestParticipantMailappUser = (user, mediaPost, contestData, genres) => {
     "contestParticipation.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.fullName}`);
   emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
   emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
   emailTemplate = emailTemplate.replace(
@@ -257,7 +253,7 @@ getContestApprovalMailappUser = (user, mediaPost, contestData, genres) => {
     "contestEntryApproved.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.fullName}`);
   emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
   emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
   emailTemplate = emailTemplate.replace(
@@ -282,7 +278,7 @@ getContestVoteMailappUser = (user, mediaPost, contestData, genres) => {
     "contest1VoteReceived.html"
   );
   let emailTemplate = fs.readFileSync(emailTemplatePath, "utf8");
-  emailTemplate = emailTemplate.replace("[FullName]", `${user.full_name}`);
+  emailTemplate = emailTemplate.replace("[FullName]", `${user.fullName}`);
   emailTemplate = emailTemplate.replace("[title]", `${mediaPost.title}`);
   emailTemplate = emailTemplate.replace("[Genre]", `${genres}`);
   emailTemplate = emailTemplate.replace(

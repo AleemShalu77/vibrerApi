@@ -81,148 +81,7 @@ class UniqueUsernameGenerator {
 }
 
 passport.use(
-  "local-signup",
-  new LocalStrategy(
-    {
-      usernameField: "email",
-      passwordField: "password",
-      passReqToCallback: true,
-    },
-    async (req, email, password, done) => {
-      try {
-        email = email.toLowerCase();
-        const existingUser = await appUsersSchema.findOne({ email });
-
-        if (existingUser) {
-          return done(null, false, { message: "Email is already taken." });
-        }
-
-        const hashedPassword = await bcryptjs.hashSync(password, 10);
-        const verification_token = generateRandomToken(50);
-
-        const newUser = await appUsersSchema.create({
-          user_type: req.body.user_type,
-          email,
-          password: hashedPassword,
-          username: req.body.username,
-          artist_categories: req.body.artist_categories,
-          name: {
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
-          },
-          full_name: req.body.full_name,
-          gender: req.body.gender,
-          date_of_birth: req.body.date_of_birth,
-          city: req.body.city,
-          country: req.body.country,
-          concert_artist: req.body.concert_artist,
-          visibility: req.body.visibility,
-          bio: req.body.bio,
-          profile_img: req.body.profile_img,
-          profile_cover: req.body.profile_cover,
-          verified: req.body.verified,
-          verification: false,
-          verification_token: verification_token,
-          genres: req.body.genres,
-          link: {
-            facebook: req.body.facebook,
-            twitter: req.body.twitter,
-            instagram: req.body.instagram,
-            youtube: req.body.youtube,
-            website: req.body.website,
-          },
-          status: req.body.status,
-        });
-        if (newUser) {
-          const message = await getEmailVerification(email, verification_token);
-          const messageData = await getMessage(
-            message,
-            email,
-            process.env.EMAIL_FROM,
-            "Vibrer Email Verification"
-          );
-
-          // Assuming you have a function to send the verification email
-          const send = await transporter.sendMail(messageData);
-
-          return done(null, newUser);
-        } else {
-          return done(null, false, { message: "User registration failed." });
-        }
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-passport.use(
-  "local-signup-register-user",
-  new LocalStrategy(
-    {
-      usernameField: "email",
-      passwordField: "password",
-      passReqToCallback: true,
-    },
-    async (req, email, password, done) => {
-      try {
-        email = email.toLowerCase();
-        const existingUser = await appUsersSchema.findOne({ email });
-
-        if (existingUser) {
-          return done(null, false, { message: "Email is already taken." });
-        }
-
-        const hashedPassword = await bcryptjs.hashSync(password, 10);
-        const verification_token = generateRandomToken(50);
-        const updatedUsername =
-          await new UniqueUsernameGenerator().generateUsernameByFullName(
-            req.body.full_name
-          );
-
-        const newUser = await appUsersSchema.create({
-          user_type: req.body.user_type,
-          email,
-          password: hashedPassword,
-          username: updatedUsername,
-          artist_categories: req.body.artist_categories,
-          full_name: req.body.full_name,
-          gender: req.body.gender,
-          date_of_birth: req.body.date_of_birth,
-          city: req.body.city,
-          country: req.body.country,
-          concert_artist: req.body.concert_artist,
-          visibility: "Public",
-          bio: req.body.bio,
-          profile_img: req.body.profile_img,
-          profile_cover: req.body.profile_cover,
-          verified: req.body.verified,
-          verification: true,
-          verification_token: verification_token,
-          genres: req.body.genres,
-          link: {
-            facebook: req.body.facebook,
-            twitter: req.body.twitter,
-            instagram: req.body.instagram,
-            youtube: req.body.youtube,
-            website: req.body.website,
-          },
-          status: "Active",
-        });
-        if (newUser) {
-          return done(null, newUser);
-        } else {
-          return done(null, false, { message: "User registration failed." });
-        }
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-passport.use(
-  "local-registerappUser",
+  "local-appUser-register",
   new LocalStrategy(
     {
       usernameField: "email",
@@ -249,11 +108,11 @@ passport.use(
         const verification_token = generateRandomToken(50);
 
         const newUser = await appUsersSchema.create({
-          user_type: req.body.user_type,
+          userType: req.body.user_type,
           email,
           password: hashedPassword,
           verification: false,
-          verification_token: verification_token,
+          verificationToken: verification_token,
           status: "Active",
         });
 
@@ -284,7 +143,7 @@ passport.use(
 );
 
 passport.use(
-  "local-login-artist",
+  "local-appUser-login",
   new LocalStrategy(
     { usernameField: "email", passwordField: "password" },
     async (email, password, done) => {
@@ -325,9 +184,9 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-const artistLogin = async (req) => {
+const login = async (req) => {
   return new Promise((resolve, reject) => {
-    passport.authenticate("local-login-artist", (err, user, info) => {
+    passport.authenticate("local-appUser-login", (err, user, info) => {
       let result = { data: null };
 
       if (err) {
@@ -358,32 +217,6 @@ const artistLogin = async (req) => {
     })(req);
   });
 };
-
-// const forgotPasswordArtist = async (req) => {
-//   const result = { data: null };
-//   const { email, confirmPassword } = req.body;
-//   if (req.body.password != confirmPassword) {
-//     result.code = 2016;
-//     return result;
-//   }
-//   // const pswd = await bcrypt.genSalt(10);
-//   // const password = await bcrypt.hash(req.body.password, pswd);
-//   const password = await bcryptjs.hashSync(req.body.password, 10);
-//   const user = await appUsersSchema.findOne({ email });
-//   if (user) {
-//     const reset = await appUsersSchema.updateOne(
-//       { email: email },
-//       {
-//         password: password,
-//       }
-//     );
-//     result.data = reset;
-//     result.code = 2015;
-//   } else {
-//     result.code = 2017;
-//   }
-//   return result;
-// };
 
 const forgotPassword = async (req) => {
   let result = { data: null };
@@ -476,13 +309,13 @@ const resetPassword = async (req) => {
   return result;
 };
 
-const verificationCode = async (req) => {
+const verifyEmail = async (req) => {
   let result = { data: null };
   const { token } = req.body;
 
   try {
     const adminUser = await appUsersSchema.findOne({
-      verification_token: token,
+      verificationToken: token,
       verification: false,
     });
     if (adminUser) {
@@ -507,85 +340,11 @@ const verificationCode = async (req) => {
   return result;
 };
 
-const updateappUserSpecificColumn = async (req) => {
-  const result = { data: null };
-  const { id, column, value } = req.body;
-
-  try {
-    const appUser = await appUsersSchema.findById(id);
-
-    if (appUser) {
-      // Use an object to specify the field you want to update dynamically
-      const updateObject = {};
-      updateObject[column] = value;
-
-      // Update the specified field
-      const reset = await appUsersSchema.updateOne({ _id: id }, updateObject);
-      if (reset) {
-        result.data = reset;
-        result.code = 202;
-      } else {
-        result.code = 400;
-      }
-    } else {
-      result.code = 2017;
-    }
-  } catch (error) {
-    result.code = 400;
-    result.error = error;
-  }
-
-  return result;
-};
-
-const addappUser = async (req) => {
-  return new Promise((resolve, reject) => {
-    const result = { data: null };
-    passport.authenticate("local-signup", async (err, user, info) => {
-      if (err) {
-        throw err;
-      }
-      if (!user) {
-        result.code = 205; // Email is already taken
-        resolve(result);
-      } else {
-        // Registration successful
-        result.data = user;
-        result.code = 201;
-        resolve(result);
-      }
-    })(req);
-  });
-};
-
-const addNewAppUser = async (req) => {
-  return new Promise((resolve, reject) => {
-    const result = { data: null };
-    passport.authenticate(
-      "local-signup-register-user",
-      async (err, user, info) => {
-        if (err) {
-          throw err;
-        }
-        if (!user) {
-          result.code = 205; // Email is already taken
-          resolve(result);
-        } else {
-          // Registration successful
-          result.data = user;
-          result.code = 201;
-          resolve(result);
-        }
-      }
-    )(req);
-  });
-};
-
-const registerappUser = async (req) => {
+const registerAppUser = async (req) => {
   return new Promise((resolve, reject) => {
     const result = { data: null };
 
-    passport.authenticate("local-registerappUser", async (err, user, info) => {
+    passport.authenticate("local-appUser-register", async (err, user, info) => {
       try {
         if (err) {
           throw err;
@@ -630,7 +389,6 @@ const updateappUser = async (req) => {
   const payload = req.decoded;
   const {
     email,
-    username,
     artist_categories,
     first_name,
     last_name,
@@ -687,21 +445,21 @@ const updateappUser = async (req) => {
     const update = {
       email,
       username: updatedUsername.toLowerCase(),
-      artist_categories,
+      artistCategories: artist_categories,
       name: {
-        first_name,
-        last_name,
+        firstName: first_name,
+        lastName: last_name,
       },
-      full_name,
+      fullName: full_name,
       gender,
       date_of_birth,
       city,
       country,
-      concert_artist,
+      concertArtist: concert_artist,
       visibility,
       bio,
-      profile_img,
-      profile_cover,
+      profileImg: profile_img,
+      profileCover: profile_cover,
       genres,
       link: {
         facebook,
@@ -726,192 +484,6 @@ const updateappUser = async (req) => {
   } catch (error) {
     console.error("Error updating user:", error);
     result.code = 500;
-  }
-
-  return result;
-};
-
-const getAllappUser = async (req) => {
-  const result = { data: null };
-  let { page, limit, search, draw } = req.query;
-
-  // Set default values if page or limit is not provided
-  page = parseInt(page) || 1;
-  limit = parseInt(limit) || 10;
-
-  // Construct your query based on search parameters
-  const query = {
-    $and: [
-      {
-        $or: [
-          { "account_deleted.is_deleted": { $ne: true } },
-          { account_deleted: { $exists: false } },
-        ],
-      },
-    ],
-  };
-
-  if (search) {
-    const searchRegex = new RegExp(search, "i"); // Case-insensitive search regex
-    query.$and.push({
-      $or: [
-        { full_name: searchRegex },
-        { email: searchRegex },
-        { user_type: searchRegex },
-        { country: searchRegex },
-        // Add more fields for search as needed
-      ],
-    });
-  }
-
-  const totalDocuments = await appUsersSchema.countDocuments(query);
-  const totalPages = Math.ceil(totalDocuments / limit);
-
-  // Ensure page is within valid range
-  page = Math.min(page, totalPages);
-  page = Math.max(page, 1); // Ensure page is at least 1
-
-  // Fetch appUsers based on query, skipping appropriate number of documents based on pagination
-  const skipValue = (page - 1) * limit; // Calculate skip value
-  const appUser = await appUsersSchema
-    .find(query)
-    .sort({ createdAt: -1 })
-    .skip(skipValue >= 0 ? skipValue : 0) // Ensure skip value is non-negative
-    .limit(limit);
-
-  if (appUser) {
-    // Prepare the response data
-    result.code = 200;
-    result.data = {
-      draw,
-      data: appUser,
-      page,
-      limit,
-      recordsFiltered: totalDocuments,
-      recordsTotal: totalDocuments, // totalRecords is the same as recordsTotal in DataTables
-    };
-  } else {
-    result.code = 204; // No Content
-  }
-
-  return result;
-};
-
-const getappUser = async (req) => {
-  const result = { data: null };
-  const id = req.params.id;
-
-  try {
-    const appUser = await appUsersSchema.findById(id);
-    let artistCategoriesInfo = await artistCategoriesSchema.find({
-      _id: { $in: appUser.artist_categories },
-    });
-    if (artistCategoriesInfo) {
-      appUser.artist_categories = artistCategoriesInfo;
-    }
-    let genresInfo = await genreSchema.find({
-      _id: { $in: appUser.genres },
-    });
-    if (genresInfo) {
-      appUser.genres = genresInfo;
-    }
-
-    if (appUser) {
-      result.data = appUser;
-      result.code = 200;
-    } else {
-      result.code = 204;
-    }
-  } catch (error) {
-    result.code = 204;
-    result.error = error;
-  }
-
-  return result;
-};
-
-const getAllappArtists = async (req) => {
-  const result = { data: null };
-
-  try {
-    // Fetch all app users
-    const appUsers = await appUsersSchema.find(
-      {
-        $and: [
-          { concert_artist: true }, // Must be a concert artist
-          {
-            $or: [
-              { "account_deleted.is_deleted": { $ne: true } }, // Not deleted
-              { account_deleted: { $exists: false } }, // `account_deleted` field does not exist
-            ],
-          },
-        ],
-      },
-      {
-        link: 1,
-        _id: 1,
-        email: 1,
-        artist_categories: 1,
-        visibility: 1,
-        verification: 1,
-        genres: 1,
-        status: 1,
-        profile_img: 1,
-        profile_cover: 1,
-        bio: 1,
-        city: 1,
-        country: 1,
-        date_of_birth: 1,
-        full_name: 1,
-        gender: 1,
-        username: 1,
-        concert_artist: 1,
-      }
-    );
-
-    if (!appUsers || appUsers.length === 0) {
-      result.code = 204; // No content
-      return result;
-    }
-
-    // Collect all unique category and genre IDs
-    const artistCategoryIds = [
-      ...new Set(appUsers.flatMap((user) => user.artist_categories || [])),
-    ];
-    const genreIds = [
-      ...new Set(appUsers.flatMap((user) => user.genres || [])),
-    ];
-
-    // Fetch artist categories and genres in bulk
-    const artistCategoriesInfo = await artistCategoriesSchema.find({
-      _id: { $in: artistCategoryIds },
-    });
-    const genresInfo = await genreSchema.find({
-      _id: { $in: genreIds },
-    });
-
-    // Map categories and genres by their IDs for faster lookup
-    const artistCategoriesMap = Object.fromEntries(
-      artistCategoriesInfo.map((cat) => [cat._id.toString(), cat])
-    );
-    const genresMap = Object.fromEntries(
-      genresInfo.map((genre) => [genre._id.toString(), genre])
-    );
-
-    // Populate each user's categories and genres
-    const populatedUsers = appUsers.map((user) => ({
-      ...user.toObject(), // Convert Mongoose document to plain object
-      artist_categories: (user.artist_categories || []).map(
-        (id) => artistCategoriesMap[id.toString()]
-      ),
-      genres: (user.genres || []).map((id) => genresMap[id.toString()]),
-    }));
-
-    result.data = populatedUsers;
-    result.code = 200; // Success
-  } catch (error) {
-    result.code = 500; // Internal server error
-    result.error = error.message || "An error occurred";
   }
 
   return result;
@@ -952,10 +524,10 @@ const getappUserProfile = async (req) => {
   try {
     const appUser = await appUsersSchema.findById(id);
     let artistCategoriesInfo = await artistCategoriesSchema.find({
-      _id: { $in: appUser.artist_categories },
+      _id: { $in: appUser.artistCategories },
     });
     if (artistCategoriesInfo) {
-      appUser.artist_categories = artistCategoriesInfo;
+      appUser.artistCategories = artistCategoriesInfo;
     }
     let genresInfo = await genreSchema.find({
       _id: { $in: appUser.genres },
@@ -984,7 +556,7 @@ const deleteappUser = async (req) => {
 
   try {
     const user = await appUsersSchema.findById(user_id);
-    if (user && user.account_deleted && user.account_deleted.is_deleted) {
+    if (user && user.accountDeleted && user.accountDeleted.isDeleted) {
       result.code = 2044;
       return result;
     }
@@ -997,21 +569,21 @@ const deleteappUser = async (req) => {
         return result;
       }
       const admin_email = adminData.email;
-      const admin_name = `${adminData.name.first_name} ${adminData.name.last_name}`;
+      const admin_name = `${adminData.name.firstName} ${adminData.name.lastLame}`;
       accountDeleted = {
-        is_deleted: true,
-        deleted_by: {
-          user_type: "admin",
-          admin_email: admin_email,
-          admin_name: admin_name,
+        isDeleted: true,
+        deletedBy: {
+          userType: "admin",
+          adminEmail: admin_email,
+          adminName: admin_name,
         },
         deletedAt: new Date(),
       };
     } else {
       accountDeleted = {
-        is_deleted: true,
-        deleted_by: {
-          user_type: "self",
+        isDeleted: true,
+        deletedBy: {
+          userType: "self",
         },
         deletedAt: new Date(),
       };
@@ -1024,7 +596,7 @@ const deleteappUser = async (req) => {
           email: "",
           password: "",
           username: "",
-          artist_categories: "",
+          artistCategories: "",
           name: "",
           gender: "",
           date_of_birth: "",
@@ -1033,11 +605,11 @@ const deleteappUser = async (req) => {
           concert_artist: "",
           visibility: "",
           bio: "",
-          profile_img: "",
-          profile_cover: "",
+          profileImg: "",
+          profileCover: "",
           verified: "",
           verification: "",
-          verification_token: "",
+          verificationToken: "",
           forgotPasswordToken: "",
           genres: "",
           gallery: "",
@@ -1046,16 +618,16 @@ const deleteappUser = async (req) => {
           status: "",
         },
         $set: {
-          account_deleted: accountDeleted,
-          full_name: "user_deleted",
+          accountDeleted: accountDeleted,
+          fullName: "user_deleted",
         },
       },
       {
         new: true,
         select: {
           _id: 1,
-          user_type: 1,
-          full_name: 1,
+          userType: 1,
+          fullName: 1,
           createdAt: 1,
           updatedAt: 1,
         },
@@ -1140,9 +712,9 @@ const profileCoverImage = async (req) => {
     const user = await appUsersSchema.findById(payload.id);
     let oldImagePath = "";
     if (req.body.type === "profile_img") {
-      oldImagePath = user.profile_img;
+      oldImagePath = user.profileImg;
     } else if (req.body.type === "profile_cover") {
-      oldImagePath = user.profile_cover;
+      oldImagePath = user.profileCover;
     }
 
     if (oldImagePath && oldImagePath.trim() !== "") {
@@ -1156,9 +728,9 @@ const profileCoverImage = async (req) => {
     let updateFields = {};
 
     if (req.body.type === "profile_img") {
-      updateFields = { profile_img: imagePath };
+      updateFields = { profileImg: imagePath };
     } else if (req.body.type === "profile_cover") {
-      updateFields = { profile_cover: imagePath };
+      updateFields = { profileCover: imagePath };
     }
     await appUsersSchema.findByIdAndUpdate(payload.id, updateFields, {
       new: true,
@@ -1216,9 +788,9 @@ const uploadProfileCoverImage = async (file, type, user_id) => {
     const user = await appUsersSchema.findById(user_id);
     let oldImagePath = "";
     if (type === "profile_img") {
-      oldImagePath = user.profile_img;
+      oldImagePath = user.profileImg;
     } else if (type === "profile_cover") {
-      oldImagePath = user.profile_cover;
+      oldImagePath = user.profileCover;
     }
 
     if (oldImagePath && oldImagePath.trim() !== "") {
@@ -1232,9 +804,9 @@ const uploadProfileCoverImage = async (file, type, user_id) => {
     let updateFields = {};
 
     if (req.body.type === "profile_img") {
-      updateFields = { profile_img: imagePath };
+      updateFields = { profileImg: imagePath };
     } else if (req.body.type === "profile_cover") {
-      updateFields = { profile_cover: imagePath };
+      updateFields = { profileCover: imagePath };
     }
     await appUsersSchema.findByIdAndUpdate(user_id, updateFields, {
       new: true,
@@ -1298,7 +870,7 @@ const uploadGalleryImage = async (req) => {
         $push: {
           gallery: {
             title: "Image Title",
-            media_url: imagePath,
+            mediaUrl: imagePath,
             status: "active",
           },
         },
@@ -1318,91 +890,6 @@ const uploadGalleryImage = async (req) => {
   return result;
 };
 
-// const uploadGalleryImage = async (req) => {
-//   const result = { data: null };
-//   const payload = req.decoded;
-
-//   if (!req.file) {
-//     result.code = 2029;
-//     return result;
-//   }
-
-//   const file = req.file;
-//   const newFileName = generateUniqueFileName();
-//   const targetFileName = `${newFileName}.webp`; // The file will be saved as a .webp
-//   const mimeType = "image/webp"; // MIME type for the webp image
-
-//   const tempPath = file.path;
-//   const extension = path.extname(file.originalname).toLowerCase();
-
-//   if (extension === ".heic") {
-//     // Convert HEIC to JPEG first
-//     const inputBuffer = fs.readFileSync(tempPath);
-//     const outputBuffer = await heicConvert({
-//       buffer: inputBuffer,
-//       format: "JPEG",
-//       quality: 1,
-//     });
-//     fs.writeFileSync(tempPath, outputBuffer);
-//   }
-
-//   let uploadBuffer;
-//   try {
-//     // Process the image with sharp and get buffer for upload
-//     uploadBuffer = await sharp(tempPath)
-//       .resize(800, null) // Resizing the image
-//       .webp({ quality: 100 }) // Converting to webp
-//       .toBuffer();
-//   } catch (error) {
-//     console.error("Failed to process image:", error);
-//     result.code = 2028;
-//     return result;
-//   } finally {
-//     // Delete the temporary file
-//     fs.unlinkSync(tempPath);
-//   }
-
-//   try {
-//     // Upload the processed image buffer to Cloudflare R2
-//     const uploadResponse = await uploadFileToR2(
-//       uploadBuffer,
-//       targetFileName,
-//       mimeType
-//     );
-//     console.log(uploadResponse);
-//     // The URL to access the image on Cloudflare R2, adjust as necessary
-//     const imagePath = `${endpoint}/${uploadResponse.Key}`;
-
-//     // Update the user schema with the new image path
-//     const updatedUser = await appUsersSchema.findByIdAndUpdate(
-//       payload.id,
-//       {
-//         $push: {
-//           gallery: {
-//             title: "Image Title",
-//             media_url: imagePath,
-//             status: "active",
-//           },
-//         },
-//       },
-//       { new: true }
-//     );
-
-//     if (updatedUser) {
-//       result.data = imagePath;
-//       result.code = 2030;
-//     } else {
-//       // Handle the case where the user is not found or not updated
-//       result.code = 2027; // You should define an appropriate error code for this case
-//     }
-//   } catch (uploadError) {
-//     console.error("Error uploading image to R2:", uploadError);
-//     result.code = 2028;
-//   }
-
-//   return result;
-// };
-
 const deleteGalleryImage = async (req) => {
   const result = { data: null };
   const payload = req.decoded;
@@ -1420,7 +907,7 @@ const deleteGalleryImage = async (req) => {
       return result;
     }
 
-    const fileName = user.gallery[galleryImageIndex].media_url.split("/").pop();
+    const fileName = user.gallery[galleryImageIndex].mediaUrl.split("/").pop();
 
     const absoluteFilePath = path.join(
       __dirname,
@@ -1637,8 +1124,8 @@ const getBlockedUsers = async (req) => {
           email: userData.email,
           full_name: userData.full_name,
           name: userData.name,
-          profile_img: userData.profile_img,
-          profile_cover: userData.profile_cover,
+          profileImg: userData.profileImg,
+          profileCover: userData.profileCover,
           username: userData.username,
           city: userData.city,
           country: userData.country,
@@ -1742,8 +1229,8 @@ const getFollowingUsers = async (req) => {
           email: userData.email,
           full_name: userData.full_name,
           name: userData.name,
-          profile_img: userData.profile_img,
-          profile_cover: userData.profile_cover,
+          profileImg: userData.profileImg,
+          profileCover: userData.profileCover,
           username: userData.username,
           city: userData.city,
           country: userData.country,
@@ -1796,8 +1283,8 @@ const getFollowerUsers = async (req) => {
           email: userData.email,
           full_name: userData.full_name,
           name: userData.name,
-          profile_img: userData.profile_img,
-          profile_cover: userData.profile_cover,
+          profileImg: userData.profileImg,
+          profileCover: userData.profileCover,
           username: userData.username,
           city: userData.city,
           country: userData.country,
@@ -1824,25 +1311,19 @@ const getFollowerUsers = async (req) => {
 };
 
 module.exports = {
-  artistLogin,
-  // forgotPasswordArtist,
-  updateappUserSpecificColumn,
-  addappUser,
-  registerappUser,
+  login,
+  registerAppUser,
   updateappUser,
-  getAllappUser,
-  getappUser,
   deleteappUser,
   forgotPassword,
   resetPassword,
-  verificationCode,
+  verifyEmail,
   profileCoverImage,
   getappUserProfile,
   uploadGalleryImage,
   deleteGalleryImage,
   checkUsername,
   removeProfileCoverImage,
-  addNewAppUser,
   uploadProfileCoverImage,
   bulkUserUpload,
   addRemoveBlockUser,
@@ -1850,5 +1331,4 @@ module.exports = {
   addRemoveFollowUser,
   getFollowingUsers,
   getFollowerUsers,
-  getAllappArtists,
 };

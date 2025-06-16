@@ -30,8 +30,17 @@ const submitReport = async (req) => {
     (participant) => String(participant._id) === String(entry_id)
   );
 
+  const isParticipateUserIdExists = contestExists.participates.some(
+    (participant) => String(participant.user_id) === String(reported_user_id)
+  );
+
   if (!isParticipateIdExists) {
     result.code = 2032;
+    return result;
+  }
+
+  if (!isParticipateUserIdExists) {
+    result.code = 2055;
     return result;
   }
 

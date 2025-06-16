@@ -1,157 +1,107 @@
 const mongoose = require("mongoose");
+
+// Gallery Subschema
 const gallerySchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true,
-    },
-    media_url: {
-      type: String,
-      required: true,
-    },
+    title: { type: String, required: true },
+    mediaUrl: { type: String, required: true },
     status: {
       type: String,
       enum: ["active", "inactive", "disabled"],
       required: true,
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
+// Account Deletion Subschema
+const accountDeletedSchema = new mongoose.Schema(
+  {
+    isDeleted: { type: Boolean, default: false },
+    deletedBy: {
+      userType: { type: String, enum: ["admin", "self"] },
+      adminEmail: String,
+      adminName: String,
+    },
+    deletedAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
+// Main User Schema
 const appUsersSchema = new mongoose.Schema(
   {
-    user_type: {
+    userType: {
       type: String,
       enum: ["Artist", "Fan"],
       required: true,
     },
-    email: {
-      type: String,
-      required: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    username: {
-      type: String,
-      required: false,
-    },
-    artist_categories: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "artist_categories", // Reference the artistCategories model
-        },
-      ],
-      required: false,
-    },
-    full_name: {
-      type: String,
-      required: false,
-    },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+
+    username: String,
+    fullName: String,
     name: {
-      first_name: {
-        type: String,
-        required: false,
-      },
-      last_name: {
-        type: String,
-        required: false,
-      },
+      firstName: String,
+      lastName: String,
     },
+
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
-      required: false,
     },
-    date_of_birth: {
-      type: Date, // Assuming date of birth will be stored as a Date type
-      required: false,
-    },
-    city: {
-      type: String,
-      required: false,
-    },
-    // state:{
-    //     type:String,
-    //     required:true
-    // },
-    country: {
-      type: String,
-      required: false,
-    },
-    concert_artist: {
-      type: Boolean,
-      required: false,
-    },
+    dateOfBirth: Date,
+    city: String,
+    country: String,
+
+    concertArtist: Boolean,
     visibility: {
       type: String,
       enum: ["Private", "Public"],
-      required: false,
       default: "Public",
     },
-    // chat:{
-    //     type:String,
-    //     required:true
-    // },
-    bio: {
-      type: String,
-      required: false,
-    },
-    profile_img: {
-      type: String,
-      required: false,
-    },
-    profile_cover: {
-      type: String,
-      required: false,
-    },
-    verified: {
-      type: Boolean,
-      required: false,
-    },
-    verification: {
-      type: Boolean,
-      required: true,
-    },
-    verification_token: {
-      type: String,
-      required: true,
-    },
+    bio: String,
+    profileImg: String,
+    profileCover: String,
+    verified: Boolean,
+
+    verification: { type: Boolean, required: true },
+    verificationToken: { type: String, required: true },
     forgotPasswordToken: {
       token: String,
       expiresAt: Date,
     },
-    genres: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "genre", // Reference the artistCategories model
-        },
-      ],
-      required: false,
-    },
+
+    artistCategories: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "artist_categories",
+      },
+    ],
+    genres: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "genre",
+      },
+    ],
+
     gallery: [gallerySchema],
-    // music_videos:[{ _id:String }],
-    // music:[{ _id:String }],
-    link: {
+
+    links: {
       facebook: String,
       twitter: String,
-      // sportify:String,
       instagram: String,
       youtube: String,
       website: String,
     },
+
     favourites: [
       {
-        contest_id: {
+        contestId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "contests",
         },
-        participant_ids: [
+        participantIds: [
           {
             type: mongoose.Schema.Types.ObjectId,
             ref: "user_artists",
@@ -159,83 +109,17 @@ const appUsersSchema = new mongoose.Schema(
         ],
       },
     ],
-    account_deleted: {
-      type: {
-        is_deleted: {
-          type: Boolean,
-          default: false,
-        },
-        deleted_by: {
-          user_type: {
-            type: String,
-            enum: ["admin", "self"],
-          },
-          admin_email: {
-            type: String,
-            required: false,
-          },
-          admin_name: {
-            type: String,
-            required: false,
-          },
-        },
-        deletedAt: {
-          type: Date,
-          default: null,
-        },
-      },
-      required: false,
-    },
 
-    blocked_users: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "app_users",
-      },
-    ],
-    followers: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "app_users",
-      },
-    ],
-    following: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "app_users",
-      },
-    ],
-    // likes:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
-    // liked:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'user'
-    // }],
-    // votes:[{
-    // 	type: mongoose.Schema.Types.ObjectId,
-    // 	ref: 'contests'
-    // }],
-    // playlist:[{_id:String}],
-    blocked: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "app_users",
-      },
-    ],
-    // wallet_id:{
-    //     type:String,
-    //     required:true
-    // },
-    status: {
-      type: String,
-      required: true,
-    },
+    accountDeleted: accountDeletedSchema,
+
+    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "app_users" }],
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "app_users" }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: "app_users" }],
+    blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: "app_users" }],
+
+    status: { type: String, required: true },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("app_users", appUsersSchema);

@@ -25,8 +25,6 @@ module.exports = {
   //image
   ADMIN_IMAGE_URL: process.env.admin_url,
   ARTIST_CATEGORY_ICON_URL: process.env.artistCategoryIcon_url,
-  BADGE_ICON_URL: process.env.badgeIcon_url,
-  COIN_PRICE_ICON_URL: process.env.coinPriceIcon_url,
   PROFILE_COVER_URL: process.env.profile_cover_image,
   MEDIA_VIDEO_URL: process.env.media_video_url,
   GALLERY_IMAGE_URL: process.env.gallery_image_url,
@@ -35,4 +33,5 @@ module.exports = {
   SECRET_ACCESS_KEY: process.env.SECRET_ACCESS_KEY,
   END_POINT: process.env.END_POINT,
   MEDIA_BUCKET_NAME: process.env.MEDIA_BUCKET_NAME,
+  EMAIL_LOGO: process.env.EMAIL_LOGO,
 };

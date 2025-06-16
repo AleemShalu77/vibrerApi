@@ -4,62 +4,56 @@ const { videoUploader } = require("../../utils/videoUploader");
 
 module.exports = (router) => {
   router.post(
-    "/add/MediaPost",
+    "/contest/entry/add",
     middleware.validateToken,
     mediaPostController.addMediaPost
   );
   router.post(
-    "/upload/MediaVideo",
+    "/contest/entry/media/upload",
     middleware.validateToken,
     videoUploader.single("media_video"),
     mediaPostController.uploadMediaVideo
   );
   router.post(
-    "/add/contestParticipateVote",
+    "/contest/entry/remove/:id",
+    middleware.validateToken,
+    mediaPostController.deleteMediaPost
+  );
+  router.post(
+    "/contest/entry/vote/add",
     middleware.validateToken,
     mediaPostController.contestParticipateVote
   );
+  router.get(
+    "/contest/entry/vote",
+    middleware.validateToken,
+    mediaPostController.getVotedContestParticipants
+  );
   router.post(
-    "/addContestParticipantToFavourite",
+    "/contest/entry/favourite/add",
     middleware.validateToken,
     mediaPostController.addToFavourite
   );
   router.get(
-    "/getAllFavouriteContestParticipants",
+    "/contest/entry/favourite",
     middleware.validateToken,
     mediaPostController.getAllFavouriteContestParticipants
   );
+
   router.get(
-    "/getVotedContestParticipants",
-    middleware.validateToken,
-    mediaPostController.getVotedContestParticipants
-  );
-  router.get(
-    "/getUserParticipatedContests",
+    "/contest/entry/user",
     middleware.validateToken,
     mediaPostController.getUserParticipatedContests
   );
-  router.post(
-    "/remove/MediaPost/:id",
-    middleware.validateToken,
-    mediaPostController.deleteMediaPost
-  );
   router.put(
-    "/update/MediaPostStatus",
+    "/contest/entry/status/update",
+    middleware.validateToken,
     mediaPostController.updateMediaPostStatus
   );
 
-  router.get(
-    "/count/adminDashboardCount",
-    middleware.validateToken,
-    mediaPostController.adminDashboardCount
-  );
   router.put(
     "/update/least-quality",
     middleware.validateToken,
     mediaPostController.updateLeastQuality
   );
-  // router.get("/all/MediaPost", mediaPostController.getAllMediaPost);
-  // router.get("/MediaPost/:id", mediaPostController.getMediaPost);
-  // router.post("/remove/MediaPost/:id", mediaPostController.deleteMediaPost);
 };

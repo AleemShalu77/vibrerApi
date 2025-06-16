@@ -11,127 +11,89 @@ const {
   validateVerificationCodeReq,
 } = require("./adminValidation");
 
+const validateRequestBody = (req, next) => {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return next(createHttpError(400, { message: "Request body is required." }));
+  }
+};
+
 const login = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateLoginReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await adminService.login(req);
+    validateRequestBody(req, next);
+
+    await validateLoginReq.validateAsync(req.body);
+    const result = await adminService.login(req);
+
     helper.send(res, result.code, result.data);
   } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
+    next(
+      error.isJoi ? createHttpError(400, { message: error.message }) : error
+    );
   }
 };
 
 const forgotPassword = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateForgotPasswordReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await adminService.forgotPassword(req);
+    validateRequestBody(req, next);
+
+    await validateForgotPasswordReq.validateAsync(req.body);
+    const result = await adminService.forgotPassword(req);
+
     helper.send(res, result.code, result.data);
   } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
+    next(
+      error.isJoi ? createHttpError(400, { message: error.message }) : error
+    );
   }
 };
+
 const resetPassword = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateResetPasswordReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await adminService.resetPassword(req);
+    validateRequestBody(req, next);
+
+    await validateResetPasswordReq.validateAsync(req.body);
+    const result = await adminService.resetPassword(req);
+
     helper.send(res, result.code, result.data);
   } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
+    next(
+      error.isJoi ? createHttpError(400, { message: error.message }) : error
+    );
   }
 };
+
 const verificationCode = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateVerificationCodeReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    let result = await adminService.verificationCode(req);
+    validateRequestBody(req, next);
+
+    await validateVerificationCodeReq.validateAsync(req.body);
+    const result = await adminService.verificationCode(req);
+
     helper.send(res, result.code, result.data);
   } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
+    next(
+      error.isJoi ? createHttpError(400, { message: error.message }) : error
+    );
   }
 };
 
 const addUser = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
+    validateRequestBody(req, next);
 
-    // Validate the request body using Joi
-    let isValid;
-    try {
-      isValid = await validateAddUserReq.validateAsync(req.body);
-    } catch (validationError) {
-      return next(createHttpError(400, { message: validationError.message }));
-    }
+    await validateAddUserReq.validateAsync(req.body);
 
-    // Call Passport.js to authenticate and register the user
-    passport.authenticate("local-signup", (err, user, info) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
+    passport.authenticate("local-signup-admin", (err, user, info) => {
+      if (err) return next(err);
+      if (!user)
         return res.status(400).json({ code: 204, message: info.message });
-      }
 
-      // User registration successful
-      let registered_name = "";
+      const fullName = req.body.firstName
+        ? `${req.body.firstName} ${req.body.lastName || ""}`.trim()
+        : req.body.fullName || "Admin";
 
-      if (req.body.first_name) {
-        registered_name = req.body.first_name;
-
-        if (req.body.last_name) {
-          registered_name += ` ${req.body.last_name}`;
-        }
-      } else if (req.body.full_name) {
-        registered_name = req.body.full_name;
-      }
-      const name = `${registered_name} account`;
-      helper.send(res, 201, user, "", name);
+      const displayName = `${fullName} account`;
+      helper.send(res, 201, user, "", displayName);
     })(req, res, next);
   } catch (error) {
     next(error);
@@ -140,29 +102,23 @@ const addUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return next(
-        createHttpError(400, { message: "Please pass body parameters" })
-      );
-    }
-    let isValid = await validateUpdateUserReq.validateAsync(req.body);
-    if (isValid instanceof Error) {
-      return next(isValid);
-    }
-    const name = req.body.first_name + " " + "account";
-    let result = await adminService.updateUser(req);
-    helper.send(res, result.code, result.data, "", name);
+    validateRequestBody(req, next);
+
+    await validateUpdateUserReq.validateAsync(req.body);
+    const result = await adminService.updateUser(req);
+
+    const displayName = `${req.body.firstName || "Admin"} account`;
+    helper.send(res, result.code, result.data, "", displayName);
   } catch (error) {
-    if (error.isJoi) {
-      return next(createHttpError(400, { message: error.message }));
-    }
-    next(error);
+    next(
+      error.isJoi ? createHttpError(400, { message: error.message }) : error
+    );
   }
 };
 
 const getAllUser = async (req, res, next) => {
   try {
-    let result = await adminService.getAllUser(req);
+    const result = await adminService.getAllUser(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
@@ -171,7 +127,7 @@ const getAllUser = async (req, res, next) => {
 
 const getUser = async (req, res, next) => {
   try {
-    let result = await adminService.getUser(req);
+    const result = await adminService.getUser(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
@@ -180,7 +136,7 @@ const getUser = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
   try {
-    let result = await adminService.deleteUser(req);
+    const result = await adminService.deleteUser(req);
     helper.send(res, result.code, result.data);
   } catch (error) {
     next(error);
